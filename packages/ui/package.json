@@ -1,0 +1,20 @@
+{
+  "name": "@coin-book/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./theme.css": "./src/theme.css",
+    "./*.svelte": "./src/components/*.svelte"
+  },
+  "dependencies": {
+    "@coin-book/core": "workspace:*",
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/hanken-grotesk": "^5.3.0",
+    "bits-ui": "^2.19.3",
+    "phosphor-svelte": "^3.1.1"
+  },
+  "peerDependencies": {
+    "svelte": "^5.57.1"
+  }
+}

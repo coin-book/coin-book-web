@@ -1,0 +1,4 @@
+@import 'tailwindcss';
+@import '@coin-book/ui/theme.css';
+
+@source '../../../packages/ui/src';

@@ -1,0 +1,26 @@
+{
+  "name": "@coin-book/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "exports": {
+    "./api": "./src/api.ts",
+    "./auth": "./src/auth.svelte.ts",
+    "./dates": "./src/dates.ts",
+    "./errors": "./src/errors.ts",
+    "./i18n": "./src/i18n.svelte.ts",
+    "./money": "./src/money.ts",
+    "./taxonomy": "./src/taxonomy.svelte.ts",
+    "./theme": "./src/theme.svelte.ts",
+    "./toast": "./src/toast.svelte.ts",
+    "./types": "./src/types.ts",
+    "./colors": "./src/colors.ts"
+  },
+  "devDependencies": {
+    "svelte": "^5.57.1",
+    "vitest": "^5.0.2"
+  }
+}

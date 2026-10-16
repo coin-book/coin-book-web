@@ -1,0 +1,169 @@
+/* Design tokens: technicka-specifikace.md, chapter 9. Components use tokens only, never raw hex. */
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/hanken-grotesk';
+
+@theme {
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-income: var(--income);
+  --color-over: var(--over);
+  --color-warn: var(--warn);
+  --color-transfer: var(--transfer);
+
+  --radius-input: 10px;
+  --radius-panel: 16px;
+
+  --text-micro: 13px;
+  --text-body: 15px;
+  --text-lead: 18px;
+  --text-title: 24px;
+  --text-headline: 32px;
+  --text-hero: 48px;
+}
+
+:root {
+  color-scheme: light;
+  --ink: #1f1a3d;
+  --ink-soft: #5b5679;
+  --ink-faint: #8e8aa8;
+  --canvas: #f6f5fb;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --line: #e7e4f2;
+  --brand: #4b3bff;
+  --brand-ink: #ffffff;
+  --income: #00a67e;
+  --over: #ff4f5e;
+  --warn: #ffb020;
+  --transfer: #9a94c7;
+  --shadow-float: 0 18px 50px -12px rgb(31 26 61 / 0.28);
+
+  --cat-mandarinka: #ff6b3d;
+  --cat-malina: #ff4fa3;
+  --cat-ametyst: #b44cff;
+  --cat-chrpa: #4b7bff;
+  --cat-laguna: #00b8d9;
+  --cat-smaragd: #00b37a;
+  --cat-limeta: #9bcb2d;
+  --cat-slunecnice: #ffc233;
+  --cat-kakao: #a1887f;
+  --cat-bridlice: #64748b;
+  --cat-income: var(--income);
+  --cat-transfer: var(--transfer);
+  --cat-uncategorized: #c9c5dc;
+
+  /* Text on a full category fill: light hues need ink, the rest take white. */
+  --on-light: #1f1a3d;
+  --on-dark: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --ink: #eceaff;
+    --ink-soft: #b4afd6;
+    --ink-faint: #7e79a3;
+    --canvas: #15132b;
+    --surface: #1e1b3a;
+    --surface-raised: #27244a;
+    --line: #322e57;
+    --brand: #8c80ff;
+    --brand-ink: #15132b;
+    --income: #3ddcaa;
+    --over: #ff7a85;
+    --warn: #ffc75a;
+    --transfer: #8e88bf;
+    --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.6);
+    --cat-mandarinka: #ff8a63;
+    --cat-malina: #ff74b8;
+    --cat-ametyst: #c77bff;
+    --cat-chrpa: #7a9dff;
+    --cat-laguna: #34cde8;
+    --cat-smaragd: #2fd198;
+    --cat-limeta: #b3dc55;
+    --cat-slunecnice: #ffd25e;
+    --cat-kakao: #bca59c;
+    --cat-bridlice: #94a3b8;
+    --cat-uncategorized: #4a466e;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ink: #eceaff;
+  --ink-soft: #b4afd6;
+  --ink-faint: #7e79a3;
+  --canvas: #15132b;
+  --surface: #1e1b3a;
+  --surface-raised: #27244a;
+  --line: #322e57;
+  --brand: #8c80ff;
+  --brand-ink: #15132b;
+  --income: #3ddcaa;
+  --over: #ff7a85;
+  --warn: #ffc75a;
+  --transfer: #8e88bf;
+  --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.6);
+  --cat-mandarinka: #ff8a63;
+  --cat-malina: #ff74b8;
+  --cat-ametyst: #c77bff;
+  --cat-chrpa: #7a9dff;
+  --cat-laguna: #34cde8;
+  --cat-smaragd: #2fd198;
+  --cat-limeta: #b3dc55;
+  --cat-slunecnice: #ffd25e;
+  --cat-kakao: #bca59c;
+  --cat-bridlice: #94a3b8;
+  --cat-uncategorized: #4a466e;
+}
+
+html {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  min-height: 100dvh;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-variation-settings: 'opsz' 48;
+  letter-spacing: -0.02em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
