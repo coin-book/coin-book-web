@@ -257,8 +257,8 @@
   }
   .segmented button.on {
     background: var(--surface);
-    color: var(--ink);
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+    color: var(--brand);
+    box-shadow: var(--glow);
   }
   .section-head {
     display: flex;

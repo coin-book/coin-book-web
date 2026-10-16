@@ -34,6 +34,10 @@
   .income {
     color: var(--income);
   }
+  .income.size-lg,
+  .income.size-hero {
+    text-shadow: var(--glow-text);
+  }
   .sign {
     margin-right: 0.04em;
   }

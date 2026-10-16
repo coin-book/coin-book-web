@@ -231,9 +231,21 @@
     color: var(--ink);
   }
   li a.active {
-    background: var(--surface);
+    position: relative;
+    background: color-mix(in oklch, var(--brand) 12%, transparent);
     color: var(--brand);
-    box-shadow: 0 1px 0 var(--line);
+    text-shadow: var(--glow-text);
+  }
+  li a.active::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    top: 9px;
+    bottom: 9px;
+    width: 4px;
+    border-radius: 0 4px 4px 0;
+    background: var(--brand);
+    box-shadow: var(--glow);
   }
   .label {
     flex: 1;
@@ -275,6 +287,15 @@
     .rail ul {
       grid-auto-flow: column;
       width: 100%;
+    }
+    li a.active::before {
+      left: 30%;
+      right: 30%;
+      top: -6px;
+      bottom: auto;
+      width: auto;
+      height: 3px;
+      border-radius: 0 0 4px 4px;
     }
     li a {
       flex-direction: column;

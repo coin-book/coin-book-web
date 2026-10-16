@@ -62,6 +62,7 @@
   .primary {
     background: var(--brand);
     color: var(--brand-ink);
+    box-shadow: var(--glow);
   }
   .primary:hover:not(:disabled) {
     background: color-mix(in oklch, var(--brand) 88%, var(--ink));

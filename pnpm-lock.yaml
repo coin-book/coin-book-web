@@ -236,12 +236,6 @@ importers:
       '@coin-book/core':
         specifier: workspace:*
         version: link:../core
-      '@fontsource-variable/bricolage-grotesque':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource-variable/hanken-grotesk':
-        specifier: ^5.3.0
-        version: 5.3.0
       bits-ui:
         specifier: ^2.19.3
         version: 2.19.5(@internationalized/date@3.12.4)(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.2)(vite@8.3.4))(svelte@5.57.2)(typescript@6.0.3)(vite@8.3.4))(svelte@5.57.2)
@@ -270,12 +264,6 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
-
-  '@fontsource-variable/bricolage-grotesque@5.3.0':
-    resolution: {integrity: sha512-TLi9Q4hJjS2UvoTMRSS2nHu6c4R56lAw60NR9QYtVRCHn0XtsFpiEhNffZ8Glsoxu6wEEwLKBP8lb94J52PNBA==}
-
-  '@fontsource-variable/hanken-grotesk@5.3.0':
-    resolution: {integrity: sha512-DOd0FqL+3cH2dfNy0JtSq9tUfxBz5mLmHMjTU0DOr3E9Zo6wxuatCl53DIPNrSPgCsnuKyM739BTIG5glCLirw==}
 
   '@internationalized/date@3.12.4':
     resolution: {integrity: sha512-M1dEn4c1U1HsSlaVR8upZtSqvXrTkHDfv18H01uCSJyjVLDxnBR38v/fMxecmlwXKR4i9HeZcmgQAPE6A+aGJQ==}
@@ -1224,10 +1212,6 @@ snapshots:
       '@floating-ui/utils': 0.2.12
 
   '@floating-ui/utils@0.2.12': {}
-
-  '@fontsource-variable/bricolage-grotesque@5.3.0': {}
-
-  '@fontsource-variable/hanken-grotesk@5.3.0': {}
 
   '@internationalized/date@3.12.4':
     dependencies:
