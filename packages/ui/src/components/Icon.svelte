@@ -27,6 +27,7 @@
   import GameController from 'phosphor-svelte/lib/GameControllerIcon';
   import GasPump from 'phosphor-svelte/lib/GasPumpIcon';
   import Gear from 'phosphor-svelte/lib/GearIcon';
+  import GoogleLogo from 'phosphor-svelte/lib/GoogleLogoIcon';
   import Gift from 'phosphor-svelte/lib/GiftIcon';
   import GitMerge from 'phosphor-svelte/lib/GitMergeIcon';
   import GraduationCap from 'phosphor-svelte/lib/GraduationCapIcon';
@@ -97,6 +98,7 @@
     'game-controller': GameController,
     'gas-pump': GasPump,
     gear: Gear,
+    'google-logo': GoogleLogo,
     gift: Gift,
     'git-merge': GitMerge,
     'graduation-cap': GraduationCap,

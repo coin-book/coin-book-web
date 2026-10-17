@@ -1,11 +1,13 @@
-import { api, bindSession } from './api';
+import { API_BASE, api, bindSession } from './api';
 
 type SessionBody = { access_token: string; expires_in: number; email: string };
 
 class Auth {
   email = $state<string | null>(null);
   ready = $state(false);
-  needsSetup = $state(false);
+  google = $state(false);
+  /** Opened by navigation, not fetch: Google sends the browser back through the API. */
+  readonly googleSignInUrl = `${API_BASE}/auth/google`;
   #accessToken: string | null = null;
   #refreshing: Promise<boolean> | null = null;
   #onLogout: () => void = () => {};
@@ -25,9 +27,9 @@ class Auth {
 
   /** Restores the session from the refresh cookie on page load. */
   async restore() {
-    const status = await api.get<{ needs_setup: boolean }>('/auth/status');
-    this.needsSetup = status.needs_setup;
-    if (!this.needsSetup) await this.refresh();
+    const status = await api.get<{ google: boolean }>('/auth/status');
+    this.google = status.google;
+    await this.refresh();
     this.ready = true;
   }
 
@@ -35,9 +37,8 @@ class Auth {
     this.#accept(await api.post<SessionBody>('/auth/login', { email, password }, { anonymous: true }));
   }
 
-  async setup(email: string, password: string) {
-    this.#accept(await api.post<SessionBody>('/auth/setup', { email, password }, { anonymous: true }));
-    this.needsSetup = false;
+  async register(email: string, password: string) {
+    this.#accept(await api.post<SessionBody>('/auth/register', { email, password }, { anonymous: true }));
   }
 
   refresh(): Promise<boolean> {

@@ -1,7 +1,7 @@
 import { apiErrorMessage } from './i18n.svelte';
 import type { Problem } from './types';
 
-const API_BASE = '/api/v1';
+export const API_BASE = '/api/v1';
 
 export class ApiError extends Error {
   constructor(

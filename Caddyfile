@@ -1,13 +1,21 @@
 {
 	admin off
 	auto_https off
+	# cloudflared (a private address) is the trusted hop; CF-Connecting-IP carries the real client.
+	# A client on the LAN is trusted too and could name its own address: acceptable at home.
+	servers {
+		trusted_proxies static private_ranges
+		client_ip_headers CF-Connecting-IP
+	}
 }
 
 :80 {
 	encode zstd gzip
 
 	handle /api/* {
-		reverse_proxy api:8080
+		reverse_proxy api:8080 {
+			header_up X-Forwarded-For {client_ip}
+		}
 	}
 	handle /healthz {
 		reverse_proxy api:8080

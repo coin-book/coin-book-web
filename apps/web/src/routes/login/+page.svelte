@@ -1,34 +1,44 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import { auth } from '@coin-book/core/auth';
-  import { ApiError } from '@coin-book/core/api';
   import { errorText } from '@coin-book/core/errors';
-  import { t } from '@coin-book/core/i18n';
+  import { apiErrorMessage, t } from '@coin-book/core/i18n';
   import Button from '@coin-book/ui/Button.svelte';
 
+  let registering = $state(false);
   let email = $state('');
   let password = $state('');
-  let error = $state('');
   let busy = $state(false);
+  // The Google callback lands here with ?error=<api code> when the sign-in did not complete.
+  let error = $state(codeFromQuery(page.url.searchParams.get('error')));
 
-  const setup = $derived(auth.needsSetup);
+  function codeFromQuery(code: string | null) {
+    return code ? apiErrorMessage(code) : '';
+  }
+
+  function switchMode() {
+    registering = !registering;
+    error = '';
+  }
 
   async function submit(e: SubmitEvent) {
     e.preventDefault();
     busy = true;
     error = '';
     try {
-      if (setup) await auth.setup(email, password);
+      if (registering) await auth.register(email, password);
       else await auth.login(email, password);
     } catch (err) {
       error = errorText(err);
-      if (err instanceof ApiError && err.code === 'already_set_up') auth.needsSetup = false;
     } finally {
       busy = false;
     }
   }
 </script>
 
-<svelte:head><title>{setup ? t('auth.setupTitle') : t('auth.loginTitle')} · coin-book</title></svelte:head>
+<svelte:head
+  ><title>{registering ? t('auth.registerTitle') : t('auth.loginTitle')} · coin-book</title></svelte:head
+>
 
 <main class="login">
   <div class="stripes" aria-hidden="true">
@@ -39,8 +49,12 @@
     <span style="--c: var(--cat-mandarinka); --w: 30%"></span>
   </div>
   <form class="card" onsubmit={submit}>
-    <h1 class="display">{setup ? t('auth.setupTitle') : t('auth.loginTitle')}</h1>
-    {#if setup}<p class="lead">{t('auth.setupLead')}</p>{/if}
+    <h1 class="display">{registering ? t('auth.registerTitle') : t('auth.loginTitle')}</h1>
+    {#if registering}<p class="lead">{t('auth.registerLead')}</p>{/if}
+    {#if auth.google}
+      <Button variant="quiet" icon="google-logo" href={auth.googleSignInUrl}>{t('auth.google')}</Button>
+      <p class="or" aria-hidden="true"><span>{t('auth.or')}</span></p>
+    {/if}
     <label>
       <span>{t('auth.email')}</span>
       <input type="email" autocomplete="username" required bind:value={email} />
@@ -49,15 +63,18 @@
       <span>{t('auth.password')}</span>
       <input
         type="password"
-        autocomplete={setup ? 'new-password' : 'current-password'}
+        autocomplete={registering ? 'new-password' : 'current-password'}
         required
-        minlength={setup ? 10 : undefined}
+        minlength={registering ? 10 : undefined}
         bind:value={password}
       />
-      {#if setup}<small>{t('auth.passwordHint')}</small>{/if}
+      {#if registering}<small>{t('auth.passwordHint')}</small>{/if}
     </label>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
-    <Button type="submit" {busy}>{setup ? t('auth.setup') : t('auth.login')}</Button>
+    <Button type="submit" {busy}>{registering ? t('auth.register') : t('auth.login')}</Button>
+    <button type="button" class="switch" onclick={switchMode}>
+      {registering ? t('auth.toLogin') : t('auth.toRegister')}
+    </button>
   </form>
 </main>
 
@@ -106,6 +123,21 @@
     margin: -6px 0 4px;
     color: var(--ink-soft);
   }
+  .or {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin: -4px 0;
+    color: var(--ink-faint);
+    font-size: var(--text-micro);
+  }
+  .or::before,
+  .or::after {
+    content: '';
+    height: 1px;
+    background: var(--line);
+  }
   label {
     display: grid;
     gap: 6px;
@@ -133,6 +165,17 @@
     margin: 0;
     color: var(--over);
     font-weight: 600;
+  }
+  .switch {
+    justify-self: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-soft);
+    font: inherit;
+    font-size: var(--text-micro);
+    text-decoration: underline;
+    cursor: pointer;
   }
   @media (max-width: 640px) {
     .login {

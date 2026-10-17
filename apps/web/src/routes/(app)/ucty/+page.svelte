@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { api } from '@coin-book/core/api';
+  import { auth } from '@coin-book/core/auth';
   import { shortDate } from '@coin-book/core/dates';
   import { errorText } from '@coin-book/core/errors';
   import { t } from '@coin-book/core/i18n';
@@ -46,7 +47,8 @@
     void loadCandidates();
   });
 
-  const DISMISSED_KEY = 'coinbook.notMyAccounts';
+  // Keyed by user: the browser may serve several accounts, and these are their bank numbers.
+  const DISMISSED_KEY = `coinbook.notMyAccounts.${auth.email ?? ''}`;
 
   function loadDismissed(): string[] {
     try {

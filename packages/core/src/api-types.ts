@@ -145,6 +145,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Send the browser to Google to sign in
+         * @description Open this in the browser, not with fetch: Google sends the user back to the callback, which sets the refresh cookie and redirects to the app.
+         */
+        get: operations["google-sign-in"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Where Google sends the browser back
+         * @description Redirects to the app with the session cookie set, or to the sign-in page with `error` naming what went wrong (`google_sign_in_failed`, `email_not_verified`, `email_taken`).
+         */
+        get: operations["google-callback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -196,7 +236,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/setup": {
+    "/api/v1/auth/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -205,8 +245,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create the single user and sign in */
-        post: operations["setup"];
+        /** Create a user and sign in */
+        post: operations["register"];
         delete?: never;
         options?: never;
         head?: never;
@@ -220,7 +260,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Whether the user still has to be created */
+        /** Which ways of signing in are available */
         get: operations["get-auth-status"];
         put?: never;
         post?: never;
@@ -1234,7 +1274,7 @@ export interface components {
              * @description Stable machine-readable error identifier. Branch on this, not on `detail`.
              * @enum {string}
              */
-            code: "account_exists" | "already_imported" | "already_rolled_back" | "already_set_up" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "file_too_large" | "forbidden" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed";
+            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed";
             /** @description English explanation; localize from code instead of showing this. */
             detail?: string;
             errors?: components["schemas"]["ErrorDetail"][];
@@ -1291,8 +1331,8 @@ export interface components {
             readonly classifier_examples: number;
         };
         StatusOutputBody: {
-            /** @description True until the single user has been created. */
-            needs_setup: boolean;
+            /** @description Whether signing in with Google is available. */
+            google: boolean;
         };
         SuggestedRule: {
             category_id: string;
@@ -2023,6 +2063,107 @@ export interface operations {
             };
         };
     };
+    "google-sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Found */
+            302: {
+                headers: {
+                    Location?: string;
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "google-callback": {
+        parameters: {
+            query?: {
+                code?: string;
+                state?: string;
+                /** @description Set by Google when the user did not grant access. */
+                error?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                coinbook_google?: string;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Found */
+            302: {
+                headers: {
+                    Location?: string;
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     login: {
         parameters: {
             query?: never;
@@ -2162,7 +2303,7 @@ export interface operations {
             };
         };
     };
-    setup: {
+    register: {
         parameters: {
             query?: never;
             header?: never;
