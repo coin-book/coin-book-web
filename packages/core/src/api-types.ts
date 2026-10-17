@@ -439,6 +439,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Spending per main category for each of the last months
+         * @description Agent tokens need the `reports:read` scope.
+         */
+        get: operations["get-categories-report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/flows/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Where the month's money came from and went, as a flow graph
+         * @description Income categories flow into accounts; accounts flow into spending categories and saving accounts. Transfers between own accounts are not spending, only those into saving accounts appear, as set-aside money.
+         *
+         *     Agent tokens need the `reports:read` scope.
+         */
+        get: operations["get-flows-report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/monthly/{month}": {
         parameters: {
             query?: never;
@@ -447,7 +489,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Income and spending by category for a month, with a six-month trend
+         * Income and spending by category for a month, with a twelve-month trend
          * @description Transfers between own accounts are excluded.
          *
          *     Agent tokens need the `reports:read` scope.
@@ -898,6 +940,11 @@ export interface components {
             /** @description Main categories with spending but no budget line. */
             unbudgeted: components["schemas"]["UnbudgetedCategory"][];
         };
+        CategoriesReport: {
+            currency: string;
+            /** @description Oldest first. */
+            months: components["schemas"]["CategoryMonth"][];
+        };
         CategorizeInputBody: {
             /** @description One line, or several for a split; they must add up to the amount. */
             lines: components["schemas"]["CategoryLine"][];
@@ -941,6 +988,11 @@ export interface components {
             /** Format: int64 */
             amount_minor: number;
             category_id: string;
+        };
+        CategoryMonth: {
+            /** @description Per main category, largest first; empty for a month without spending. */
+            expenses: components["schemas"]["CategoryTotal"][];
+            month: string;
         };
         CategoryTotal: {
             /** Format: int64 */
@@ -1021,6 +1073,35 @@ export interface components {
             message?: string;
             /** @description The value at the given location */
             value?: unknown;
+        };
+        FlowLink: {
+            /**
+             * Format: int64
+             * @description Always positive.
+             */
+            amount_minor: number;
+            /** @description Node key. */
+            source: string;
+            /** @description Node key. */
+            target: string;
+        };
+        FlowNode: {
+            account_id?: string;
+            category_id?: string;
+            /** @description Stable id to reference from links. */
+            key: string;
+            /**
+             * @description income/expense/financial: a main category (category_id absent = not yet categorised); account: an own account; saving: a saving account money went into.
+             * @enum {string}
+             */
+            kind: "income" | "account" | "expense" | "financial" | "saving";
+        };
+        FlowsReport: {
+            currency: string;
+            /** @description Largest first. Income categories flow into accounts; accounts flow into spending categories and saving accounts. */
+            links: components["schemas"]["FlowLink"][];
+            month: string;
+            nodes: components["schemas"]["FlowNode"][];
         };
         ImportAccount: {
             account_id?: string;
@@ -3191,6 +3272,127 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-categories-report": {
+        parameters: {
+            query: {
+                /** @description Last month of the range. */
+                to: string;
+                months?: number;
+                currency?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoriesReport"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-flows-report": {
+        parameters: {
+            query?: {
+                currency?: string;
+            };
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlowsReport"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
