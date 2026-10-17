@@ -1,8 +1,12 @@
 /* Design tokens: technicka-specifikace.md, chapter 9. Components use tokens only, never raw hex. */
+
+/* Figtree: full shapes and tabular figures for amount columns. Bundled so every platform
+   renders the same; served from our origin (N-1). */
+@import '@fontsource-variable/figtree';
+
 @theme {
-  /* The platform's own face: SF Pro on macOS, Segoe UI on Windows, Roboto/Cantarell elsewhere; nothing is downloaded (N-1). */
-  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Cantarell, 'Helvetica Neue', sans-serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Cantarell, 'Helvetica Neue', sans-serif;
+  --font-display: 'Figtree Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Figtree Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
@@ -70,66 +74,66 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-      color-scheme: dark;
-      --ink: #f5f5f7;
-      --ink-soft: #aeaeb2;
-      --ink-faint: #7c7c82;
-      --canvas: #1c1c1e;
-      --surface: #262628;
-      --surface-raised: #303033;
-      --line: #38383c;
-      --brand: #30d158;
-      --brand-ink: #062b12;
-      --glow: 0 0 0 1px color-mix(in oklch, var(--brand) 45%, transparent), 0 0 22px -2px color-mix(in oklch, var(--brand) 60%, transparent);
-      --glow-text: 0 0 14px color-mix(in oklch, var(--brand) 65%, transparent);
-      --income: var(--brand);
-      --over: #ff453a;
-      --warn: #ffd60a;
-      --transfer: #98989f;
-      --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.7);
-      --cat-mandarinka: #ff9f0a;
-      --cat-malina: #ff6fb1;
-      --cat-ametyst: #bf5af2;
-      --cat-chrpa: #5e8bff;
-      --cat-laguna: #38bdf8;
-      --cat-smaragd: #2dd4bf;
-      --cat-limeta: #b5e34f;
-      --cat-slunecnice: #ffd25e;
-      --cat-kakao: #ac8e68;
-      --cat-bridlice: #8e98a8;
-      --cat-uncategorized: #48484d;
+    color-scheme: dark;
+    --ink: #eceaff;
+    --ink-soft: #b4afd6;
+    --ink-faint: #7e79a3;
+    --canvas: #15132b;
+    --surface: #1e1b3a;
+    --surface-raised: #27244a;
+    --line: #322e57;
+    --brand: #8c80ff;
+    --brand-ink: #15132b;
+    --glow: none;
+    --glow-text: none;
+    --income: #3ddcaa;
+    --over: #ff7a85;
+    --warn: #ffc75a;
+    --transfer: #8e88bf;
+    --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.6);
+    --cat-mandarinka: #ff8a63;
+    --cat-malina: #ff74b8;
+    --cat-ametyst: #c77bff;
+    --cat-chrpa: #7a9dff;
+    --cat-laguna: #34cde8;
+    --cat-smaragd: #2fd198;
+    --cat-limeta: #b3dc55;
+    --cat-slunecnice: #ffd25e;
+    --cat-kakao: #bca59c;
+    --cat-bridlice: #94a3b8;
+    --cat-uncategorized: #4a466e;
   }
 }
 
 :root[data-theme='dark'] {
-    color-scheme: dark;
-    --ink: #f5f5f7;
-    --ink-soft: #aeaeb2;
-    --ink-faint: #7c7c82;
-    --canvas: #1c1c1e;
-    --surface: #262628;
-    --surface-raised: #303033;
-    --line: #38383c;
-    --brand: #30d158;
-    --brand-ink: #062b12;
-    --glow: 0 0 0 1px color-mix(in oklch, var(--brand) 45%, transparent), 0 0 22px -2px color-mix(in oklch, var(--brand) 60%, transparent);
-    --glow-text: 0 0 14px color-mix(in oklch, var(--brand) 65%, transparent);
-    --income: var(--brand);
-    --over: #ff453a;
-    --warn: #ffd60a;
-    --transfer: #98989f;
-    --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.7);
-    --cat-mandarinka: #ff9f0a;
-    --cat-malina: #ff6fb1;
-    --cat-ametyst: #bf5af2;
-    --cat-chrpa: #5e8bff;
-    --cat-laguna: #38bdf8;
-    --cat-smaragd: #2dd4bf;
-    --cat-limeta: #b5e34f;
-    --cat-slunecnice: #ffd25e;
-    --cat-kakao: #ac8e68;
-    --cat-bridlice: #8e98a8;
-    --cat-uncategorized: #48484d;
+  color-scheme: dark;
+  --ink: #eceaff;
+  --ink-soft: #b4afd6;
+  --ink-faint: #7e79a3;
+  --canvas: #15132b;
+  --surface: #1e1b3a;
+  --surface-raised: #27244a;
+  --line: #322e57;
+  --brand: #8c80ff;
+  --brand-ink: #15132b;
+  --glow: none;
+  --glow-text: none;
+  --income: #3ddcaa;
+  --over: #ff7a85;
+  --warn: #ffc75a;
+  --transfer: #8e88bf;
+  --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.6);
+  --cat-mandarinka: #ff8a63;
+  --cat-malina: #ff74b8;
+  --cat-ametyst: #c77bff;
+  --cat-chrpa: #7a9dff;
+  --cat-laguna: #34cde8;
+  --cat-smaragd: #2fd198;
+  --cat-limeta: #b3dc55;
+  --cat-slunecnice: #ffd25e;
+  --cat-kakao: #bca59c;
+  --cat-bridlice: #94a3b8;
+  --cat-uncategorized: #4a466e;
 }
 
 html {
@@ -148,7 +152,6 @@ body {
 
 .num {
   font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
 }
 
 .display {
@@ -164,9 +167,52 @@ body {
   box-shadow: var(--glow);
 }
 
-input[type='checkbox'],
 input[type='radio'] {
   accent-color: var(--brand);
+}
+
+/* Native checkboxes ignore the theme; this one draws its own box and tick. */
+input[type='checkbox'] {
+  appearance: none;
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border-radius: 6px;
+  border: 1.5px solid color-mix(in oklch, var(--ink) 28%, transparent);
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+input[type='checkbox']::after {
+  content: '';
+  width: 11px;
+  height: 11px;
+  background: var(--brand-ink);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transform: scale(0);
+  transition: transform 160ms cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+input[type='checkbox']:hover {
+  border-color: var(--brand);
+}
+input[type='checkbox']:checked {
+  background: var(--brand);
+  border-color: var(--brand);
+  box-shadow: var(--glow);
+}
+input[type='checkbox']:checked::after {
+  transform: scale(1);
+}
+input[type='checkbox']:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 @media (prefers-reduced-motion: reduce) {

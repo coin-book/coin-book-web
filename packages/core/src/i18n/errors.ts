@@ -20,7 +20,7 @@ const cs: ErrorMessages = {
   unknown_scope: 'Neznámé oprávnění tokenu.',
   token_ttl_too_long: 'Token může platit nejvýš rok.',
   unsupported_format:
-    'Tento soubor neumím přečíst. Podporuji CSV z mBank CZ a slovenský konsolidovaný výpis Revolut.',
+    'Tento soubor neumím přečíst. Podporuji CSV z mBank CZ, slovenský konsolidovaný výpis Revolut a formát coin-book CSV.',
   balance_mismatch: 'Výpis nesouhlasí se svými kontrolními součty.',
   already_imported: 'Tento soubor už je naimportovaný.',
   already_rolled_back: 'Import už byl vrácen.',
@@ -33,6 +33,15 @@ const cs: ErrorMessages = {
   duplicate_budget_line: 'Kategorie je v rozpočtu dvakrát.',
   invalid_currency: 'Neznámá měna.',
   invalid_cursor: 'Stránkování se rozbilo. Načtěte stránku znovu.',
+  mapping_required: 'Soubor neuvádí účet. Vyberte, kam transakce patří.',
+  currency_mismatch: 'Účty mají různou měnu.',
+  merge_into_itself: 'Účet nejde sloučit sám se sebou.',
+  account_exists: 'Účet s tímto číslem už existuje.',
+  invalid_parent: 'Podkategorie musí patřit pod hlavní kategorii.',
+  invalid_merge: 'Kategorii nejde přesunout do sebe ani do své podkategorie.',
+  category_in_use: 'Kategorie se používá. Vyberte, kam přesunout její transakce.',
+  not_own_account: 'Vyberte jiný vlastní účet, než ke kterému transakce patří.',
+  system_category: 'U výchozí kategorie jde změnit jen barvu, ikonu a skupinu.',
   network: 'Server neodpovídá. Běží coin-book-local?',
 };
 
@@ -53,7 +62,7 @@ const sk: ErrorMessages = {
   unknown_scope: 'Neznáme oprávnenie tokenu.',
   token_ttl_too_long: 'Token môže platiť najviac rok.',
   unsupported_format:
-    'Tento súbor neviem prečítať. Podporujem CSV z mBank CZ a slovenský konsolidovaný výpis Revolut.',
+    'Tento súbor neviem prečítať. Podporujem CSV z mBank CZ, slovenský konsolidovaný výpis Revolut a formát coin-book CSV.',
   balance_mismatch: 'Výpis nesúhlasí so svojimi kontrolnými súčtami.',
   already_imported: 'Tento súbor už je naimportovaný.',
   already_rolled_back: 'Import už bol vrátený.',
@@ -66,6 +75,15 @@ const sk: ErrorMessages = {
   duplicate_budget_line: 'Kategória je v rozpočte dvakrát.',
   invalid_currency: 'Neznáma mena.',
   invalid_cursor: 'Stránkovanie sa pokazilo. Načítajte stránku znova.',
+  mapping_required: 'Súbor neuvádza účet. Vyberte, kam transakcie patria.',
+  currency_mismatch: 'Účty majú rôznu menu.',
+  merge_into_itself: 'Účet nie je možné zlúčiť so sebou samým.',
+  account_exists: 'Účet s týmto číslom už existuje.',
+  invalid_parent: 'Podkategória musí patriť pod hlavnú kategóriu.',
+  invalid_merge: 'Kategóriu nejde presunúť do seba ani do svojej podkategórie.',
+  category_in_use: 'Kategória sa používa. Vyberte, kam presunúť jej transakcie.',
+  not_own_account: 'Vyberte iný vlastný účet, než ku ktorému transakcia patrí.',
+  system_category: 'Pri predvolenej kategórii sa dá zmeniť len farba, ikona a skupina.',
   network: 'Server neodpovedá. Beží coin-book-local?',
 };
 

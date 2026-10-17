@@ -4,6 +4,7 @@
   import { colorVar } from '@coin-book/core/colors';
   import { shortDate } from '@coin-book/core/dates';
   import { errorText } from '@coin-book/core/errors';
+  import { usable } from '@coin-book/core/learning';
   import { t } from '@coin-book/core/i18n';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
@@ -13,8 +14,10 @@
   import CategoryPicker from '@coin-book/ui/CategoryPicker.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
+  import TransactionDetails from '@coin-book/ui/TransactionDetails.svelte';
   import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
   import { categorize } from '$lib/categorize';
+  import OwnTransferAction from '$lib/OwnTransferAction.svelte';
   import { queue } from '$lib/queue.svelte';
 
   const QUICK_PICKS = 9;
@@ -32,9 +35,13 @@
   let ambiguousTx = $state<Record<string, Transaction>>({});
 
   const tx = $derived(triage?.transaction ?? null);
-  const suggestion = $derived(triage?.suggested[0]?.category_id ?? null);
+  const suggested = $derived(usable(triage?.suggested));
+  const top = $derived(suggested[0] ?? null);
+  const suggestion = $derived(top?.category_id ?? null);
+  const confidenceOf = $derived(new Map(suggested.map((s) => [s.category_id, s.confidence])));
+  let autoCount = $state(0);
   const quickPicks = $derived.by(() => {
-    const ids = [...(triage?.suggested ?? []), ...(triage?.quick_picks ?? [])].map((s) => s.category_id);
+    const ids = [...suggested, ...(triage?.quick_picks ?? [])].map((s) => s.category_id);
     for (const main of taxonomy.mains) if (main.kind === 'expense') ids.push(main.id);
     return [...new Set(ids)].slice(0, QUICK_PICKS);
   });
@@ -42,7 +49,28 @@
   onMount(() => {
     void next();
     void loadAmbiguous();
+    void loadAuto();
   });
+
+  async function loadAuto() {
+    try {
+      autoCount = (
+        await api.get<{ transactions: Transaction[] }>('/transactions', { auto: true, limit: 200 })
+      ).transactions.length;
+    } catch {
+      autoCount = 0;
+    }
+  }
+
+  async function confirmAll() {
+    try {
+      const res = await api.post<{ confirmed: number }>('/transactions/confirm-automatic');
+      toasts.show(t('learn.confirmedAll', { count: res.confirmed }), 'success');
+      autoCount = 0;
+    } catch (e) {
+      toasts.show(errorText(e), 'error');
+    }
+  }
 
   async function next() {
     try {
@@ -75,7 +103,7 @@
 
   function onkeydown(e: KeyboardEvent) {
     if (!tx || pickerOpen || e.metaKey || e.ctrlKey || e.altKey) return;
-    if ((e.target as HTMLElement).tagName === 'INPUT') return;
+    if (['INPUT', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
     const digit = Number(e.key);
     if (digit >= 1 && digit <= quickPicks.length) {
       e.preventDefault();
@@ -126,6 +154,7 @@
     {#key tx.id}
       <article
         class="card"
+        data-testid="triage-card"
         class:leaving={leaving !== null}
         style="--leave: {leaving ? colorVar(leaving) : 'transparent'}"
       >
@@ -134,10 +163,10 @@
         <p class="where">
           <span>{shortDate(tx.booked_on)}</span>
           <span class="account">{taxonomy.accountsById.get(tx.account_id)?.name ?? ''}</span>
-          {#if tx.counterparty && tx.description !== tx.counterparty}<br /><span class="desc"
-              >{tx.description}</span
-            >{/if}
         </p>
+        <div class="details">
+          <TransactionDetails {tx} compact />
+        </div>
 
         {#if suggestion}
           <button type="button" class="suggestion" onclick={() => assign(suggestion)}>
@@ -147,9 +176,18 @@
               icon={taxonomy.icon(suggestion)}
               size={28}
             />
-            <strong>{taxonomy.label(suggestion)}</strong>
+            <span class="name">
+              {#if taxonomy.parentLabel(suggestion)}<span class="parent"
+                  >{taxonomy.parentLabel(suggestion)}</span
+                >{/if}
+              <strong>{taxonomy.label(suggestion)}</strong>
+            </span>
+            {#if top}<span class="num confidence">{Math.round(top.confidence * 100)} %</span>{/if}
             <kbd>⏎</kbd>
           </button>
+          {#if top?.reasons.length}
+            <p class="reasons">{t('learn.because', { words: top.reasons.join(', ') })}</p>
+          {/if}
         {/if}
 
         <ol class="picks">
@@ -162,7 +200,13 @@
                 disabled={busy}
               >
                 <kbd>{i + 1}</kbd>
-                <span>{taxonomy.label(id)}</span>
+                <span class="name">
+                  {#if taxonomy.parentLabel(id)}<span class="parent">{taxonomy.parentLabel(id)}</span>{/if}
+                  <span>{taxonomy.label(id)}</span>
+                </span>
+                {#if confidenceOf.get(id) && i > 0}<span class="num pick-pct"
+                    >{Math.round((confidenceOf.get(id) ?? 0) * 100)} %</span
+                  >{/if}
               </button>
             </li>
           {/each}
@@ -183,11 +227,25 @@
         {/if}
 
         <div class="actions">
+          <OwnTransferAction {tx} ondone={() => void next()} />
           <Button variant="ghost" onclick={skip}>{t('triage.skip')} <kbd>S</kbd></Button>
         </div>
       </article>
     {/key}
     <p class="keys">{t('triage.keys')}</p>
+  </section>
+{/if}
+
+{#if autoCount > 0}
+  <section class="panel auto">
+    <div>
+      <h2 class="display">{t('learn.autoTitle')}</h2>
+      <p class="lead">{t('learn.autoLead', { count: autoCount })}</p>
+    </div>
+    <div class="auto-actions">
+      <Button variant="quiet" href="/transakce?auto=1">{t('learn.review')}</Button>
+      <Button icon="check" onclick={confirmAll}>{t('learn.confirmAll')}</Button>
+    </div>
   </section>
 {/if}
 
@@ -277,6 +335,13 @@
     font-size: var(--text-micro);
     color: var(--ink-faint);
   }
+  .details {
+    width: min(440px, 100%);
+    margin: -4px 0 18px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--canvas);
+  }
   .suggestion {
     display: flex;
     align-items: center;
@@ -290,9 +355,45 @@
     font: inherit;
     cursor: pointer;
   }
+  .confidence {
+    font-size: var(--text-micro);
+    font-weight: 700;
+    color: var(--brand);
+  }
+  .reasons {
+    margin: -8px 0 14px;
+    font-size: var(--text-micro);
+    color: var(--ink-faint);
+  }
+  .pick-pct {
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .panel.auto {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .auto-actions {
+    display: flex;
+    gap: 10px;
+  }
   .hint {
     font-size: var(--text-micro);
     color: var(--ink-soft);
+  }
+  .name {
+    display: grid;
+    text-align: left;
+    line-height: 1.2;
+  }
+  .parent {
+    font-size: var(--text-micro);
+    font-weight: 500;
+    color: var(--ink-faint);
   }
   .picks {
     list-style: none;
@@ -350,10 +451,11 @@
     color: var(--ink-soft);
     cursor: pointer;
   }
-  .rule input {
-    accent-color: var(--brand);
-  }
   .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
     margin-top: 10px;
   }
   .keys {

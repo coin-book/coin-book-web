@@ -1,4 +1,6 @@
 import { cs, type MessageKey } from './i18n/cs';
+
+export type { MessageKey };
 import { sk } from './i18n/sk';
 import { errorMessages } from './i18n/errors';
 

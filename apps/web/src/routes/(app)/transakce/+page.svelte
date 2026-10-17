@@ -13,7 +13,8 @@
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
   import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
-  import { categorize } from '$lib/categorize';
+  import { categorize, confirmAutomatic } from '$lib/categorize';
+  import OwnTransferAction from '$lib/OwnTransferAction.svelte';
 
   const PAGE_SIZE = 100;
 
@@ -25,6 +26,7 @@
     from: params.get('od') ?? '',
     to: params.get('do') ?? '',
     uncategorized: params.get('nezarazene') === '1',
+    auto: params.get('auto') === '1',
   });
 
   let items = $state<Transaction[]>([]);
@@ -108,6 +110,21 @@
     if (saveRule) void load(true);
   }
 
+  function replace(updated: Transaction, othersChanged: boolean) {
+    if (othersChanged) {
+      void load(true);
+      return;
+    }
+    items = items.map((i) => (i.id === updated.id ? updated : i));
+  }
+
+  async function onConfirm(tx: Transaction) {
+    const updated = await confirmAutomatic(tx);
+    if (!updated) return;
+    if (filter.auto) items = items.filter((i) => i.id !== updated.id);
+    else items = items.map((i) => (i.id === updated.id ? updated : i));
+  }
+
   function onkeydown(e: KeyboardEvent) {
     const el = e.target as HTMLElement;
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || e.metaKey || e.ctrlKey || openPicker) return;
@@ -168,6 +185,14 @@
     />
     {t('tx.onlyUncategorized')}
   </label>
+  <label class="toggle">
+    <input
+      type="checkbox"
+      checked={filter.auto}
+      onchange={(e) => setParam('auto', e.currentTarget.checked ? '1' : '')}
+    />
+    {t('learn.onlyAuto')}
+  </label>
 </div>
 
 {#if error}
@@ -190,10 +215,16 @@
           <TransactionRow
             {tx}
             selected={selected === index}
+            expanded={selected === index}
             bind:pickerOpen={() => openPicker === tx.id, (open) => (openPicker = open ? tx.id : null)}
             oncategorize={onCategorize}
-            onselect={() => (selected = index)}
-          />
+            onconfirm={onConfirm}
+            onselect={() => (selected = selected === index ? -1 : index)}
+          >
+            {#snippet actions()}
+              <OwnTransferAction {tx} ondone={replace} />
+            {/snippet}
+          </TransactionRow>
         {/each}
       </div>
     {/each}
@@ -256,9 +287,6 @@
     font-weight: 600;
     color: var(--ink-soft);
     cursor: pointer;
-  }
-  .toggle input {
-    accent-color: var(--brand);
   }
   .list {
     background: var(--surface);

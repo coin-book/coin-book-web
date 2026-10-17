@@ -52,13 +52,17 @@ test('transactions filter by search text', async ({ page }) => {
   await expect(page).toHaveURL(/q=ROHLIK/);
   const rows = page.locator('[data-tx]');
   await expect(rows.first()).toContainText('ROHLIK');
+
+  await rows.first().click();
+  await expect(page.getByText('Protistrana', { exact: true })).toBeVisible();
+  await expect(page.getByText('Původ', { exact: true })).toBeVisible();
 });
 
 test('an agent token is shown once and listed afterwards', async ({ page }) => {
   await page.goto('/nastaveni');
   await page.getByLabel('Název').fill(`e2e ${Date.now()}`);
   await page.getByRole('button', { name: 'Vytvořit token' }).click();
-  await expect(page.locator('code', { hasText: 'coinbook_pat_' })).toBeVisible();
+  await expect(page.getByTestId('agent-token-secret')).toContainText('coinbook_pat_');
 });
 
 test('command palette navigates', async ({ page }) => {

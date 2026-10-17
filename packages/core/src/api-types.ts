@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/v1/account-aliases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Remembered mappings of bank accounts onto own accounts */
+        get: operations["list-account-aliases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account-aliases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Forget a remembered mapping */
+        delete: operations["delete-account-alias"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/accounts": {
         parameters: {
             query?: never;
@@ -17,7 +51,8 @@ export interface paths {
          */
         get: operations["list-accounts"];
         put?: never;
-        post?: never;
+        /** Create an account by hand, e.g. cash or a bank without a parser */
+        post: operations["create-account"];
         delete?: never;
         options?: never;
         head?: never;
@@ -39,6 +74,23 @@ export interface paths {
         head?: never;
         /** Rename an account, set its opening balance or archive it */
         patch: operations["update-account"];
+        trace?: never;
+    };
+    "/api/v1/accounts/{id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move every transaction into another account of the same currency and delete this one */
+        post: operations["merge-account"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/agent-tokens": {
@@ -178,6 +230,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/banks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The bank register: Czech and Slovak bank codes plus fintechs
+         * @description Agent tokens need the `accounts:read` scope.
+         */
+        get: operations["list-banks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/budgets/{month}": {
         parameters: {
             query?: never;
@@ -229,7 +301,8 @@ export interface paths {
          */
         get: operations["list-categories"];
         put?: never;
-        post?: never;
+        /** Add a main category or a subcategory */
+        post: operations["create-category"];
         delete?: never;
         options?: never;
         head?: never;
@@ -246,10 +319,11 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete a user category, merging what uses it into another */
+        delete: operations["delete-category"];
         options?: never;
         head?: never;
-        /** Rename, recolour or regroup a category */
+        /** Change the look of any category; rename, retype or move a user category */
         patch: operations["update-category"];
         trace?: never;
     };
@@ -385,6 +459,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preferences and the state of the learned classifier */
+        get: operations["get-settings"];
+        /** Change preferences */
+        put: operations["update-settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transactions": {
         parameters: {
             query?: never;
@@ -399,6 +491,23 @@ export interface paths {
         get: operations["list-transactions"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/confirm-automatic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept every category the classifier chose */
+        post: operations["confirm-all-automatic-categories"];
         delete?: never;
         options?: never;
         head?: never;
@@ -436,6 +545,23 @@ export interface paths {
         /** Set the category (or split) by hand, optionally saving a rule */
         put: operations["categorize-transaction"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept the category the classifier chose */
+        post: operations["confirm-transaction-category"];
         delete?: never;
         options?: never;
         head?: never;
@@ -480,6 +606,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transfers/own-account-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Counterparty accounts the bank calls the client's own that coin-book does not know */
+        get: operations["list-own-account-candidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transfers/{tx_id}": {
         parameters: {
             query?: never;
@@ -490,8 +633,28 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Undo a transfer pairing */
+        /** Undo a transfer; a one-leg transfer is remembered as not a transfer */
         delete: operations["unpair-transfer"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transfers/{tx_id}/own": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Mark a payment as a transfer to or from an own account
+         * @description For an account whose statement is not imported; the payment then counts as neither income nor expense.
+         */
+        put: operations["mark-own-transfer"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -540,19 +703,29 @@ export interface components {
             archived: boolean;
             /** @description Opening balance plus every imported movement. */
             balance: components["schemas"]["Amount"];
+            /** @description Bank register id, see GET /banks. */
+            bank_id?: string;
             color_key?: string;
             currency: string;
             id: string;
             /** @enum {string} */
             institution: "mbank_cz" | "mbank_sk" | "revolut" | "ibkr" | "other";
             /** @enum {string} */
-            kind: "current" | "savings" | "pocket" | "fund" | "broker";
+            kind: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card";
             /** Format: date */
             last_booked_on?: string;
             name: string;
             opening_balance: components["schemas"]["Amount"];
             /** Format: int64 */
             transaction_count: number;
+        };
+        AccountFlow: {
+            account_id: string;
+            /**
+             * Format: int64
+             * @description Positive: put aside; negative: taken back.
+             */
+            amount_minor: number;
         };
         AgentToken: {
             /** Format: date-time */
@@ -567,6 +740,15 @@ export interface components {
             /** Format: date-time */
             revoked_at?: string;
             scopes: string[];
+        };
+        Alias: {
+            account_id: string;
+            /** Format: date-time */
+            created_at: string;
+            id: string;
+            /** @description The bank account number or importer reference that is mapped. */
+            identity: string;
+            institution: string;
         };
         AmbiguousTransfer: {
             /** @description Incoming movements that could be its other leg. */
@@ -587,8 +769,11 @@ export interface components {
             /** Format: int64 */
             amount_minor: number;
             category_id: string;
-            /** @enum {string} */
-            source: "rule" | "manual" | "bank";
+            /**
+             * @description model: the learned classifier chose it; confirm or change it.
+             * @enum {string}
+             */
+            source: "rule" | "manual" | "bank" | "model";
         };
         AuditEntry: {
             /** Format: int64 */
@@ -602,6 +787,16 @@ export interface components {
             status: number;
             token_id: string;
             token_name: string;
+        };
+        Bank: {
+            bic?: string;
+            /** @description Domestic bank code (CZ: after the slash, SK: in the IBAN). */
+            code?: string;
+            country?: string;
+            /** @example cz-0800 */
+            id: string;
+            name: string;
+            short_name: string;
         };
         BudgetGroup: {
             code: string;
@@ -679,6 +874,8 @@ export interface components {
              */
             applied_to_other: number;
             rule_id?: string;
+            /** @description Offered when the same choice for this counterparty keeps repeating. */
+            suggested_rule?: components["schemas"]["SuggestedRule"];
             transaction: components["schemas"]["Transaction"];
         };
         Category: {
@@ -686,6 +883,8 @@ export interface components {
             code: string;
             /** @description Theme token key; absent on a subcategory, which uses its parent's. */
             color_key?: string;
+            /** @description The user's own category. A system category only takes the user's colour, icon and group. */
+            custom: boolean;
             icon?: string;
             id: string;
             /** @enum {string} */
@@ -695,6 +894,8 @@ export interface components {
             parent_id?: string;
             /** Format: int64 */
             sort: number;
+            /** @description Present in the taxonomy listing. */
+            usage?: components["schemas"]["Usage"];
         };
         CategoryLine: {
             /** Format: int64 */
@@ -706,6 +907,10 @@ export interface components {
             amount_minor: number;
             /** @description Absent for the not-yet-categorised share. */
             category_id?: string;
+        };
+        ConfirmOutputBody: {
+            /** Format: int64 */
+            confirmed: number;
         };
         CopyBudgetOutputBody: {
             /** Format: int64 */
@@ -724,6 +929,32 @@ export interface components {
             /** @description The token itself. Shown only in this response. */
             secret: string;
             token: components["schemas"]["AgentToken"];
+        };
+        CreateCategoryInputBody: {
+            budget_group_id?: string;
+            color_key?: string;
+            icon?: string;
+            /**
+             * @description Required for a main category.
+             * @enum {string}
+             */
+            kind?: "income" | "expense" | "financial" | "transfer";
+            /** @description Stored for both locales. */
+            name: string;
+            /** @description Creates a subcategory, which takes the parent's kind, colour and group. */
+            parent_id?: string;
+        };
+        CreateInputBody: {
+            /** @description Bank number or IBAN; imports of that account then land here. */
+            account_number?: string;
+            /** @description Bank register id; detected from the account number when omitted. */
+            bank_id?: string;
+            currency: string;
+            /** @enum {string} */
+            kind: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card";
+            name: string;
+            /** Format: int64 */
+            opening_balance_minor?: number;
         };
         CreateRuleInputBody: {
             category_id: string;
@@ -757,13 +988,24 @@ export interface components {
             currency: string;
             /** Format: int64 */
             duplicates: number;
-            /** @description Bank account number or importer reference. */
+            /** @description Bank account number or importer reference; empty when the file names none. */
             identity: string;
             /** @description The import will create this account. */
             is_new: boolean;
+            /** @description Use as the key in the mapping form field. */
+            key: string;
+            /**
+             * @description How the target account was chosen.
+             * @enum {string}
+             */
+            matched_by: "identity" | "alias" | "user" | "none";
             name: string;
+            /** @description The file names no account; the user must choose one before commit. */
+            needs_mapping: boolean;
             /** Format: int64 */
             new: number;
+            /** @description The account the import would create, when is_new. */
+            new_account?: components["schemas"]["NewAccount"];
             /** Format: int64 */
             rows: number;
         };
@@ -801,7 +1043,7 @@ export interface components {
             ok: boolean;
         };
         ImportPreviewRow: {
-            account_identity: string;
+            account_key: string;
             amount: components["schemas"]["Amount"];
             /** Format: date */
             booked_on: string;
@@ -818,11 +1060,26 @@ export interface components {
             batch_id?: string;
             /** Format: int64 */
             categorized_by_bank: number;
+            /**
+             * Format: int64
+             * @description Rows whose category column named a known category.
+             */
+            categorized_by_file: number;
+            /**
+             * Format: int64
+             * @description Rows the classifier categorised above the auto threshold; they await confirmation.
+             */
+            categorized_by_model: number;
             /** Format: int64 */
             categorized_by_rule: number;
             checks_passed: boolean;
             file_name: string;
             format: string;
+            /**
+             * Format: int64
+             * @description Payments recognised as transfers to own accounts whose statements are not imported.
+             */
+            own_transfers: number;
             /** Format: date */
             period_from?: string;
             /** Format: date */
@@ -844,11 +1101,17 @@ export interface components {
         ListAgentTokensOutputBody: {
             tokens: components["schemas"]["AgentToken"][];
         };
+        ListAliasesOutputBody: {
+            aliases: components["schemas"]["Alias"][];
+        };
         ListAmbiguousOutputBody: {
             ambiguous: components["schemas"]["AmbiguousTransfer"][];
         };
         ListAuditOutputBody: {
             entries: components["schemas"]["AuditEntry"][];
+        };
+        ListBanksOutputBody: {
+            banks: components["schemas"]["Bank"][];
         };
         ListImportsOutputBody: {
             imports: components["schemas"]["ImportBatch"][];
@@ -860,10 +1123,31 @@ export interface components {
         ListTransfersOutputBody: {
             transfers: components["schemas"]["TransferPair"][];
         };
+        MarkOwnInputBody: {
+            /** @description The own account the money went to or came from. */
+            account_id: string;
+            /** @description Treat every payment with this counterparty the same way. */
+            remember_counterparty?: boolean;
+        };
+        MarkOwnOutputBody: {
+            /** Format: int64 */
+            applied_to_other: number;
+        };
         MeOutputBody: {
             /** Format: date-time */
             created_at: string;
             email: string;
+        };
+        MergeInputBody: {
+            /** @description The account that keeps everything; this one is deleted. */
+            target_id: string;
+        };
+        MergeOutputBody: {
+            /**
+             * Format: int64
+             * @description Transactions moved into the target account.
+             */
+            moved: number;
         };
         MonthTotals: {
             /**
@@ -898,12 +1182,51 @@ export interface components {
             /** Format: int64 */
             income_minor: number;
             month: string;
+            /** @description Transfers into saving accounts (savings, pocket, fund, broker), net per account. */
+            set_aside: components["schemas"]["AccountFlow"][];
             /** @description The last six months, oldest first. */
             trend: components["schemas"]["MonthTotals"][];
+        };
+        NewAccount: {
+            /** @description Bank register id; the import fills it from the parser or account number. */
+            bank_id?: string;
+            kind: string;
+            name: string;
+        };
+        OwnAccountCandidate: {
+            account_number: string;
+            bank_id?: string;
+            /** @description The name the payments most often carry. */
+            counterparty?: string;
+            currency: string;
+            /**
+             * Format: int64
+             * @description Received from the account.
+             */
+            in_minor: number;
+            /** Format: date */
+            last_booked_on: string;
+            /**
+             * Format: int64
+             * @description Sent to the account.
+             */
+            out_minor: number;
+            /** Format: int64 */
+            transactions: number;
+        };
+        OwnCandidatesOutputBody: {
+            candidates: components["schemas"]["OwnAccountCandidate"][];
         };
         PairTransferInputBody: {
             in_tx_id: string;
             out_tx_id: string;
+        };
+        Prediction: {
+            category_id: string;
+            /** Format: double */
+            confidence: number;
+            /** @description Words of the transaction that point at this category. */
+            reasons: string[];
         };
         Problem: {
             /**
@@ -911,7 +1234,7 @@ export interface components {
              * @description Stable machine-readable error identifier. Branch on this, not on `detail`.
              * @enum {string}
              */
-            code: "already_imported" | "already_rolled_back" | "already_set_up" | "auth_required" | "balance_mismatch" | "duplicate_budget_line" | "file_too_large" | "forbidden" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_request_body" | "method_not_allowed" | "not_found" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "token_ttl_too_long" | "unknown_scope" | "unsupported_format" | "validation_failed";
+            code: "account_exists" | "already_imported" | "already_rolled_back" | "already_set_up" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "file_too_large" | "forbidden" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed";
             /** @description English explanation; localize from code instead of showing this. */
             detail?: string;
             errors?: components["schemas"]["ErrorDetail"][];
@@ -955,9 +1278,27 @@ export interface components {
              */
             expires_in: number;
         };
+        Settings: {
+            /**
+             * Format: double
+             * @description Classifier confidence above which imports categorise on their own; 0 only suggests.
+             */
+            auto_categorize_threshold: number;
+            /**
+             * Format: int64
+             * @description Categorised transactions the classifier currently learns from.
+             */
+            readonly classifier_examples: number;
+        };
         StatusOutputBody: {
             /** @description True until the single user has been created. */
             needs_setup: boolean;
+        };
+        SuggestedRule: {
+            category_id: string;
+            counterparty: string;
+            /** Format: int64 */
+            times: number;
         };
         Suggestion: {
             category_id: string;
@@ -993,15 +1334,21 @@ export interface components {
              */
             source_line: number;
             specific_symbol?: string;
+            /** @description Learned category suggestions; only on uncategorised transactions in lists. */
+            suggestions?: components["schemas"]["Prediction"][];
             /** @description Set when this is one leg of a transfer between own accounts. */
             transfer?: components["schemas"]["Transfer"];
             variable_symbol?: string;
         };
         Transfer: {
             counterpart_account_id: string;
-            counterpart_tx_id: string;
-            /** @enum {string} */
-            matched_by: "auto" | "manual";
+            /** @description Absent while the other account's statement is not imported. */
+            counterpart_tx_id?: string;
+            /**
+             * @description number and counterparty: recognised as a transfer to an own account.
+             * @enum {string}
+             */
+            matched_by: "auto" | "manual" | "number" | "counterparty";
         };
         TransferPair: {
             /** Format: date-time */
@@ -1016,8 +1363,8 @@ export interface components {
             quick_picks: components["schemas"]["Suggestion"][];
             /** Format: int64 */
             remaining: number;
-            /** @description Categories used before for the same counterparty. */
-            suggested: components["schemas"]["Suggestion"][];
+            /** @description Learned suggestions, most likely first. */
+            suggested: components["schemas"]["Prediction"][];
             /** @description Absent when nothing is left to categorise. */
             transaction?: components["schemas"]["Transaction"];
         };
@@ -1028,9 +1375,11 @@ export interface components {
         };
         UpdateAccountInputBody: {
             archived?: boolean;
+            /** @description Empty string clears the bank. */
+            bank_id?: string;
             color_key?: string;
             /** @enum {string} */
-            kind?: "current" | "savings" | "pocket" | "fund" | "broker";
+            kind?: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card";
             name?: string;
             /** Format: int64 */
             opening_balance_minor?: number;
@@ -1039,8 +1388,25 @@ export interface components {
             budget_group_id?: string;
             color_key?: string;
             icon?: string;
-            name_cs?: string;
-            name_sk?: string;
+            /**
+             * @description Main categories only; subcategories follow.
+             * @enum {string}
+             */
+            kind?: "income" | "expense" | "financial" | "transfer";
+            /** @description Replaces the name in both locales. */
+            name?: string;
+            /** @description Moves a subcategory under another main category. */
+            parent_id?: string;
+        };
+        UpdateSettingsInputBody: {
+            /** Format: double */
+            auto_categorize_threshold: number;
+        };
+        Usage: {
+            /** Format: int64 */
+            rules: number;
+            /** Format: int64 */
+            transactions: number;
         };
         VersionOutputBody: {
             commit: string;
@@ -1056,6 +1422,118 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "list-account-aliases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListAliasesOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "delete-account-alias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "list-accounts": {
         parameters: {
             query?: never;
@@ -1103,6 +1581,75 @@ export interface operations {
             };
         };
     };
+    "create-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateInputBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "update-account": {
         parameters: {
             query?: never;
@@ -1125,6 +1672,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "merge-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MergeOutputBody"];
                 };
             };
             /** @description Unauthorized */
@@ -1634,6 +2252,53 @@ export interface operations {
             };
         };
     };
+    "list-banks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListBanksOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "get-budget": {
         parameters: {
             query?: {
@@ -1865,6 +2530,143 @@ export interface operations {
             };
         };
     };
+    "create-category": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCategoryInputBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Category"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "delete-category": {
+        parameters: {
+            query?: {
+                /** @description Category that takes over transactions, rules, budgets and subcategories; required when the category is in use. */
+                merge_into?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "update-category": {
         parameters: {
             query?: never;
@@ -1998,6 +2800,8 @@ export interface operations {
                 "multipart/form-data": {
                     /** Format: binary */
                     file: string;
+                    /** @description Where each statement account goes, keyed by accounts[].key from the preview; omitted keys take the suggestion. */
+                    mapping?: string;
                 };
             };
         };
@@ -2079,6 +2883,8 @@ export interface operations {
                 "multipart/form-data": {
                     /** Format: binary */
                     file: string;
+                    /** @description Where each statement account goes, keyed by accounts[].key from the preview; omitted keys take the suggestion. */
+                    mapping?: string;
                 };
             };
         };
@@ -2494,6 +3300,113 @@ export interface operations {
             };
         };
     };
+    "get-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Settings"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "update-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSettingsInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Settings"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "list-transactions": {
         parameters: {
             query?: {
@@ -2506,6 +3419,8 @@ export interface operations {
                 q?: string;
                 /** @description Only transactions with no category that are not transfers. */
                 uncategorized?: boolean;
+                /** @description Only transactions the classifier categorised, awaiting confirmation. */
+                auto?: boolean;
                 cursor?: string;
                 limit?: number;
             };
@@ -2544,6 +3459,53 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "confirm-all-automatic-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2673,6 +3635,64 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "confirm-transaction-category": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2852,6 +3872,53 @@ export interface operations {
             };
         };
     };
+    "list-own-account-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnCandidatesOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "unpair-transfer": {
         parameters: {
             query?: never;
@@ -2891,6 +3958,68 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "mark-own-transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tx_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkOwnInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkOwnOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

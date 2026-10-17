@@ -11,7 +11,14 @@
   import Button from '@coin-book/ui/Button.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
+  import AccountMapping, { type MappingTarget } from '$lib/AccountMapping.svelte';
   import { queue } from '$lib/queue.svelte';
+
+  const TEMPLATE =
+    'date;amount;currency;description;counterparty;category\n' +
+    '2026-10-14;-1249,00;CZK;Nákup potravin;ROHLIK.CZ;Potraviny a drogerie\n' +
+    '2026-10-15;62000,00;CZK;Výplata;FIRMA S.R.O.;income.salary\n';
+  const REPREVIEW_MS = 350;
 
   let file = $state<File | null>(null);
   let preview = $state<ImportResult | null>(null);
@@ -20,6 +27,8 @@
   let busy = $state(false);
   let error = $state('');
   let input = $state<HTMLInputElement>();
+  let mapping = $state<Record<string, MappingTarget>>({});
+  let reviewTimer: ReturnType<typeof setTimeout>;
 
   onMount(() => void loadHistory());
 
@@ -34,7 +43,22 @@
     preview = null;
     busy = true;
     try {
+      mapping = {};
       preview = await api.upload<ImportResult>('/imports/preview', f);
+      mapping = Object.fromEntries(
+        preview.accounts.map((a) => [
+          a.key,
+          a.account_id
+            ? { account_id: a.account_id }
+            : {
+                create: {
+                  name: a.new_account?.name ?? a.name,
+                  kind: a.new_account?.kind ?? 'current',
+                  bank_id: a.new_account?.bank_id ?? '',
+                },
+              },
+        ]),
+      );
     } catch (e) {
       error = errorText(e);
       file = null;
@@ -47,13 +71,13 @@
     if (!file) return;
     busy = true;
     try {
-      const done = await api.upload<ImportResult>('/imports', file, { force });
+      const done = await api.upload<ImportResult>('/imports', file, { force }, mappingField());
       toasts.show(t('import.done', { count: done.rows_new }), 'success');
       toasts.show(
         t('import.doneDetail', {
-          rule: done.categorized_by_rule,
+          rule: done.categorized_by_rule + done.categorized_by_file + done.categorized_by_model,
           bank: done.categorized_by_bank,
-          transfers: done.transfers_matched,
+          transfers: done.transfers_matched + done.own_transfers,
         }),
       );
       preview = null;
@@ -76,6 +100,35 @@
     } catch (e) {
       toasts.show(errorText(e), 'error');
     }
+  }
+
+  function mappingField(): Record<string, string> {
+    return { mapping: JSON.stringify(mapping) };
+  }
+
+  // Counts of new and known rows depend on the target account, so the preview follows the mapping.
+  function remap(key: string, target: MappingTarget) {
+    mapping[key] = target;
+    clearTimeout(reviewTimer);
+    reviewTimer = setTimeout(async () => {
+      if (!file) return;
+      try {
+        preview = await api.upload<ImportResult>('/imports/preview', file, undefined, mappingField());
+      } catch (e) {
+        toasts.show(errorText(e), 'error');
+      }
+    }, REPREVIEW_MS);
+  }
+
+  const missingName = $derived(Object.values(mapping).some((m) => 'create' in m && !m.create.name.trim()));
+
+  function downloadTemplate() {
+    const url = URL.createObjectURL(new Blob(['\ufeff' + TEMPLATE], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'coin-book-sablona.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function ondrop(e: DragEvent) {
@@ -117,6 +170,14 @@
     <Button variant="quiet" {busy} onclick={() => input?.click()}>{t('import.choose')}</Button>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
   </section>
+
+  <details class="panel format">
+    <summary>{t('import.formatTitle')}</summary>
+    <p>{t('import.formatLead')}</p>
+    <p>{t('import.formatRequired')}</p>
+    <p>{t('import.formatOptional')}</p>
+    <Button variant="quiet" icon="download-simple" onclick={downloadTemplate}>{t('import.template')}</Button>
+  </details>
 {:else}
   <section class="panel preview">
     <div class="preview-head">
@@ -148,18 +209,15 @@
     {/if}
 
     <ul class="accounts">
-      {#each preview.accounts as a (a.identity)}
-        <li>
-          <span class="acc-name">{a.name}</span>
-          {#if a.is_new}<span class="tag">{t('import.newAccount')}</span>{/if}
-          <span class="num new">{t('import.rowsNew', { count: a.new })}</span>
-          <span class="num dup">{t('import.rowsDuplicate', { count: a.duplicates })}</span>
-        </li>
+      {#each preview.accounts as a (a.key)}
+        {#if mapping[a.key]}
+          <AccountMapping account={a} target={mapping[a.key]} onchange={(target) => remap(a.key, target)} />
+        {/if}
       {/each}
     </ul>
 
     <div class="rows">
-      {#each preview.rows as row (row.account_identity + row.line)}
+      {#each preview.rows as row (row.account_key + row.line)}
         <div class="row" class:duplicate={row.status === 'duplicate'}>
           <span class="date num">{shortDate(row.booked_on)}</span>
           <span class="desc">{row.description}</span>
@@ -175,11 +233,13 @@
       <Button variant="ghost" onclick={() => ((preview = null), (file = null))}>{t('import.discard')}</Button>
       {#if !preview.already_imported}
         {#if preview.checks_passed}
-          <Button {busy} disabled={preview.rows_new === 0} onclick={() => commit(false)}>
+          <Button {busy} disabled={preview.rows_new === 0 || missingName} onclick={() => commit(false)}>
             {t('import.commit', { count: preview.rows_new })}
           </Button>
         {:else}
-          <Button variant="danger" {busy} onclick={() => commit(true)}>{t('import.commitAnyway')}</Button>
+          <Button variant="danger" {busy} disabled={missingName} onclick={() => commit(true)}>
+            {t('import.commitAnyway')}
+          </Button>
         {/if}
       {/if}
     </div>
@@ -303,26 +363,22 @@
   }
   .accounts {
     list-style: none;
-    margin: 0 0 14px;
+    margin: 0 0 16px;
     padding: 0;
     display: grid;
-    gap: 6px;
+    gap: 10px;
   }
-  .accounts li {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: baseline;
-  }
-  .acc-name {
-    font-weight: 700;
-  }
-  .new {
-    color: var(--income);
+  .format summary {
+    cursor: pointer;
     font-weight: 650;
   }
-  .dup {
-    color: var(--ink-faint);
+  .format p {
+    margin: 10px 0 0;
+    max-width: 80ch;
+    color: var(--ink-soft);
+  }
+  .format :global(.btn) {
+    margin-top: 14px;
   }
   .tag {
     padding: 1px 9px;

@@ -10,6 +10,16 @@
     <div class="toast {toast.tone}" style="--c: {toast.colorKey ? colorVar(toast.colorKey) : 'var(--brand)'}">
       <span class="bar"></span>
       <span class="message">{toast.message}</span>
+      {#if toast.action}
+        <button
+          type="button"
+          class="action"
+          onclick={async () => {
+            toasts.dismiss(toast.id);
+            await toast.action?.run();
+          }}>{toast.action.label}</button
+        >
+      {/if}
       <button type="button" aria-label={t('common.close')} onclick={() => toasts.dismiss(toast.id)}>
         <Icon name="x" size={14} weight="bold" />
       </button>
@@ -58,6 +68,15 @@
     cursor: pointer;
     padding: 4px;
     border-radius: 6px;
+  }
+  .action {
+    flex: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: color-mix(in oklch, var(--brand) 14%, transparent);
+    color: var(--brand);
+    font: inherit;
+    font-weight: 650;
   }
   @keyframes in {
     from {

@@ -2,17 +2,52 @@
   import { onMount } from 'svelte';
   import { api } from '@coin-book/core/api';
   import { errorText } from '@coin-book/core/errors';
-  import { categoryName, t } from '@coin-book/core/i18n';
+  import { categoryName, pluralKey, t, type MessageKey } from '@coin-book/core/i18n';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
-  import type { Rule } from '@coin-book/core/types';
+  import type { Category, Rule } from '@coin-book/core/types';
+  import Button from '@coin-book/ui/Button.svelte';
   import CategoryChip from '@coin-book/ui/CategoryChip.svelte';
   import CategoryIcon from '@coin-book/ui/CategoryIcon.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
+  import CategoryForm from '$lib/CategoryForm.svelte';
+
+  type Editing = { mode: 'new-main' } | { mode: 'edit'; id: string } | { mode: 'new-sub'; parentId: string };
 
   let rules = $state<Rule[]>([]);
+  let editing = $state<Editing | null>(null);
 
-  onMount(() => void loadRules());
+  onMount(() => {
+    void loadRules();
+    void taxonomy.reloadCategories();
+  });
+
+  function close() {
+    editing = null;
+    void loadRules();
+  }
+
+  function isEditing(id: string) {
+    return editing?.mode === 'edit' && editing.id === id;
+  }
+
+  function editsInside(main: Category) {
+    if (!editing) return false;
+    if (editing.mode === 'new-sub') return editing.parentId === main.id;
+    if (editing.mode !== 'edit') return false;
+    const id = editing.id;
+    return id === main.id || taxonomy.children(main.id).some((c) => c.id === id);
+  }
+
+  function transactionsOf(main: Category) {
+    return taxonomy
+      .children(main.id)
+      .reduce((sum, c) => sum + (c.usage?.transactions ?? 0), main.usage?.transactions ?? 0);
+  }
+
+  function txCount(n: number) {
+    return t(`categories.tx.${pluralKey(n)}` as MessageKey, { count: n });
+  }
 
   async function loadRules() {
     rules = (await api.get<{ rules: Rule[] }>('/rules')).rules;
@@ -49,32 +84,99 @@
 
 <svelte:head><title>{t('categories.title')} · coin-book</title></svelte:head>
 
-<h1 class="display title">{t('categories.title')}</h1>
+<header class="head">
+  <h1 class="display title">{t('categories.title')}</h1>
+  {#if editing?.mode !== 'new-main'}
+    <Button icon="plus" onclick={() => (editing = { mode: 'new-main' })}>{t('categories.new')}</Button>
+  {/if}
+</header>
 
 <div class="layout">
   <section class="grid">
+    {#if editing?.mode === 'new-main'}
+      <article class="cat wide" style="--c: var(--brand)" data-testid="new-category-card">
+        <h2 class="form-title">{t('categories.new')}</h2>
+        <CategoryForm onclose={close} />
+      </article>
+    {/if}
     {#each taxonomy.mains as main (main.id)}
-      <article class="cat" style="--c: var(--cat-{main.color_key})">
-        <header>
-          <CategoryIcon
-            colorKey={main.color_key ?? 'uncategorized'}
-            icon={main.icon ?? 'question'}
-            size={40}
-          />
-          <div>
-            <h2>{categoryName(main)}</h2>
-            <span class="meta"
-              >{t(`categories.kind.${main.kind}`)}{main.budget_group_id
-                ? `, ${groupName(main.budget_group_id)}`
-                : ''}</span
+      <article
+        class="cat"
+        class:wide={editsInside(main)}
+        style="--c: var(--cat-{main.color_key})"
+        data-testid="category-card"
+        data-code={main.code}
+      >
+        {#if isEditing(main.id)}
+          <CategoryForm category={main} onclose={close} />
+        {:else}
+          <header>
+            <CategoryIcon
+              colorKey={main.color_key ?? 'uncategorized'}
+              icon={main.icon ?? 'question'}
+              size={40}
+            />
+            <div class="heading">
+              <h2>{categoryName(main)}</h2>
+              <span class="meta"
+                >{main.custom ? `${t('categories.custom')}, ` : ''}{t(
+                  `categories.kind.${main.kind}`,
+                )}{main.budget_group_id ? `, ${groupName(main.budget_group_id)}` : ''}</span
+              >
+              <a class="meta count" href="/transakce?kategorie={main.id}">{txCount(transactionsOf(main))}</a>
+            </div>
+            <button
+              type="button"
+              class="icon-btn"
+              aria-label="{t('categories.edit')} {categoryName(main)}"
+              onclick={() => (editing = { mode: 'edit', id: main.id })}
             >
-          </div>
-        </header>
-        <ul>
-          {#each taxonomy.children(main.id) as sub (sub.id)}
-            <li><a href="/transakce?kategorie={sub.id}">{categoryName(sub)}</a></li>
-          {/each}
-        </ul>
+              <Icon name="pencil-simple" size={16} />
+            </button>
+          </header>
+          <ul class="subs">
+            {#each taxonomy.children(main.id) as sub (sub.id)}
+              <li>
+                {#if sub.custom}
+                  <button
+                    type="button"
+                    class="sub custom"
+                    class:active={isEditing(sub.id)}
+                    onclick={() => (editing = { mode: 'edit', id: sub.id })}
+                  >
+                    {categoryName(sub)}
+                    <span class="num">{sub.usage?.transactions ?? 0}</span>
+                  </button>
+                {:else}
+                  <a class="sub" href="/transakce?kategorie={sub.id}">
+                    {categoryName(sub)}
+                    <span class="num">{sub.usage?.transactions ?? 0}</span>
+                  </a>
+                {/if}
+              </li>
+            {/each}
+            <li>
+              <button
+                type="button"
+                class="sub add"
+                class:active={editing?.mode === 'new-sub' && editing.parentId === main.id}
+                onclick={() => (editing = { mode: 'new-sub', parentId: main.id })}
+              >
+                <Icon name="plus" size={12} weight="bold" />
+                {t('categories.addSub')}
+              </button>
+            </li>
+          </ul>
+          {#if editing?.mode === 'new-sub' && editing.parentId === main.id}
+            <div class="sub-form"><CategoryForm parentId={main.id} onclose={close} /></div>
+          {:else if editing?.mode === 'edit' && taxonomy.byId.get(editing.id)?.parent_id === main.id}
+            {#key editing.id}
+              <div class="sub-form">
+                <CategoryForm category={taxonomy.byId.get(editing.id)} onclose={close} />
+              </div>
+            {/key}
+          {/if}
+        {/if}
       </article>
     {/each}
   </section>
@@ -113,8 +215,15 @@
 </div>
 
 <style>
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
   .title {
-    margin: 0 0 20px;
+    margin: 0;
     font-size: var(--text-headline);
   }
   .layout {
@@ -134,36 +243,97 @@
     background: var(--surface);
     border-top: 4px solid var(--c);
   }
+  .cat.wide {
+    grid-column: 1 / -1;
+  }
   .cat header {
     display: flex;
     gap: 12px;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
-  .cat h2 {
+  .heading {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+  .cat h2,
+  .form-title {
     margin: 0;
     font-size: var(--text-body);
+  }
+  .form-title {
+    margin-bottom: 14px;
   }
   .meta {
     font-size: var(--text-micro);
     color: var(--ink-faint);
   }
-  .cat ul {
+  .count {
+    justify-self: start;
+    text-decoration: none;
+  }
+  .count:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+  .icon-btn {
+    align-self: start;
+    border: 0;
+    background: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+  }
+  .icon-btn:hover {
+    color: var(--ink);
+    background: color-mix(in oklch, var(--ink) 6%, transparent);
+  }
+  .subs {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 12px;
+    gap: 6px;
   }
-  .cat a {
-    font-size: var(--text-micro);
+  .sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--c) 11%, transparent);
     color: var(--ink-soft);
+    font: inherit;
+    font-size: var(--text-micro);
+    font-weight: 600;
     text-decoration: none;
+    cursor: pointer;
   }
-  .cat a:hover {
+  .sub.custom {
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklch, var(--c) 55%, transparent);
+  }
+  .sub .num {
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  .sub:hover,
+  .sub.active {
+    background: color-mix(in oklch, var(--c) 24%, transparent);
     color: var(--ink);
-    text-decoration: underline;
+  }
+  .sub.add {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklch, var(--c) 45%, transparent);
+    color: var(--ink-faint);
+  }
+  .sub-form {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
   }
   .rules {
     position: sticky;

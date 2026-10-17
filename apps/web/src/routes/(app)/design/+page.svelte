@@ -103,6 +103,15 @@
 </section>
 
 <section class="panel">
+  <h2>Zaškrtávátka</h2>
+  <div class="checks">
+    <label><input type="checkbox" checked /> Uložit jako pravidlo pro ROHLIK.CZ</label>
+    <label><input type="checkbox" /> Jen nezařazené</label>
+    <label><input type="checkbox" disabled /> Nedostupné</label>
+  </div>
+</section>
+
+<section class="panel">
   <h2>Tlačítka</h2>
   <div class="buttons">
     <Button icon="upload-simple">Nahrát výpis</Button>
@@ -148,6 +157,17 @@
     height: 44px;
     border-radius: 12px;
     box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+  }
+  .checks label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
   }
   .hue {
     display: grid;

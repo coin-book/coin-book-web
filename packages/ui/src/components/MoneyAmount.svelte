@@ -19,7 +19,8 @@
 </script>
 
 <span class="money num size-{size} {className}" class:income={isIncome}>
-  {#if parts.sign}<span class="sign">{parts.sign}</span>{/if}<span class="whole">{parts.whole}</span
+  {#if parts.sign}<span class="sign" class:minus={parts.sign !== '+'}>{parts.sign}</span>{/if}<span
+    class="whole">{parts.whole}</span
   >{#if parts.fraction && !whole}<span class="fraction">,{parts.fraction}</span>{/if}<span class="currency"
     >{parts.currency}</span
   >
@@ -38,8 +39,12 @@
   .income.size-hero {
     text-shadow: var(--glow-text);
   }
+  /* Figtree draws − and + with 120 and 85 units of sidebearing against 50 on digits; pull the number in. */
   .sign {
-    margin-right: 0.04em;
+    margin-right: -0.035em;
+  }
+  .sign.minus {
+    margin-right: -0.07em;
   }
   .fraction {
     font-size: 0.72em;

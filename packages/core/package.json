@@ -17,7 +17,8 @@
     "./theme": "./src/theme.svelte.ts",
     "./toast": "./src/toast.svelte.ts",
     "./types": "./src/types.ts",
-    "./colors": "./src/colors.ts"
+    "./colors": "./src/colors.ts",
+    "./learning": "./src/learning.ts"
   },
   "devDependencies": {
     "svelte": "^5.57.1",

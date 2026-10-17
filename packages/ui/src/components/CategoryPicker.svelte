@@ -136,6 +136,9 @@
     border-radius: 999px;
     flex: none;
   }
+  .rule input {
+    margin-top: 1px;
+  }
   .rule {
     display: flex;
     gap: 8px;
@@ -145,9 +148,5 @@
     font-size: var(--text-micro);
     color: var(--ink-soft);
     cursor: pointer;
-  }
-  .rule input {
-    accent-color: var(--brand);
-    margin-top: 2px;
   }
 </style>

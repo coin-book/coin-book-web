@@ -14,7 +14,7 @@
   import MonthRibbon, { type RibbonSegment } from '@coin-book/ui/MonthRibbon.svelte';
   import MonthSwitcher from '@coin-book/ui/MonthSwitcher.svelte';
   import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
-  import { categorize } from '$lib/categorize';
+  import { categorize, confirmAutomatic } from '$lib/categorize';
   import TrendBars from '$lib/TrendBars.svelte';
 
   const CURRENCY = 'CZK';
@@ -83,6 +83,11 @@
     const updated = await categorize(tx, categoryId, saveRule);
     if (updated) recent = recent.map((r) => (r.id === updated.id ? updated : r));
   }
+
+  async function onConfirm(tx: Transaction) {
+    const updated = await confirmAutomatic(tx);
+    if (updated) recent = recent.map((r) => (r.id === updated.id ? updated : r));
+  }
 </script>
 
 <svelte:head><title>{t('nav.overview')} · coin-book</title></svelte:head>
@@ -149,6 +154,26 @@
       </section>
     {/if}
 
+    {#if report.set_aside.length > 0}
+      <section class="panel" data-testid="set-aside-panel">
+        <div class="panel-head">
+          <h2>{t('overview.setAside')}</h2>
+          <a href="/ucty">{t('nav.accounts')}</a>
+        </div>
+        <p class="quiet lead">{t('overview.setAsideLead')}</p>
+        <ul class="set-aside">
+          {#each report.set_aside as flow (flow.account_id)}
+            <li>
+              <a href="/transakce?ucet={flow.account_id}"
+                >{taxonomy.accountsById.get(flow.account_id)?.name ?? ''}</a
+              >
+              <MoneyAmount amount={{ minor: flow.amount_minor, currency: CURRENCY }} whole signed />
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+
     <div class="columns">
       <section class="panel">
         <div class="panel-head">
@@ -182,7 +207,7 @@
         </div>
         <div class="recent">
           {#each recent as tx (tx.id)}
-            <TransactionRow {tx} showAccount={false} oncategorize={onCategorize} />
+            <TransactionRow {tx} showAccount={false} oncategorize={onCategorize} onconfirm={onConfirm} />
           {/each}
         </div>
       </section>
@@ -203,6 +228,34 @@
 {/if}
 
 <style>
+  .lead {
+    margin: -6px 0 10px;
+    font-size: var(--text-micro);
+  }
+  .set-aside {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px 24px;
+  }
+  .set-aside li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+  }
+  .set-aside a {
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .set-aside a:hover {
+    text-decoration: underline;
+  }
   .head {
     margin-bottom: 28px;
   }

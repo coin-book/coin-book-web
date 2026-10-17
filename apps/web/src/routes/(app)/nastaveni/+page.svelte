@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { api } from '@coin-book/core/api';
   import { errorText } from '@coin-book/core/errors';
-  import { i18n, t, type Locale } from '@coin-book/core/i18n';
+  import { i18n, t, type Locale, type MessageKey } from '@coin-book/core/i18n';
   import { theme, type ThemeChoice } from '@coin-book/core/theme';
   import { toasts } from '@coin-book/core/toast';
   import type { AgentToken, AuditEntry } from '@coin-book/core/types';
@@ -25,16 +25,43 @@
   let expiry = $state<(typeof expiries)[number]>('90');
   let secret = $state<string | null>(null);
   let creating = $state(false);
+  let threshold = $state('0');
+  let examples = $state(0);
+  const thresholds = ['0', '0.95', '0.9', '0.8'] as const;
+  const thresholdLabel: Record<(typeof thresholds)[number], MessageKey> = {
+    '0': 'learn.threshold.0',
+    '0.95': 'learn.threshold.95',
+    '0.9': 'learn.threshold.9',
+    '0.8': 'learn.threshold.8',
+  };
 
   onMount(() => void load());
 
+  type Settings = { auto_categorize_threshold: number; classifier_examples: number };
+
   async function load() {
-    const [tk, au] = await Promise.all([
+    const [tk, au, st] = await Promise.all([
       api.get<{ tokens: AgentToken[] }>('/agent-tokens'),
       api.get<{ entries: AuditEntry[] }>('/audit-log'),
+      api.get<Settings>('/settings'),
     ]);
     tokens = tk.tokens;
     audit = au.entries;
+    applySettings(st);
+  }
+
+  function applySettings(st: Settings) {
+    threshold = String(st.auto_categorize_threshold);
+    examples = st.classifier_examples;
+  }
+
+  async function saveThreshold(value: string) {
+    try {
+      applySettings(await api.put<Settings>('/settings', { auto_categorize_threshold: Number(value) }));
+      toasts.show(t('learn.saved'), 'success');
+    } catch (e) {
+      toasts.show(errorText(e), 'error');
+    }
   }
 
   async function create(e: SubmitEvent) {
@@ -114,6 +141,23 @@
 
 <section class="panel">
   <header class="section-head">
+    <span class="glyph learn"><Icon name="sparkle" size={24} weight="duotone" /></span>
+    <div>
+      <h2 class="display">{t('learn.settingsTitle')}</h2>
+      <p class="lead">{t('learn.settingsLead', { count: examples })}</p>
+    </div>
+  </header>
+  <label class="field threshold">
+    <span>{t('learn.threshold')}</span>
+    <select value={threshold} onchange={(e) => saveThreshold(e.currentTarget.value)}>
+      {#each thresholds as v (v)}<option value={v}>{t(thresholdLabel[v])}</option>{/each}
+    </select>
+    <small>{t('learn.thresholdHint')}</small>
+  </label>
+</section>
+
+<section class="panel">
+  <header class="section-head">
     <span class="glyph"><Icon name="robot" size={24} weight="duotone" /></span>
     <div>
       <h2 class="display">{t('settings.tokens')}</h2>
@@ -124,7 +168,7 @@
   {#if secret}
     <div class="secret" role="status">
       <p>{t('settings.tokenSecret')}</p>
-      <code>{secret}</code>
+      <code data-testid="agent-token-secret">{secret}</code>
       <div class="secret-actions">
         <Button icon="copy" onclick={copy}>{t('settings.tokenCopy')}</Button>
         <Button variant="ghost" onclick={() => (secret = null)}>{t('common.close')}</Button>
@@ -276,6 +320,17 @@
     color: var(--cat-ametyst);
     flex: none;
   }
+  .glyph.learn {
+    background: color-mix(in oklch, var(--brand) 14%, transparent);
+    color: var(--brand);
+  }
+  .threshold {
+    max-width: 420px;
+  }
+  .threshold small {
+    color: var(--ink-faint);
+    font-weight: 400;
+  }
   .lead {
     margin: 4px 0 0;
     color: var(--ink-soft);
@@ -316,7 +371,7 @@
     display: grid;
     gap: 4px;
   }
-  .field input,
+  .field input:not([type='checkbox']),
   .field select {
     padding: 9px 11px;
     border-radius: var(--radius-input);
@@ -335,9 +390,6 @@
     gap: 6px;
     align-items: center;
     cursor: pointer;
-  }
-  .scope input {
-    accent-color: var(--brand);
   }
   .tokens {
     list-style: none;
