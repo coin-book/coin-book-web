@@ -32,6 +32,9 @@
 
   let { nodes, links, currency, label, tableLabel }: Props = $props();
 
+  // Gradient and filter ids must be unique per chart on the page.
+  const uid = $props.id();
+
   type N = D3Node<SankeyNode, { amountMinor: number }>;
   type L = D3Link<SankeyNode, { amountMinor: number }>;
 
@@ -83,6 +86,14 @@
     return end as N;
   }
 
+  function linkKey(l: L) {
+    return nodeOf(l.source).key + '→' + nodeOf(l.target).key;
+  }
+
+  function gradientId(index: number) {
+    return `${uid}-flow-${index}`;
+  }
+
   function touches(l: L, key: string) {
     return nodeOf(l.source).key === key || nodeOf(l.target).key === key;
   }
@@ -115,26 +126,48 @@
 <div class="sankey" bind:clientWidth={width}>
   {#if graph && !narrow && !showTable}
     <svg viewBox="0 0 {width} {height}" {width} {height} role="img" aria-label={label}>
+      <defs>
+        {#each graph.links as l, i (linkKey(l))}
+          <linearGradient
+            id={gradientId(i)}
+            gradientUnits="userSpaceOnUse"
+            x1={nodeOf(l.source).x1}
+            x2={nodeOf(l.target).x0}
+          >
+            <stop offset="0%" stop-color={colorVar(nodeOf(l.source).colorKey)} />
+            <stop offset="100%" stop-color={colorVar(nodeOf(l.target).colorKey)} />
+          </linearGradient>
+        {/each}
+        <linearGradient id="{uid}-light" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fff" stop-opacity="0.35" />
+          <stop offset="40%" stop-color="#fff" stop-opacity="0" />
+          <stop offset="100%" stop-color="#000" stop-opacity="0.15" />
+        </linearGradient>
+        <filter id="{uid}-lift" x="-50%" y="-10%" width="200%" height="130%">
+          <feDropShadow class="shadow" dx="0" dy="2" stdDeviation="2.5" />
+        </filter>
+      </defs>
       <g class="links">
-        {#each graph.links as l (nodeOf(l.source).key + '→' + nodeOf(l.target).key)}
-          <path
+        {#each graph.links as l, i (linkKey(l))}
+          {@const w = Math.max(1, l.width ?? 1)}
+          <g
             role="presentation"
-            d={path(l) ?? ''}
-            stroke={colorVar(
-              nodeOf(l.target).column === 1 ? nodeOf(l.source).colorKey : nodeOf(l.target).colorKey,
-            )}
-            stroke-width={Math.max(1, l.width ?? 1)}
+            class="link"
             class:dim={active !== null && !touches(l, active)}
             onmouseenter={() => (active = nodeOf(l.target).key)}
             onmouseleave={() => (active = null)}
           >
+            <path class="band" d={path(l) ?? ''} stroke="url(#{gradientId(i)})" stroke-width={w} />
+            <!-- Brighter cores inside the band make it read as a rounded tube. -->
+            <path class="sheen" d={path(l) ?? ''} stroke-width={w * 0.6} />
+            <path class="sheen" d={path(l) ?? ''} stroke-width={w * 0.25} />
             <title
               >{nodeOf(l.source).label} → {nodeOf(l.target).label}: {formatWhole(
                 l.amountMinor,
                 currency,
               )}</title
             >
-          </path>
+          </g>
         {/each}
       </g>
       <g class="nodes">
@@ -158,6 +191,16 @@
               height={Math.max(2, (n.y1 ?? 0) - (n.y0 ?? 0))}
               rx="3"
               fill={colorVar(n.colorKey)}
+              filter="url(#{uid}-lift)"
+            />
+            <rect
+              class="light"
+              x={n.x0}
+              y={n.y0}
+              width={(n.x1 ?? 0) - (n.x0 ?? 0)}
+              height={Math.max(2, (n.y1 ?? 0) - (n.y0 ?? 0))}
+              rx="3"
+              fill="url(#{uid}-light)"
             />
             {#if href}
               <a {href}>
@@ -229,16 +272,31 @@
     font-size: var(--text-micro);
     overflow: visible;
   }
-  .links path {
-    fill: none;
-    opacity: 0.38;
+  .link {
+    opacity: 0.5;
     transition: opacity 160ms ease;
   }
-  .links path:hover {
-    opacity: 0.7;
+  .link:hover {
+    opacity: 0.85;
   }
-  .links path.dim {
-    opacity: 0.08;
+  .link.dim {
+    opacity: 0.1;
+  }
+  .link path {
+    fill: none;
+  }
+  .link .sheen {
+    stroke: #fff;
+    stroke-opacity: 0.1;
+    stroke-linecap: butt;
+    pointer-events: none;
+  }
+  .light {
+    pointer-events: none;
+  }
+  .shadow {
+    flood-color: var(--ink);
+    flood-opacity: 0.22;
   }
   .nodes g {
     transition: opacity 160ms ease;
@@ -313,7 +371,7 @@
     clip: rect(0 0 0 0);
   }
   @media (prefers-reduced-motion: reduce) {
-    .links path,
+    .link,
     .nodes g {
       transition: none;
     }
