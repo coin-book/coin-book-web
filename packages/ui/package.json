@@ -11,7 +11,7 @@
     "@coin-book/core": "workspace:*",
     "@fontsource-variable/figtree": "^5.3.0",
     "bits-ui": "^2.19.3",
-    "d3-sankey": "0.12.3",
+    "layerchart": "2.8.0",
     "phosphor-svelte": "^3.1.1"
   },
   "peerDependencies": {

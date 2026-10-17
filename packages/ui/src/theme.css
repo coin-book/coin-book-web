@@ -224,3 +224,15 @@ input[type='checkbox']:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* LayerChart paints its tooltip and chrome from `--color-surface-*`; without this map a
+   tooltip on the dark surface comes out in LayerChart's own light gray. `.lc-tooltip-root`
+   is separate because a portaled tooltip renders outside `.lc-root-container`. */
+.lc-root-container,
+.lc-tooltip-root {
+  --color-primary: var(--brand);
+  --color-surface-100: var(--surface-raised);
+  --color-surface-200: var(--canvas);
+  --color-surface-300: var(--line);
+  --color-surface-content: var(--ink);
+}

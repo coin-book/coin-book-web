@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { api } from '@coin-book/core/api';
   import { currentMonth, shortMonth } from '@coin-book/core/dates';
@@ -13,12 +14,12 @@
     MonthlyReport,
     Transaction,
   } from '@coin-book/core/types';
-  import BudgetTube from '@coin-book/ui/BudgetTube.svelte';
+  import BudgetBullets, { type BudgetBullet } from '@coin-book/ui/BudgetBullets.svelte';
   import Button from '@coin-book/ui/Button.svelte';
   import ColumnChart, { type ColumnGroup, type ColumnSeries } from '@coin-book/ui/ColumnChart.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import MonthRibbon, { type RibbonSegment } from '@coin-book/ui/MonthRibbon.svelte';
+  import CategoryBars, { type CategoryBar } from '@coin-book/ui/CategoryBars.svelte';
   import MonthSwitcher from '@coin-book/ui/MonthSwitcher.svelte';
   import Sankey, { type SankeyLink, type SankeyNode } from '@coin-book/ui/Sankey.svelte';
   import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
@@ -126,7 +127,6 @@
       key: m.month,
       label: shortMonth(m.month, i18n.locale),
       values: { income: m.income_minor, expense: m.expense_minor, financial: m.financial_minor },
-      href: `/prehled?mesic=${m.month}`,
       current: m.month === month,
     })),
   );
@@ -169,7 +169,6 @@
         key: m.month,
         label: shortMonth(m.month, i18n.locale),
         values,
-        href: `/prehled?mesic=${m.month}`,
         current: m.month === month,
       };
     }),
@@ -180,7 +179,7 @@
     return new Date(Date.UTC(y, mo, 0)).toISOString().slice(0, 10);
   }
 
-  const segments = $derived<RibbonSegment[]>(
+  const segments = $derived<CategoryBar[]>(
     (report?.expenses ?? []).map((e) => ({
       key: e.category_id ?? 'uncategorized',
       label: e.category_id ? taxonomy.label(e.category_id) : t('overview.uncategorized'),
@@ -201,6 +200,17 @@
           b.spent_minor / Math.max(b.planned_minor, 1) - a.spent_minor / Math.max(a.planned_minor, 1),
       )
       .slice(0, BURNING_LIMIT),
+  );
+  const burningBullets = $derived<BudgetBullet[]>(
+    burning.map((line) => ({
+      key: line.category_id ?? '',
+      label: taxonomy.label(line.category_id),
+      colorKey: taxonomy.colorKey(line.category_id),
+      plannedMinor: line.planned_minor,
+      spentMinor: line.spent_minor,
+      status: line.status,
+      href: `/rozpocet/${month}`,
+    })),
   );
   const allCalm = $derived(burning.every((l) => l.status === 'on_track'));
   const hasBudget = $derived((budget?.lines.length ?? 0) > 0);
@@ -280,7 +290,7 @@
     {#if segments.length > 0}
       <section class="panel ribbon">
         <h2>{t('overview.whereMoneyWent')}</h2>
-        <MonthRibbon {segments} currency={CURRENCY} label={t('overview.whereMoneyWent')} />
+        <CategoryBars bars={segments} currency={CURRENCY} label={t('overview.whereMoneyWent')} />
       </section>
     {/if}
 
@@ -327,19 +337,12 @@
         {#if !hasBudget}
           <p class="quiet">{t('overview.noBudget')}</p>
         {:else}
-          {#each burning as line (line.category_id)}
-            <BudgetTube
-              label={taxonomy.label(line.category_id)}
-              colorKey={taxonomy.colorKey(line.category_id)}
-              icon={taxonomy.icon(line.category_id)}
-              plannedMinor={line.planned_minor}
-              spentMinor={line.spent_minor}
-              currency={CURRENCY}
-              elapsed={paceElapsed}
-              status={line.status}
-              href="/rozpocet/{month}"
-            />
-          {/each}
+          <BudgetBullets
+            lines={burningBullets}
+            currency={CURRENCY}
+            label={t('overview.burning')}
+            elapsed={paceElapsed}
+          />
           {#if allCalm}<p class="quiet calm">{t('overview.allCalm')}</p>{/if}
         {/if}
       </section>
@@ -364,6 +367,7 @@
         groups={trendGroups}
         currency={CURRENCY}
         label={t('overview.trend')}
+        onselect={(m) => goto(`/prehled?mesic=${m}`)}
       />
     </section>
 
@@ -376,6 +380,7 @@
           currency={CURRENCY}
           label={t('overview.categoriesTrend')}
           mode="stacked"
+          onselect={(m) => goto(`/prehled?mesic=${m}`)}
         />
       </details>
     {/if}

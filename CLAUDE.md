@@ -6,7 +6,7 @@ SvelteKit 2 / Svelte 5 SPA of coin-book. Spec: `../technicka-specifikace.md` (ch
 
 - `apps/web` – routes (Czech URLs: `/prehled`, `/transakce`, `/k-vyreseni`, `/rozpocet/[mesic]`, `/importy`, …), e2e in `apps/web/e2e`.
 - `packages/core` – API client, auth, i18n (`cs`, `sk`), money and dates, stores. Shared logic lives here, never copied into the app.
-- `packages/ui` – `theme.css` tokens and components (`MoneyAmount`, `BudgetTube`, `MonthRibbon`, `CategoryPicker`, …).
+- `packages/ui` – `theme.css` tokens and components (`MoneyAmount`, `CategoryPicker`, …); charts (`CategoryBars`, `BudgetBullets`, `ColumnChart`, `Sankey`) are built on LayerChart.
 
 ## Commands
 

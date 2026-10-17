@@ -1,10 +1,10 @@
 <script lang="ts">
-  import BudgetTube from '@coin-book/ui/BudgetTube.svelte';
+  import BudgetBullets from '@coin-book/ui/BudgetBullets.svelte';
   import Button from '@coin-book/ui/Button.svelte';
   import CategoryChip from '@coin-book/ui/CategoryChip.svelte';
   import CategoryIcon from '@coin-book/ui/CategoryIcon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import MonthRibbon from '@coin-book/ui/MonthRibbon.svelte';
+  import CategoryBars from '@coin-book/ui/CategoryBars.svelte';
 
   const base = ['ink', 'canvas', 'surface', 'brand', 'income', 'over', 'warn', 'transfer'];
   const hues = [
@@ -64,41 +64,42 @@
 </section>
 
 <section class="panel">
-  <h2>Páska měsíce</h2>
-  <MonthRibbon segments={ribbon} currency="CZK" label="Ukázka" />
+  <h2>Kam šly peníze</h2>
+  <CategoryBars bars={ribbon} currency="CZK" label="Ukázka" />
 </section>
 
 <section class="panel">
-  <h2>Rozpočtové trubice</h2>
-  <BudgetTube
-    label="Potraviny"
-    colorKey="smaragd"
-    icon="shopping-cart"
-    plannedMinor={900000}
-    spentMinor={624000}
+  <h2>Rozpočty</h2>
+  <BudgetBullets
+    label="Ukázka"
     currency="CZK"
     elapsed={0.52}
-    status="ahead_of_pace"
-  />
-  <BudgetTube
-    label="Jídlo venku"
-    colorKey="malina"
-    icon="fork-knife"
-    plannedMinor={300000}
-    spentMinor={338000}
-    currency="CZK"
-    elapsed={0.52}
-    status="over"
-  />
-  <BudgetTube
-    label="Doprava"
-    colorKey="mandarinka"
-    icon="car"
-    plannedMinor={250000}
-    spentMinor={110000}
-    currency="CZK"
-    elapsed={0.52}
-    status="on_track"
+    lines={[
+      {
+        key: 'potraviny',
+        label: 'Potraviny',
+        colorKey: 'smaragd',
+        plannedMinor: 900000,
+        spentMinor: 624000,
+        status: 'ahead_of_pace',
+      },
+      {
+        key: 'venku',
+        label: 'Jídlo venku',
+        colorKey: 'malina',
+        plannedMinor: 300000,
+        spentMinor: 338000,
+        status: 'over',
+      },
+      {
+        key: 'doprava',
+        label: 'Doprava',
+        colorKey: 'mandarinka',
+        plannedMinor: 250000,
+        spentMinor: 110000,
+        status: 'on_track',
+      },
+    ]}
   />
 </section>
 

@@ -9,12 +9,12 @@
     key: string;
     label: string;
     values: Record<string, number>;
-    href?: string;
     current?: boolean;
   };
 </script>
 
 <script lang="ts">
+  import { BarChart, Tooltip } from 'layerchart/svg';
   import { formatWhole } from '@coin-book/core/money';
 
   type Props = {
@@ -24,165 +24,107 @@
     label: string;
     /** stacked: one column per group, segments per series; grouped: a column per series side by side. */
     mode?: 'grouped' | 'stacked';
+    /** Called with a group's key when its column is clicked. */
+    onselect?: (key: string) => void;
   };
 
-  let { series, groups, currency, label, mode = 'grouped' }: Props = $props();
+  let { series, groups, currency, label, mode = 'grouped', onselect }: Props = $props();
 
-  const PLOT_HEIGHT = 160;
-  const AXIS_WIDTH = 44;
-  const LABEL_BAND = 22;
+  const PLOT_HEIGHT = 200;
+  const PADDING = { top: 12, right: 4, bottom: 24, left: 44 };
   const MAX_COLUMN = 24;
-  const GAP = 2;
 
-  let width = $state(720);
-  let hovered = $state<string | null>(null);
+  let width = $state(0);
 
-  const plotWidth = $derived(Math.max(0, width - AXIS_WIDTH));
-  const band = $derived(groups.length > 0 ? plotWidth / groups.length : 0);
+  const byKey = $derived(new Map(groups.map((g) => [g.key, g])));
 
-  const columnWidth = $derived(
-    mode === 'stacked'
-      ? Math.min(MAX_COLUMN, band * 0.6)
-      : Math.min(MAX_COLUMN, (band * 0.7 - GAP * (series.length - 1)) / Math.max(1, series.length)),
-  );
-
-  function groupTotal(g: ColumnGroup) {
-    return mode === 'stacked'
-      ? series.reduce((sum, s) => sum + (g.values[s.key] ?? 0), 0)
-      : Math.max(...series.map((s) => g.values[s.key] ?? 0), 0);
-  }
-
-  const max = $derived(Math.max(1, ...groups.map(groupTotal)));
-
-  // Clean tick values: 0, a nice step, and multiples up to the maximum.
-  const ticks = $derived.by(() => {
-    const raw = max / 3;
-    const magnitude = 10 ** Math.floor(Math.log10(raw));
-    const step = [1, 2, 5, 10].map((m) => m * magnitude).find((v) => v >= raw) ?? magnitude;
-    const out: number[] = [];
-    for (let v = 0; v <= max; v += step) out.push(v);
-    return out;
+  // A cap per column, not a share of the band: twelve months on a wide page would
+  // otherwise turn into slabs.
+  const columnWidth = $derived.by(() => {
+    const band = Math.max(0, width - PADDING.left - PADDING.right) / Math.max(1, groups.length);
+    const perColumn = mode === 'stacked' ? band * 0.6 : (band * 0.7) / Math.max(1, series.length);
+    return Math.max(4, Math.min(MAX_COLUMN, perColumn));
   });
 
-  function y(value: number) {
-    return PLOT_HEIGHT - (value / max) * PLOT_HEIGHT;
-  }
+  const chartSeries = $derived(
+    series.map((s) => ({
+      key: s.key,
+      label: s.label,
+      color: s.color,
+      value: (g: ColumnGroup) => g.values[s.key] ?? 0,
+    })),
+  );
 
+  /** Compact tick labels from minor units: 0, 20k, 1,5M. */
   function compact(minor: number) {
     const major = minor / 100;
-    if (Math.abs(major) >= 1_000_000) return `${(major / 1_000_000).toFixed(1).replace('.0', '')}M`;
+    if (Math.abs(major) >= 1_000_000)
+      return `${(major / 1_000_000).toFixed(1).replace('.0', '').replace('.', ',')}M`;
     if (Math.abs(major) >= 1000) return `${Math.round(major / 1000)}k`;
     return String(Math.round(major));
-  }
-
-  function stackOffset(g: ColumnGroup, index: number) {
-    return series.slice(0, index).reduce((sum, s) => sum + (g.values[s.key] ?? 0), 0);
   }
 </script>
 
 <div class="chart" bind:clientWidth={width}>
-  <svg
-    viewBox="0 0 {width} {PLOT_HEIGHT + LABEL_BAND}"
-    {width}
-    height={PLOT_HEIGHT + LABEL_BAND}
-    role="img"
-    aria-label={label}
-  >
-    <g class="grid">
-      {#each ticks as tick (tick)}
-        <line x1={AXIS_WIDTH} x2={width} y1={y(tick)} y2={y(tick)} />
-        <text x={AXIS_WIDTH - 6} y={y(tick)} text-anchor="end" dominant-baseline="middle" class="num"
-          >{compact(tick)}</text
-        >
-      {/each}
-    </g>
-    {#each groups as g, gi (g.key)}
-      {@const left = AXIS_WIDTH + gi * band}
-      {@const total = groupTotal(g)}
-      <g
-        class="group"
-        role="group"
-        aria-label={g.label}
-        class:dim={hovered !== null && hovered !== g.key}
-        onmouseenter={() => (hovered = g.key)}
-        onmouseleave={() => (hovered = null)}
-        onfocusin={() => (hovered = g.key)}
-        onfocusout={() => (hovered = null)}
-      >
-        <rect class="hit" x={left} y="0" width={band} height={PLOT_HEIGHT + LABEL_BAND} />
-        {#if mode === 'stacked'}
-          {@const x = left + (band - columnWidth) / 2}
-          {#each series as s, si (s.key)}
-            {@const value = g.values[s.key] ?? 0}
-            {#if value > 0}
-              {@const top = y(stackOffset(g, si) + value)}
-              {@const h = Math.max(0, y(stackOffset(g, si)) - top - (si > 0 ? GAP : 0))}
-              <rect
-                {x}
-                y={top}
-                width={columnWidth}
-                height={h}
-                fill={s.color}
-                rx={si === series.length - 1 ? 4 : 0}
-              />
-            {/if}
-          {/each}
-        {:else}
-          {@const start = left + (band - (columnWidth * series.length + GAP * (series.length - 1))) / 2}
-          {#each series as s, si (s.key)}
-            {@const value = g.values[s.key] ?? 0}
-            <rect
-              x={start + si * (columnWidth + GAP)}
-              y={y(value)}
-              width={columnWidth}
-              height={Math.max(value > 0 ? 2 : 0, PLOT_HEIGHT - y(value))}
-              fill={s.color}
-              rx="4"
-            />
-          {/each}
-        {/if}
-        {#if g.href}
-          <a href={g.href}>
-            <text
-              class="axis-label"
-              class:current={g.current}
-              x={left + band / 2}
-              y={PLOT_HEIGHT + LABEL_BAND - 4}
-              text-anchor="middle">{g.label}</text
-            >
-          </a>
-        {:else}
-          <text
-            class="axis-label"
-            class:current={g.current}
-            x={left + band / 2}
-            y={PLOT_HEIGHT + LABEL_BAND - 4}
-            text-anchor="middle">{g.label}</text
-          >
-        {/if}
-        <title
-          >{g.label}: {series
-            .filter((s) => (g.values[s.key] ?? 0) > 0)
-            .map((s) => `${s.label} ${formatWhole(g.values[s.key] ?? 0, currency)}`)
-            .join(', ') || formatWhole(total, currency)}</title
-        >
-      </g>
-    {/each}
-  </svg>
-  {#if hovered}
-    {@const g = groups.find((x) => x.key === hovered)}
-    {#if g}
-      <p class="tooltip" aria-live="polite">
-        <strong>{g.label}</strong>
-        {#each series.filter((s) => (g.values[s.key] ?? 0) > 0) as s (s.key)}
-          <span
-            ><i class="swatch" style="--c: {s.color}"></i>{s.label}
-            <b class="num">{formatWhole(g.values[s.key] ?? 0, currency)}</b></span
-          >
+  <div class="plot" style="height: {PLOT_HEIGHT}px">
+    <BarChart
+      data={groups}
+      x="key"
+      series={chartSeries}
+      seriesLayout={mode === 'stacked' ? 'stack' : 'group'}
+      stackPadding={2}
+      groupPadding={0.1}
+      padding={PADDING}
+      yNice
+      onTooltipClick={(_e, detail) => onselect?.((detail.data as ColumnGroup).key)}
+      props={{
+        xAxis: {
+          format: (key: string) => byKey.get(key)?.label ?? '',
+          tickLength: 0,
+          tickLabelProps: { dy: 4, class: 'axis-label' },
+        },
+        yAxis: { format: compact, ticks: 3, tickLength: 0, tickLabelProps: { class: 'axis-label' } },
+        grid: { class: 'grid-line' },
+        rule: { class: 'grid-line' },
+        bars: { width: columnWidth, strokeWidth: 0, radius: 4, class: onselect ? 'clickable' : '' },
+        svg: { role: 'img', 'aria-label': label },
+      }}
+    >
+      {#snippet belowMarks({ context })}
+        {#each groups.filter((g) => g.current) as g (g.key)}
+          <!-- The month the page is showing gets a quiet band behind its columns. -->
+          <rect
+            class="current"
+            x={context.xScale(g.key) ?? 0}
+            y={0}
+            width={context.xScale.bandwidth?.() ?? 0}
+            height={context.height}
+            rx="6"
+          />
         {/each}
-      </p>
-    {/if}
-  {/if}
+      {/snippet}
+
+      {#snippet tooltip()}
+        <Tooltip.Root>
+          {#snippet children({ data }: { data: ColumnGroup })}
+            <Tooltip.Header value={data.label} />
+            <Tooltip.List>
+              {#each series.filter((s) => (data.values[s.key] ?? 0) > 0) as s (s.key)}
+                <Tooltip.Item
+                  label={s.label}
+                  value={formatWhole(data.values[s.key] ?? 0, currency)}
+                  color={s.color}
+                  valueAlign="right"
+                />
+              {:else}
+                <Tooltip.Item label="" value={formatWhole(0, currency)} valueAlign="right" />
+              {/each}
+            </Tooltip.List>
+          {/snippet}
+        </Tooltip.Root>
+      {/snippet}
+    </BarChart>
+  </div>
   {#if series.length > 1}
     <ul class="legend">
       {#each series as s (s.key)}
@@ -195,53 +137,23 @@
 <style>
   .chart {
     width: 100%;
-    position: relative;
   }
-  svg {
-    display: block;
-    max-width: 100%;
-    height: auto;
+  .plot {
+    width: 100%;
     font-size: var(--text-micro);
-    overflow: visible;
   }
-  .grid line {
-    stroke: var(--line);
-    stroke-width: 1;
-  }
-  .grid text,
-  .axis-label {
+  .plot :global(.axis-label) {
     fill: var(--ink-faint);
+    stroke: none;
   }
-  .axis-label.current {
-    fill: var(--ink);
-    font-weight: 600;
+  .plot :global(.grid-line) {
+    stroke: var(--line);
   }
-  .group .hit {
-    fill: transparent;
+  .plot :global(.clickable) {
+    cursor: pointer;
   }
-  .group {
-    transition: opacity 160ms ease;
-  }
-  .group.dim {
-    opacity: 0.45;
-  }
-  .group a:hover .axis-label,
-  .group a:focus-visible .axis-label {
-    fill: var(--ink);
-    text-decoration: underline;
-  }
-  .tooltip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 16px;
-    margin: 8px 0 0;
-    min-height: 1.4em;
-    font-size: var(--text-micro);
-    color: var(--ink-soft);
-  }
-  .tooltip b {
-    color: var(--ink);
-    font-weight: 600;
+  .current {
+    fill: color-mix(in oklch, var(--ink) 5%, transparent);
   }
   .legend {
     display: flex;
@@ -261,10 +173,5 @@
     background: var(--c);
     margin-right: 6px;
     vertical-align: -1px;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .group {
-      transition: none;
-    }
   }
 </style>

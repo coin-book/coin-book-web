@@ -180,8 +180,11 @@
     max-width: 520px;
   }
   .row {
+    /* Every row is its own grid, so only fixed tracks line the columns up across rows. */
+    --category-column: 220px;
+    --amount-column: 120px;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) minmax(0, 220px) auto;
+    grid-template-columns: auto minmax(0, 1fr) var(--category-column) var(--amount-column);
     align-items: center;
     gap: 14px;
     padding: 10px 14px;
@@ -288,6 +291,13 @@
   }
   .amount {
     text-align: right;
+    white-space: nowrap;
+  }
+  @container (max-width: 760px) {
+    .row {
+      --category-column: 170px;
+      --amount-column: 104px;
+    }
   }
   @container (max-width: 600px) {
     .expanded {
@@ -310,6 +320,8 @@
     }
     .amount {
       grid-area: amount;
+      /* On the title's line in every row, whether or not a description follows. */
+      align-self: start;
     }
   }
 </style>

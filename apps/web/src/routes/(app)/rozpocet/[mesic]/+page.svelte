@@ -7,7 +7,7 @@
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
   import type { BudgetMonth } from '@coin-book/core/types';
-  import BudgetTube from '@coin-book/ui/BudgetTube.svelte';
+  import BudgetBullets, { type BudgetBullet } from '@coin-book/ui/BudgetBullets.svelte';
   import Button from '@coin-book/ui/Button.svelte';
   import CategoryIcon from '@coin-book/ui/CategoryIcon.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
@@ -41,6 +41,17 @@
 
   const plannable = $derived(taxonomy.mains.filter((c) => c.kind === 'expense' || c.kind === 'financial'));
   const pace = $derived(budget && budget.elapsed > 0 && budget.elapsed < 1 ? budget.elapsed : null);
+  const bullets = $derived<BudgetBullet[]>(
+    (budget?.lines ?? []).map((line) => ({
+      key: line.category_id ?? line.budget_group_id ?? '',
+      label: line.category_id ? taxonomy.label(line.category_id) : '',
+      colorKey: taxonomy.colorKey(line.category_id),
+      plannedMinor: line.planned_minor,
+      spentMinor: line.spent_minor,
+      status: line.status,
+      href: line.category_id ? `/transakce?kategorie=${line.category_id}&od=${month}-01` : undefined,
+    })),
+  );
 
   function startEditing() {
     draft = Object.fromEntries(
@@ -161,19 +172,7 @@
     </section>
 
     <section class="panel tubes">
-      {#each budget.lines as line (line.category_id ?? line.budget_group_id)}
-        <BudgetTube
-          label={line.category_id ? taxonomy.label(line.category_id) : ''}
-          colorKey={taxonomy.colorKey(line.category_id)}
-          icon={taxonomy.icon(line.category_id)}
-          plannedMinor={line.planned_minor}
-          spentMinor={line.spent_minor}
-          currency={CURRENCY}
-          elapsed={pace}
-          status={line.status}
-          href="/transakce?kategorie={line.category_id}&od={month}-01"
-        />
-      {/each}
+      <BudgetBullets lines={bullets} currency={CURRENCY} label={t('budget.title')} elapsed={pace} />
       {#if pace !== null}
         <p class="legend"><span class="marker"></span>{t('budget.today')}</p>
       {/if}
