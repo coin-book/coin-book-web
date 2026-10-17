@@ -71,3 +71,12 @@ test('command palette navigates', async ({ page }) => {
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/ucty/);
 });
+
+test('overview draws where the money flowed and the last twelve months', async ({ page }) => {
+  await expect(page.getByRole('img', { name: 'Tok peněz' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Posledních dvanáct měsíců' })).toBeVisible();
+  await page.getByTestId('flows-panel').getByRole('button', { name: 'Zobrazit jako tabulku' }).click();
+  await expect(page.getByTestId('flows-panel').getByRole('table')).toBeVisible();
+  await page.getByTestId('categories-panel').locator('summary').click();
+  await expect(page.getByRole('img', { name: 'Výdaje podle kategorií po měsících' })).toBeVisible();
+});

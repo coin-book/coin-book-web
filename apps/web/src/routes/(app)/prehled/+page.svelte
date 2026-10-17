@@ -1,25 +1,34 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { api } from '@coin-book/core/api';
-  import { currentMonth } from '@coin-book/core/dates';
+  import { currentMonth, shortMonth } from '@coin-book/core/dates';
   import { errorText } from '@coin-book/core/errors';
-  import { daysWord, t } from '@coin-book/core/i18n';
+  import { daysWord, i18n, t } from '@coin-book/core/i18n';
   import { formatWhole } from '@coin-book/core/money';
   import { taxonomy } from '@coin-book/core/taxonomy';
-  import type { BudgetMonth, MonthlyReport, Transaction } from '@coin-book/core/types';
+  import type {
+    BudgetMonth,
+    CategoriesReport,
+    FlowsReport,
+    MonthlyReport,
+    Transaction,
+  } from '@coin-book/core/types';
   import BudgetTube from '@coin-book/ui/BudgetTube.svelte';
   import Button from '@coin-book/ui/Button.svelte';
+  import ColumnChart, { type ColumnGroup, type ColumnSeries } from '@coin-book/ui/ColumnChart.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
   import MonthRibbon, { type RibbonSegment } from '@coin-book/ui/MonthRibbon.svelte';
   import MonthSwitcher from '@coin-book/ui/MonthSwitcher.svelte';
+  import Sankey, { type SankeyLink, type SankeyNode } from '@coin-book/ui/Sankey.svelte';
   import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
   import { categorize, confirmAutomatic } from '$lib/categorize';
-  import TrendBars from '$lib/TrendBars.svelte';
 
   const CURRENCY = 'CZK';
   const BURNING_LIMIT = 3;
   const RECENT_LIMIT = 8;
+  const HISTORY_MONTHS = 12;
+  const STACK_LIMIT = 7;
   const statusWeight = { over: 0, ahead_of_pace: 1, on_track: 2 } as const;
 
   const month = $derived(page.url.searchParams.get('mesic') ?? currentMonth());
@@ -27,6 +36,8 @@
   let report = $state<MonthlyReport | null>(null);
   let budget = $state<BudgetMonth | null>(null);
   let recent = $state<Transaction[]>([]);
+  let flows = $state<FlowsReport | null>(null);
+  let history = $state<CategoriesReport | null>(null);
   let error = $state('');
 
   $effect(() => {
@@ -36,14 +47,133 @@
       api.get<MonthlyReport>(`/reports/monthly/${m}`, { currency: CURRENCY }),
       api.get<BudgetMonth>(`/budgets/${m}`, { currency: CURRENCY }),
       api.get<{ transactions: Transaction[] }>('/transactions', { limit: RECENT_LIMIT, to: lastDay(m) }),
+      api.get<FlowsReport>(`/reports/flows/${m}`, { currency: CURRENCY }),
+      api.get<CategoriesReport>('/reports/categories', { to: m, months: HISTORY_MONTHS, currency: CURRENCY }),
     ])
-      .then(([r, b, tx]) => {
+      .then(([r, b, tx, f, h]) => {
         report = r;
         budget = b;
         recent = tx.transactions;
+        flows = f;
+        history = h;
       })
       .catch((e) => (error = errorText(e)));
   });
+
+  function monthRange(m: string) {
+    return `od=${m}-01&do=${lastDay(m)}`;
+  }
+
+  function categoryName(id: string | null | undefined) {
+    return id ? taxonomy.label(id) : t('overview.uncategorized');
+  }
+
+  const flowNodes = $derived<SankeyNode[]>(
+    (flows?.nodes ?? []).map((n) => {
+      const account = n.account_id ? taxonomy.accountsById.get(n.account_id) : undefined;
+      switch (n.kind) {
+        case 'income':
+          return {
+            key: n.key,
+            column: 0,
+            label: categoryName(n.category_id),
+            colorKey: n.category_id ? taxonomy.colorKey(n.category_id) : 'income',
+            href: n.category_id ? `/transakce?kategorie=${n.category_id}&${monthRange(month)}` : undefined,
+          };
+        case 'account':
+          return {
+            key: n.key,
+            column: 1,
+            label: account?.name ?? '',
+            colorKey: account?.color_key ?? 'bridlice',
+            href: `/transakce?ucet=${n.account_id}&${monthRange(month)}`,
+          };
+        case 'saving':
+          return {
+            key: n.key,
+            column: 2,
+            label: account?.name ?? '',
+            colorKey: account?.color_key ?? 'transfer',
+          };
+        default:
+          return {
+            key: n.key,
+            column: 2,
+            label: categoryName(n.category_id),
+            colorKey: n.category_id ? taxonomy.colorKey(n.category_id) : 'uncategorized',
+            href: n.category_id
+              ? `/transakce?kategorie=${n.category_id}&${monthRange(month)}`
+              : '/k-vyreseni',
+          };
+      }
+    }),
+  );
+  const flowLinks = $derived<SankeyLink[]>(
+    (flows?.links ?? []).map((l) => ({ source: l.source, target: l.target, amountMinor: l.amount_minor })),
+  );
+
+  const trendSeries = $derived<ColumnSeries[]>([
+    { key: 'income', label: t('overview.income'), color: 'var(--income)' },
+    {
+      key: 'expense',
+      label: t('overview.expenses'),
+      color: 'color-mix(in oklch, var(--ink) 72%, transparent)',
+    },
+    { key: 'financial', label: t('overview.saved'), color: 'var(--cat-chrpa)' },
+  ]);
+  const trendGroups = $derived<ColumnGroup[]>(
+    (report?.trend ?? []).map((m) => ({
+      key: m.month,
+      label: shortMonth(m.month, i18n.locale),
+      values: { income: m.income_minor, expense: m.expense_minor, financial: m.financial_minor },
+      href: `/prehled?mesic=${m.month}`,
+      current: m.month === month,
+    })),
+  );
+
+  // Stacked categories: the biggest categories over the whole period keep their own
+  // segment, the rest fold into "other", so the legend stays readable.
+  const stackSeries = $derived.by<ColumnSeries[]>(() => {
+    const totals = new Map<string, number>();
+    for (const m of history?.months ?? []) {
+      for (const e of m.expenses) {
+        const key = e.category_id ?? 'uncategorized';
+        totals.set(key, (totals.get(key) ?? 0) + e.amount_minor);
+      }
+    }
+    const ranked = [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([key]) => key);
+    const top = ranked.slice(0, STACK_LIMIT);
+    const series = top.map((key) => ({
+      key,
+      label: key === 'uncategorized' ? t('overview.uncategorized') : taxonomy.label(key),
+      color: key === 'uncategorized' ? 'var(--cat-uncategorized)' : `var(--cat-${taxonomy.colorKey(key)})`,
+    }));
+    if (ranked.length > top.length)
+      series.push({
+        key: 'other',
+        label: t('overview.otherCategories'),
+        color: 'color-mix(in oklch, var(--ink) 35%, transparent)',
+      });
+    return series;
+  });
+  const stackGroups = $derived<ColumnGroup[]>(
+    (history?.months ?? []).map((m) => {
+      const values: Record<string, number> = {};
+      const own = new Set(stackSeries.map((s) => s.key));
+      for (const e of m.expenses) {
+        const key = e.category_id ?? 'uncategorized';
+        const slot = own.has(key) ? key : 'other';
+        values[slot] = (values[slot] ?? 0) + e.amount_minor;
+      }
+      return {
+        key: m.month,
+        label: shortMonth(m.month, i18n.locale),
+        values,
+        href: `/prehled?mesic=${m.month}`,
+        current: m.month === month,
+      };
+    }),
+  );
 
   function lastDay(m: string) {
     const [y, mo] = m.split('-').map(Number);
@@ -154,6 +284,20 @@
       </section>
     {/if}
 
+    {#if flowLinks.length > 0}
+      <section class="panel" data-testid="flows-panel">
+        <h2>{t('overview.flows')}</h2>
+        <p class="quiet lead">{t('overview.flowsLead')}</p>
+        <Sankey
+          nodes={flowNodes}
+          links={flowLinks}
+          currency={CURRENCY}
+          label={t('overview.flows')}
+          tableLabel={t('overview.asTable')}
+        />
+      </section>
+    {/if}
+
     {#if report.set_aside.length > 0}
       <section class="panel" data-testid="set-aside-panel">
         <div class="panel-head">
@@ -213,15 +357,28 @@
       </section>
     </div>
 
-    <section class="panel">
+    <section class="panel" data-testid="trend-panel">
       <h2>{t('overview.trend')}</h2>
-      <TrendBars
-        trend={report.trend}
+      <ColumnChart
+        series={trendSeries}
+        groups={trendGroups}
         currency={CURRENCY}
-        incomeLabel={t('overview.income')}
-        expenseLabel={t('overview.expenses')}
+        label={t('overview.trend')}
       />
     </section>
+
+    {#if stackGroups.some((g) => Object.keys(g.values).length > 0)}
+      <details class="panel" data-testid="categories-panel">
+        <summary><h2>{t('overview.categoriesTrend')}</h2></summary>
+        <ColumnChart
+          series={stackSeries}
+          groups={stackGroups}
+          currency={CURRENCY}
+          label={t('overview.categoriesTrend')}
+          mode="stacked"
+        />
+      </details>
+    {/if}
   {/if}
 {:else}
   <p class="quiet">{t('common.loading')}</p>
@@ -300,6 +457,30 @@
   }
   .ribbon {
     padding-bottom: 18px;
+  }
+  details.panel summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  details.panel summary::-webkit-details-marker {
+    display: none;
+  }
+  details.panel summary h2 {
+    display: inline-block;
+    margin: 0;
+  }
+  details.panel summary h2::before {
+    content: '▸';
+    display: inline-block;
+    margin-right: 8px;
+    color: var(--ink-faint);
+    transition: transform 160ms ease;
+  }
+  details.panel[open] summary h2::before {
+    transform: rotate(90deg);
+  }
+  details.panel[open] summary {
+    margin-bottom: 14px;
   }
   .columns {
     display: grid;
