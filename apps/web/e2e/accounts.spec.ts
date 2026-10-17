@@ -39,3 +39,22 @@ test('two accounts in one currency can be merged', async ({ page }) => {
   await expect(page.getByText(/Sloučeno, přesunuto 0 transakcí/)).toBeVisible();
   await expect(page.getByText(`Zdroj ${run}`)).toHaveCount(0);
 });
+
+test('the current balance can be typed in and the opening balance follows', async ({ page }) => {
+  const account = `Hotovost ${Date.now()}`;
+  await page.goto('/ucty');
+  await page.getByRole('button', { name: 'Nový účet' }).click();
+  await page.getByLabel('Název').fill(account);
+  await page.getByRole('button', { name: 'Založit účet' }).click();
+  const card = page.getByTestId('account-card').filter({ hasText: account });
+  await expect(card).toBeVisible();
+
+  await card.getByRole('button', { name: 'Upravit' }).click();
+  await card.getByLabel(/Aktuální zůstatek/).fill('1500,50');
+  await expect(card.getByLabel(/Počáteční zůstatek/)).toHaveValue('1500,5');
+  await card.getByRole('button', { name: 'Uložit' }).click();
+  await expect(page.getByText('Účet uložen')).toBeVisible();
+
+  await card.getByRole('button', { name: 'Upravit' }).click();
+  await expect(card.getByLabel(/Aktuální zůstatek/)).toHaveValue('1500,5');
+});

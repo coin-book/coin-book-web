@@ -209,11 +209,13 @@ export const cs = {
 
   'accounts.title': 'Účty',
   'accounts.balance': 'Zůstatek',
+  'accounts.current': 'Aktuální zůstatek',
+  'accounts.currentHint': 'Zadejte dnešní zůstatek a počáteční se dopočítá, nebo naopak.',
   'accounts.opening': 'Počáteční zůstatek',
   'accounts.openingHint':
     'mBank ve výpisu zůstatek neuvádí. Zadejte zůstatek před první importovanou transakcí.',
   'accounts.transactions': '{count} transakcí, poslední {date}',
-  'accounts.rename': 'Přejmenovat',
+  'accounts.rename': 'Upravit',
   'accounts.save': 'Uložit',
   'accounts.saved': 'Účet uložen',
   'accounts.empty': 'Účty vzniknou samy při prvním importu.',
