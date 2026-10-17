@@ -31,6 +31,9 @@
   let name = $state('');
   let kind = $state<Kind>('current');
   let opening = $state('');
+  let current = $state('');
+  // Sum of the account's transactions: the two balance fields differ by exactly this.
+  let movements = 0;
   let mergeTarget = $state('');
   let bankId = $state('');
 
@@ -108,6 +111,18 @@
     kind = a.kind as Kind;
     bankId = a.bank_id ?? '';
     opening = decimal(a.opening_balance.minor);
+    current = decimal(a.balance.minor);
+    movements = a.balance.minor - a.opening_balance.minor;
+  }
+
+  function openingChanged(a: Account) {
+    const minor = parseMinor(opening || '0', a.currency);
+    if (minor !== null) current = decimal(minor + movements);
+  }
+
+  function currentChanged(a: Account) {
+    const minor = parseMinor(current || '0', a.currency);
+    if (minor !== null) opening = decimal(minor - movements);
   }
 
   function startMerge(a: Account) {
@@ -335,10 +350,14 @@
               <BankSelect value={bankId} onchange={(v) => (bankId = v)} />
             </label>
             <label class="field">
-              <span>{t('accounts.opening')} ({a.currency})</span>
-              <input bind:value={opening} inputmode="decimal" />
+              <span>{t('accounts.current')} ({a.currency})</span>
+              <input bind:value={current} inputmode="decimal" oninput={() => currentChanged(a)} />
             </label>
-            <small class="hint">{t('accounts.openingHint')}</small>
+            <label class="field">
+              <span>{t('accounts.opening')} ({a.currency})</span>
+              <input bind:value={opening} inputmode="decimal" oninput={() => openingChanged(a)} />
+            </label>
+            <small class="hint">{t('accounts.currentHint')} {t('accounts.openingHint')}</small>
             <div class="actions">
               <Button variant="ghost" type="button" onclick={() => (editing = null)}
                 >{t('common.cancel')}</Button

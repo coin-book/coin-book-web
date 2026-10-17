@@ -212,11 +212,13 @@ export const sk: Record<MessageKey, string> = {
 
   'accounts.title': 'Účty',
   'accounts.balance': 'Zostatok',
+  'accounts.current': 'Aktuálny zostatok',
+  'accounts.currentHint': 'Zadajte dnešný zostatok a počiatočný sa dopočíta, alebo naopak.',
   'accounts.opening': 'Počiatočný zostatok',
   'accounts.openingHint':
     'mBank vo výpise zostatok neuvádza. Zadajte zostatok pred prvou importovanou transakciou.',
   'accounts.transactions': '{count} transakcií, posledná {date}',
-  'accounts.rename': 'Premenovať',
+  'accounts.rename': 'Upraviť',
   'accounts.save': 'Uložiť',
   'accounts.saved': 'Účet uložený',
   'accounts.empty': 'Účty vzniknú samy pri prvom importe.',
