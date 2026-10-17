@@ -48,7 +48,7 @@ test('import preview writes nothing until confirmed', async ({ page }) => {
 
 test('transactions filter by search text', async ({ page }) => {
   await page.goto('/transakce');
-  await page.getByLabel('Protistrana nebo popis').fill('ROHLIK');
+  await page.getByLabel('Protistrana, popis nebo částka').fill('ROHLIK');
   await expect(page).toHaveURL(/q=ROHLIK/);
   const rows = page.locator('[data-tx]');
   await expect(rows.first()).toContainText('ROHLIK');

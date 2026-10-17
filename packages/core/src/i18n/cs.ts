@@ -65,7 +65,7 @@ export const cs = {
   'overview.toImport': 'Nahrát výpis',
   'overview.uncategorized': 'Nezařazeno',
 
-  'tx.searchPlaceholder': 'Protistrana nebo popis',
+  'tx.searchPlaceholder': 'Protistrana, popis nebo částka',
   'tx.allAccounts': 'Všechny účty',
   'tx.allCategories': 'Všechny kategorie',
   'tx.onlyUncategorized': 'Jen nezařazené',

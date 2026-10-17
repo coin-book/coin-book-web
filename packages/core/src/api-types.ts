@@ -3556,7 +3556,7 @@ export interface operations {
                 account_id?: string;
                 /** @description Matches the category and its subcategories. */
                 category_id?: string;
-                /** @description Substring of the description or counterparty. */
+                /** @description Substring of the description or counterparty, ignoring case and diacritics; or an amount such as 1249,50 (an explicit sign matches that direction only). */
                 q?: string;
                 /** @description Only transactions with no category that are not transfers. */
                 uncategorized?: boolean;

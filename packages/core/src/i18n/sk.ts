@@ -67,7 +67,7 @@ export const sk: Record<MessageKey, string> = {
   'overview.toImport': 'Nahrať výpis',
   'overview.uncategorized': 'Nezaradené',
 
-  'tx.searchPlaceholder': 'Protistrana alebo popis',
+  'tx.searchPlaceholder': 'Protistrana, popis alebo suma',
   'tx.allAccounts': 'Všetky účty',
   'tx.allCategories': 'Všetky kategórie',
   'tx.onlyUncategorized': 'Len nezaradené',
