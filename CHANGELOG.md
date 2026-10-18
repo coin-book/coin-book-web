@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.1.0](https://github.com/coin-book/coin-book-web/compare/v1.0.0...v1.1.0) (2026-10-18)
+
+
+### Features
+
+* **web:** accept ABO (GPC) statements on the imports page ([9423af1](https://github.com/coin-book/coin-book-web/commit/9423af17577b4dbcfb7dcdb7280b5449f72b080b))
+* **web:** column mapper for CSV files of any bank, with saved mappings ([708814d](https://github.com/coin-book/coin-book-web/commit/708814da2b6917bc09844b8225c22f74f4588167))
+* **web:** english routes and locale, landing page, and reworked overview, investments and triage ([dcbc714](https://github.com/coin-book/coin-book-web/commit/dcbc7148b81d1af36c7221620d4970f2fbb0111b))
+* **web:** import preview shows rows already in the account from another statement and rows it refreshes ([89797a3](https://github.com/coin-book/coin-book-web/commit/89797a332fb944171fdb212edc5a128bf247def8))
+* **web:** investments per account as separate cards, ticker facts, trades on the chart and gains in percent ([9dbf90d](https://github.com/coin-book/coin-book-web/commit/9dbf90dceb4f0b9382e0abcda1c56845460e513a))
+* **web:** name Air Bank among the statements the import reads ([fbcbd0d](https://github.com/coin-book/coin-book-web/commit/fbcbd0d814283b9a3d93045441f1231381f14656))
+* **web:** the menu toggle sits next to the logo and collapses the menu to icons ([69da7dc](https://github.com/coin-book/coin-book-web/commit/69da7dc91fbb15f832e38049064df1934264b886))
+* **web:** the side menu can be hidden completely and brought back ([fe28ed1](https://github.com/coin-book/coin-book-web/commit/fe28ed1098ba8c78ec2005e00ded0c50217233ac))
+* **web:** the side menu can be resized by dragging its edge, down to icons only ([323bb3c](https://github.com/coin-book/coin-book-web/commit/323bb3c4a0446cb02fcd47a558d6af195ba93808))
+
+
+### Bug Fixes
+
+* **web:** mapper table keeps its columns under their field pickers ([0f90456](https://github.com/coin-book/coin-book-web/commit/0f9045688592c74da6b4eb3204f6ea20d25059ef))
+* **web:** the side menu scrolls on its own when the window is too low for it ([6f68356](https://github.com/coin-book/coin-book-web/commit/6f683569710193701027e5e2ea9574a1e3e34276))
+
 ## 1.0.0 (2026-10-18)
 
 
