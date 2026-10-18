@@ -14,6 +14,7 @@
   let { children } = $props();
 
   const RAIL_WIDTH_KEY = 'coinbook.railWidth';
+  const RAIL_COLLAPSED_KEY = 'coinbook.railCollapsed';
   const RAIL_DEFAULT = 232;
   const RAIL_MIN = 72;
   const RAIL_MAX = 360;
@@ -24,16 +25,35 @@
   let paletteOpen = $state(false);
   let helpOpen = $state(false);
   let railWidth = $state(storedRailWidth());
+  let collapsed = $state(stored(RAIL_COLLAPSED_KEY) === 'true');
   let resizing = $state(false);
   const compact = $derived(railWidth < RAIL_COMPACT_BELOW);
 
-  function storedRailWidth(): number {
+  function stored(key: string): string | null {
     try {
-      const stored = Number(localStorage.getItem(RAIL_WIDTH_KEY));
-      return stored ? clampRail(stored) : RAIL_DEFAULT;
+      return localStorage.getItem(key);
     } catch {
-      return RAIL_DEFAULT;
+      return null;
     }
+  }
+
+  // A private window may refuse storage; the choice then lasts for this visit.
+  function store(key: string, value: string) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      /* not kept */
+    }
+  }
+
+  function storedRailWidth(): number {
+    const width = Number(stored(RAIL_WIDTH_KEY));
+    return width ? clampRail(width) : RAIL_DEFAULT;
+  }
+
+  function setCollapsed(value: boolean) {
+    collapsed = value;
+    store(RAIL_COLLAPSED_KEY, String(value));
   }
 
   function clampRail(width: number) {
@@ -42,11 +62,7 @@
 
   function setRailWidth(width: number) {
     railWidth = clampRail(width);
-    try {
-      localStorage.setItem(RAIL_WIDTH_KEY, String(railWidth));
-    } catch {
-      // A private window may refuse storage; the width then lasts for this visit.
-    }
+    store(RAIL_WIDTH_KEY, String(railWidth));
   }
 
   function startResize(e: PointerEvent) {
@@ -128,7 +144,7 @@
 
 <svelte:window {onkeydown} />
 
-<div class="shell" class:resizing style:--rail-width="{railWidth}px">
+<div class="shell" class:resizing class:collapsed style:--rail-width="{railWidth}px">
   <nav class="rail" class:compact aria-label="coin-book">
     <a class="brand" href="/overview" aria-label="coin-book">
       <span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -180,8 +196,27 @@
           <span class="label">{t('nav.logout')}</span>
         </button>
       </li>
+      <li class="rail-collapse">
+        <button
+          type="button"
+          title={compact ? t('nav.collapse') : undefined}
+          onclick={() => setCollapsed(true)}
+        >
+          <Icon name="caret-left" size={20} />
+          <span class="label">{t('nav.collapse')}</span>
+        </button>
+      </li>
     </ul>
   </nav>
+  <button
+    type="button"
+    class="rail-expand"
+    aria-label={t('nav.expand')}
+    title={t('nav.expand')}
+    onclick={() => setCollapsed(false)}
+  >
+    <Icon name="caret-right" size={18} weight="bold" />
+  </button>
   <!-- A focusable separator is the ARIA window-splitter pattern; Svelte counts every separator as static. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
   <div
@@ -409,11 +444,46 @@
     min-width: 0;
     padding: 30px clamp(16px, 4vw, 48px) 80px;
   }
+  .rail-expand {
+    display: none;
+  }
+  @media (min-width: 861px) {
+    .shell.collapsed {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .shell.collapsed .rail,
+    .shell.collapsed .rail-handle {
+      display: none;
+    }
+    .shell.collapsed .content {
+      padding-left: max(64px, clamp(16px, 4vw, 48px));
+    }
+    .shell.collapsed .rail-expand {
+      position: fixed;
+      z-index: 30;
+      top: 18px;
+      left: 14px;
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--ink-soft);
+      box-shadow: var(--shadow-float);
+      cursor: pointer;
+    }
+    .shell.collapsed .rail-expand:hover {
+      color: var(--brand);
+    }
+  }
   @media (max-width: 860px) {
     .shell {
       grid-template-columns: 1fr;
     }
-    .rail-handle {
+    .rail-handle,
+    .rail-collapse {
       display: none;
     }
     .rail {

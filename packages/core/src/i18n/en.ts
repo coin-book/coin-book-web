@@ -13,6 +13,8 @@ export const en: Record<MessageKey, string> = {
   'nav.search': 'Search…',
   'nav.logout': 'Sign out',
   'nav.resize': 'Resize the menu',
+  'nav.collapse': 'Hide the menu',
+  'nav.expand': 'Show the menu',
 
   'auth.loginTitle': 'Sign in',
   'auth.registerTitle': 'Create an account',
