@@ -13,8 +13,62 @@
 
   let { children } = $props();
 
+  const RAIL_WIDTH_KEY = 'coinbook.railWidth';
+  const RAIL_DEFAULT = 232;
+  const RAIL_MIN = 72;
+  const RAIL_MAX = 360;
+  // Below this the labels no longer fit and the menu shows icons only.
+  const RAIL_COMPACT_BELOW = 160;
+  const RAIL_KEY_STEP = 16;
+
   let paletteOpen = $state(false);
   let helpOpen = $state(false);
+  let railWidth = $state(storedRailWidth());
+  let resizing = $state(false);
+  const compact = $derived(railWidth < RAIL_COMPACT_BELOW);
+
+  function storedRailWidth(): number {
+    try {
+      const stored = Number(localStorage.getItem(RAIL_WIDTH_KEY));
+      return stored ? clampRail(stored) : RAIL_DEFAULT;
+    } catch {
+      return RAIL_DEFAULT;
+    }
+  }
+
+  function clampRail(width: number) {
+    return Math.round(Math.min(RAIL_MAX, Math.max(RAIL_MIN, width)));
+  }
+
+  function setRailWidth(width: number) {
+    railWidth = clampRail(width);
+    try {
+      localStorage.setItem(RAIL_WIDTH_KEY, String(railWidth));
+    } catch {
+      // A private window may refuse storage; the width then lasts for this visit.
+    }
+  }
+
+  function startResize(e: PointerEvent) {
+    const handle = e.currentTarget as HTMLElement;
+    handle.setPointerCapture(e.pointerId);
+    resizing = true;
+  }
+
+  function resize(e: PointerEvent) {
+    if (resizing) setRailWidth(e.clientX);
+  }
+
+  function resizeByKey(e: KeyboardEvent) {
+    const step = { ArrowLeft: -RAIL_KEY_STEP, ArrowRight: RAIL_KEY_STEP }[e.key];
+    if (step) {
+      e.preventDefault();
+      setRailWidth(railWidth + step);
+    } else if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      setRailWidth(e.key === 'Home' ? RAIL_MIN : RAIL_MAX);
+    }
+  }
 
   const nav = $derived([
     { href: '/overview', label: t('nav.overview'), icon: 'squares-four' },
@@ -74,13 +128,18 @@
 
 <svelte:window {onkeydown} />
 
-<div class="shell">
-  <nav class="rail" aria-label="coin-book">
+<div class="shell" class:resizing style:--rail-width="{railWidth}px">
+  <nav class="rail" class:compact aria-label="coin-book">
     <a class="brand" href="/overview" aria-label="coin-book">
       <span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="display brand-name">coin-book</span>
     </a>
-    <button type="button" class="search" onclick={() => (paletteOpen = true)}>
+    <button
+      type="button"
+      class="search"
+      title={compact ? t('nav.search') : undefined}
+      onclick={() => (paletteOpen = true)}
+    >
       <Icon name="magnifying-glass" size={16} />
       <span>{t('nav.search')}</span>
       <kbd>⌘K</kbd>
@@ -92,6 +151,7 @@
             href={item.href}
             class:active={isActive(item)}
             aria-current={isActive(item) ? 'page' : undefined}
+            title={compact ? item.label : undefined}
           >
             <Icon name={item.icon} size={20} weight={isActive(item) ? 'fill' : 'regular'} />
             <span class="label">{item.label}</span>
@@ -107,6 +167,7 @@
             href={item.href}
             class:active={isActive(item)}
             aria-current={isActive(item) ? 'page' : undefined}
+            title={compact ? item.label : undefined}
           >
             <Icon name={item.icon} size={20} weight={isActive(item) ? 'fill' : 'regular'} />
             <span class="label">{item.label}</span>
@@ -114,13 +175,31 @@
         </li>
       {/each}
       <li>
-        <button type="button" onclick={() => auth.logout()}>
+        <button type="button" title={compact ? t('nav.logout') : undefined} onclick={() => auth.logout()}>
           <Icon name="sign-out" size={20} />
           <span class="label">{t('nav.logout')}</span>
         </button>
       </li>
     </ul>
   </nav>
+  <!-- A focusable separator is the ARIA window-splitter pattern; Svelte counts every separator as static. -->
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
+  <div
+    class="rail-handle"
+    role="separator"
+    aria-orientation="vertical"
+    aria-label={t('nav.resize')}
+    aria-valuemin={RAIL_MIN}
+    aria-valuemax={RAIL_MAX}
+    aria-valuenow={railWidth}
+    tabindex="0"
+    onpointerdown={startResize}
+    onpointermove={resize}
+    onpointerup={() => (resizing = false)}
+    onpointercancel={() => (resizing = false)}
+    ondblclick={() => setRailWidth(RAIL_DEFAULT)}
+    onkeydown={resizeByKey}
+  ></div>
 
   <main class="content">
     {@render children()}
@@ -132,9 +211,70 @@
 
 <style>
   .shell {
+    position: relative;
     display: grid;
-    grid-template-columns: 232px minmax(0, 1fr);
+    grid-template-columns: var(--rail-width, 232px) minmax(0, 1fr);
     min-height: 100dvh;
+  }
+  .shell.resizing {
+    cursor: col-resize;
+    user-select: none;
+  }
+  .rail-handle {
+    position: fixed;
+    z-index: 30;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--rail-width, 232px) - 4px);
+    width: 8px;
+    cursor: col-resize;
+    touch-action: none;
+  }
+  .rail-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 3px;
+    width: 2px;
+    border-radius: 2px;
+    background: transparent;
+    transition: background 0.15s;
+  }
+  .rail-handle:hover::after,
+  .rail-handle:focus-visible::after,
+  .resizing .rail-handle::after {
+    background: var(--brand);
+  }
+  .rail.compact {
+    padding-inline: 10px;
+  }
+  .rail.compact .brand {
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .rail.compact .brand-name,
+  .rail.compact .search span,
+  .rail.compact kbd,
+  .rail.compact .label {
+    display: none;
+  }
+  .rail.compact .search,
+  .rail.compact li a,
+  .rail.compact li button {
+    justify-content: center;
+    position: relative;
+  }
+  .rail.compact li a.active::before {
+    left: -10px;
+  }
+  .rail.compact .badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    padding: 0 4px;
+    font-size: 10px;
   }
   .rail {
     position: sticky;
@@ -272,6 +412,9 @@
   @media (max-width: 860px) {
     .shell {
       grid-template-columns: 1fr;
+    }
+    .rail-handle {
+      display: none;
     }
     .rail {
       position: fixed;

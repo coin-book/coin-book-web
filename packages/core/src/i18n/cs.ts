@@ -10,6 +10,7 @@ export const cs = {
   'nav.settings': 'Nastavení',
   'nav.search': 'Hledat…',
   'nav.logout': 'Odhlásit',
+  'nav.resize': 'Změnit šířku menu',
 
   'auth.loginTitle': 'Přihlášení',
   'auth.registerTitle': 'Založte si účet',

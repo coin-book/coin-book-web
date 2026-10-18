@@ -12,6 +12,7 @@ export const en: Record<MessageKey, string> = {
   'nav.settings': 'Settings',
   'nav.search': 'Search…',
   'nav.logout': 'Sign out',
+  'nav.resize': 'Resize the menu',
 
   'auth.loginTitle': 'Sign in',
   'auth.registerTitle': 'Create an account',
