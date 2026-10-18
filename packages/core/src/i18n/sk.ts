@@ -430,6 +430,10 @@ export const sk: Record<MessageKey, string> = {
   'investments.back': 'Investície',
   'investments.soldOut': 'Všetko predané.',
 
+  'settings.about': 'O aplikácii',
+  'settings.versionWeb': 'Webová aplikácia',
+  'settings.versionApi': 'Server',
+
   'common.close': 'Zavrieť',
   'common.loading': 'Načítavam…',
   'common.retry': 'Skúsiť znova',

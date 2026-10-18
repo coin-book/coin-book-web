@@ -63,6 +63,8 @@ test('an agent token is shown once and listed afterwards', async ({ page }) => {
   await page.getByLabel('Název').fill(`e2e ${Date.now()}`);
   await page.getByRole('button', { name: 'Vytvořit token' }).click();
   await expect(page.getByTestId('agent-token-secret')).toContainText('coinbook_pat_');
+  await expect(page.getByTestId('about')).toContainText(/Webová aplikace\s*dev/);
+  await expect(page.getByTestId('about')).toContainText(/Server\s*\S+/);
 });
 
 test('command palette navigates', async ({ page }) => {

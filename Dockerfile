@@ -4,7 +4,8 @@ RUN npm install -g pnpm@12.8.1
 WORKDIR /src
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @coin-book/web build
+ARG BUILD_VERSION=dev
+RUN COINBOOK_WEB_VERSION=$BUILD_VERSION pnpm --filter @coin-book/web build
 
 FROM caddy:2.10-alpine
 

@@ -427,6 +427,10 @@ export const cs = {
   'investments.back': 'Investice',
   'investments.soldOut': 'Vše prodáno.',
 
+  'settings.about': 'O aplikaci',
+  'settings.versionWeb': 'Webová aplikace',
+  'settings.versionApi': 'Server',
+
   'common.close': 'Zavřít',
   'common.loading': 'Načítám…',
   'common.retry': 'Zkusit znovu',

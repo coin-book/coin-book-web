@@ -5,7 +5,7 @@
   import { i18n, t, type Locale, type MessageKey } from '@coin-book/core/i18n';
   import { theme, type ThemeChoice } from '@coin-book/core/theme';
   import { toasts } from '@coin-book/core/toast';
-  import type { AgentToken, AuditEntry } from '@coin-book/core/types';
+  import type { AgentToken, AuditEntry, Version } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
 
@@ -28,6 +28,7 @@
   let creating = $state(false);
   let threshold = $state('0');
   let examples = $state(0);
+  let apiVersion = $state<Version | null>(null);
   const thresholds = ['0', '0.95', '0.9', '0.8'] as const;
   const thresholdLabel: Record<(typeof thresholds)[number], MessageKey> = {
     '0': 'learn.threshold.0',
@@ -41,11 +42,13 @@
   type Settings = { auto_categorize_threshold: number; classifier_examples: number };
 
   async function load() {
-    const [tk, au, st] = await Promise.all([
+    const [tk, au, st, version] = await Promise.all([
       api.get<{ tokens: AgentToken[] }>('/agent-tokens'),
       api.get<{ entries: AuditEntry[] }>('/audit-log'),
       api.get<Settings>('/settings'),
+      api.get<Version>('/version'),
     ]);
+    apiVersion = version;
     tokens = tk.tokens;
     audit = au.entries;
     applySettings(st);
@@ -251,7 +254,33 @@
   {/if}
 </section>
 
+<section class="panel" data-testid="about">
+  <h2 class="display">{t('settings.about')}</h2>
+  <dl class="versions">
+    <dt>{t('settings.versionWeb')}</dt>
+    <dd class="num">{__WEB_VERSION__}</dd>
+    <dt>{t('settings.versionApi')}</dt>
+    <dd class="num">
+      {apiVersion?.version ?? ''}{#if apiVersion?.commit}<span class="quiet">
+          · {apiVersion.commit.slice(0, 7)}</span
+        >{/if}
+    </dd>
+  </dl>
+</section>
+
 <style>
+  .versions {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 18px;
+    margin: 0;
+  }
+  .versions dt {
+    color: var(--ink-soft);
+  }
+  .versions dd {
+    margin: 0;
+  }
   .title {
     margin: 0 0 20px;
     font-size: var(--text-headline);
