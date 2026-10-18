@@ -548,7 +548,7 @@ export const en: Record<MessageKey, string> = {
 
   'landing.tagline': 'Your money, clearly, on your own server',
   'landing.lead':
-    'coin-book reads statements from mBank and Revolut, sorts your transactions, keeps an eye on the budget and shows your investments, Czech 3-year test included. It runs at home and the data never leaves.',
+    'coin-book reads statements from mBank, Air Bank and Revolut, ABO from any Czech bank and other banks’ CSV, sorts your transactions, keeps an eye on the budget and shows your investments, Czech 3-year test included. It runs at home and the data never leaves.',
   'landing.open': 'Open the app',
   'landing.register': 'Create an account',
   'landing.overview.title': 'The whole month on one screen',

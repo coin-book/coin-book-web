@@ -4,14 +4,15 @@
   import Button from '@coin-book/ui/Button.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
 
-  // Pictures come from `make landing-shots`; retake them whenever the screens change.
-  const features: { key: string; image: string; icon: string }[] = [
-    { key: 'overview', image: '/landing/overview.jpg', icon: 'squares-four' },
-    { key: 'triage', image: '/landing/triage.jpg', icon: 'tray' },
-    { key: 'budget', image: '/landing/budget.jpg', icon: 'target' },
-    { key: 'investments', image: '/landing/investments.jpg', icon: 'chart-line-up' },
-    { key: 'instrument', image: '/landing/instrument.jpg', icon: 'chart-line-up' },
-    { key: 'imports', image: '/landing/imports.jpg', icon: 'upload-simple' },
+  // Pictures come from `make landing-shots`, a light and a dark one per screen; retake
+  // them whenever the screens change.
+  const features: { key: string; icon: string }[] = [
+    { key: 'overview', icon: 'squares-four' },
+    { key: 'triage', icon: 'tray' },
+    { key: 'budget', icon: 'target' },
+    { key: 'investments', icon: 'chart-line-up' },
+    { key: 'instrument', icon: 'chart-line-up' },
+    { key: 'imports', icon: 'upload-simple' },
   ];
   const promises = ['selfHosted', 'private', 'agents', 'backups'] as const;
   const promiseIcons = {
@@ -23,6 +24,13 @@
 
   const text = (key: string) => t(key as MessageKey);
 </script>
+
+{#snippet shot(key: string, lazy: boolean)}
+  {@const alt = text(`landing.${key}.title`)}
+  {@const loading = lazy ? 'lazy' : 'eager'}
+  <img class="light" src="/landing/{key}.jpg" {alt} width="1280" height="820" {loading} />
+  <img class="dark" src="/landing/{key}-dark.jpg" {alt} width="1280" height="820" {loading} />
+{/snippet}
 
 <svelte:head>
   <title>coin-book · {t('landing.tagline')}</title>
@@ -51,7 +59,7 @@
       {/if}
     </div>
     <figure class="hero-shot">
-      <img src="/landing/overview.jpg" alt={text('landing.overview.title')} width="1280" height="820" />
+      {@render shot('overview', false)}
     </figure>
   </section>
 
@@ -63,7 +71,7 @@
         <p>{text(`landing.${f.key}.body`)}</p>
       </div>
       <figure>
-        <img src={f.image} alt={text(`landing.${f.key}.title`)} width="1280" height="820" loading="lazy" />
+        {@render shot(f.key, true)}
       </figure>
     </section>
   {/each}
@@ -160,6 +168,24 @@
     border-radius: 18px;
     box-shadow: var(--shadow-float);
     background: var(--surface);
+  }
+  /* Follows the theme rules in theme.css: the system's choice unless the user picked one. */
+  img.dark {
+    display: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) img.dark {
+      display: block;
+    }
+    :global(:root:not([data-theme='light'])) img.light {
+      display: none;
+    }
+  }
+  :global(:root[data-theme='dark']) img.dark {
+    display: block;
+  }
+  :global(:root[data-theme='dark']) img.light {
+    display: none;
   }
   .feature {
     display: grid;

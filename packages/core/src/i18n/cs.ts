@@ -541,7 +541,7 @@ export const cs = {
 
   'landing.tagline': 'Vaše peníze přehledně, na vašem serveru',
   'landing.lead':
-    'coin-book načte výpisy z mBank a Revolutu, roztřídí transakce, pohlídá rozpočet a ukáže investice včetně testu 3 let. Běží u vás doma a data nikam neodcházejí.',
+    'coin-book načte výpisy z mBank, Air Bank a Revolutu, ABO z kterékoli české banky i CSV jiných bank, roztřídí transakce, pohlídá rozpočet a ukáže investice včetně testu 3 let. Běží u vás doma a data nikam neodcházejí.',
   'landing.open': 'Otevřít aplikaci',
   'landing.register': 'Založit účet',
   'landing.overview.title': 'Celý měsíc na jedné obrazovce',

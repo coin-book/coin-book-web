@@ -544,7 +544,7 @@ export const sk: Record<MessageKey, string> = {
 
   'landing.tagline': 'Vaše peniaze prehľadne, na vašom serveri',
   'landing.lead':
-    'coin-book načíta výpisy z mBank a Revolutu, roztriedi transakcie, postráži rozpočet a ukáže investície vrátane testu 3 rokov. Beží u vás doma a dáta nikam neodchádzajú.',
+    'coin-book načíta výpisy z mBank, Air Bank a Revolutu, ABO z ktorejkoľvek českej banky aj CSV iných bánk, roztriedi transakcie, postráži rozpočet a ukáže investície vrátane testu 3 rokov. Beží u vás doma a dáta nikam neodchádzajú.',
   'landing.open': 'Otvoriť aplikáciu',
   'landing.register': 'Založiť účet',
   'landing.overview.title': 'Celý mesiac na jednej obrazovke',
