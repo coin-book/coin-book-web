@@ -388,6 +388,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/imports/inspect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Split an unknown CSV into cells and guess its column layout for the mapper */
+        post: operations["inspect-import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/imports/preview": {
         parameters: {
             query?: never;
@@ -400,6 +417,40 @@ export interface paths {
         /** Dry-run an import: parse, check and deduplicate without writing */
         post: operations["preview-import"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved column layouts */
+        get: operations["list-import-templates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Forget a saved column layout */
+        delete: operations["delete-import-template"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1182,6 +1233,24 @@ export interface components {
             /** @description Absent for the not-yet-categorised share. */
             category_id?: string;
         };
+        ColumnLayout: {
+            /** @description Field to 0-based column. Fields: date, amount, credit, debit, currency, description, counterparty, counterparty_account, bank_code, message, vs, ks, ss, balance_after, id. */
+            columns: {
+                [key: string]: number;
+            };
+            /** @description The currency of every row when no column holds one. */
+            currency?: string;
+            /** @enum {string} */
+            date_order: "dmy" | "mdy" | "ymd";
+            delimiter: string;
+            /** @enum {string} */
+            encoding: "utf-8" | "windows-1250";
+            /**
+             * Format: int64
+             * @description 0-based row with the column names; data follows it.
+             */
+            header_row: number;
+        };
         ConfirmOutputBody: {
             /** Format: int64 */
             confirmed: number;
@@ -1419,8 +1488,24 @@ export interface components {
             rows_refreshed: number;
             /** Format: int64 */
             rows_total: number;
+            /** @description The saved template the file was read by, or was saved as on commit. */
+            template?: components["schemas"]["TemplateRef"];
             /** Format: int64 */
             transfers_matched: number;
+        };
+        ImportTemplate: {
+            id: string;
+            layout: components["schemas"]["ColumnLayout"];
+            name: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        InspectOutputBody: {
+            /** @description The first rows of the file split into cells. */
+            rows: string[][];
+            suggested: components["schemas"]["ColumnLayout"];
+            /** @description A saved template that fits the file; suggested is its layout. */
+            template?: components["schemas"]["TemplateRef"];
         };
         Instrument: {
             /** @description Of the user's own trades in it. */
@@ -1466,6 +1551,9 @@ export interface components {
         };
         ListImportsOutputBody: {
             imports: components["schemas"]["ImportBatch"][];
+        };
+        ListTemplatesOutputBody: {
+            templates: components["schemas"]["ImportTemplate"][];
         };
         ListTransactionsOutputBody: {
             next_cursor?: string;
@@ -1702,7 +1790,7 @@ export interface components {
              * @description Stable machine-readable error identifier. Branch on this, not on `detail`.
              * @enum {string}
              */
-            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "invalid_symbol" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed";
+            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "invalid_symbol" | "layout_invalid" | "layout_mismatch" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed";
             /** @description English explanation; localize from code instead of showing this. */
             detail?: string;
             errors?: components["schemas"]["ErrorDetail"][];
@@ -1814,6 +1902,10 @@ export interface components {
         TaxonomyOutputBody: {
             budget_groups: components["schemas"]["BudgetGroup"][];
             categories: components["schemas"]["Category"][];
+        };
+        TemplateRef: {
+            id: string;
+            name: string;
         };
         Trade: {
             account_id: string;
@@ -3441,8 +3533,12 @@ export interface operations {
                 "multipart/form-data": {
                     /** Format: binary */
                     file: string;
+                    /** @description JSON ColumnLayout from the mapper: read the file as a CSV with these columns instead of detecting its format. */
+                    layout?: string;
                     /** @description Where each statement account goes, keyed by accounts[].key from the preview; omitted keys take the suggestion. */
                     mapping?: string;
+                    /** @description Commit only: keep the layout as a template under this name, so the next file of the same shape is read by it. */
+                    template_name?: string;
                 };
             };
         };
@@ -3512,6 +3608,85 @@ export interface operations {
             };
         };
     };
+    "inspect-import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** @description One character; omit to guess. */
+                    delimiter?: string;
+                    /**
+                     * @description Omit to guess.
+                     * @enum {string}
+                     */
+                    encoding?: "utf-8" | "windows-1250";
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InspectOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "preview-import": {
         parameters: {
             query?: never;
@@ -3524,8 +3699,12 @@ export interface operations {
                 "multipart/form-data": {
                     /** Format: binary */
                     file: string;
+                    /** @description JSON ColumnLayout from the mapper: read the file as a CSV with these columns instead of detecting its format. */
+                    layout?: string;
                     /** @description Where each statement account goes, keyed by accounts[].key from the preview; omitted keys take the suggestion. */
                     mapping?: string;
+                    /** @description Commit only: keep the layout as a template under this name, so the next file of the same shape is read by it. */
+                    template_name?: string;
                 };
             };
         };
@@ -3559,6 +3738,118 @@ export interface operations {
             };
             /** @description Request Entity Too Large */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "list-import-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListTemplatesOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "delete-import-template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -7,11 +7,18 @@
   import { formatMoney } from '@coin-book/core/money';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
-  import type { ImportBatch, ImportResult } from '@coin-book/core/types';
+  import type {
+    ColumnLayout,
+    ImportBatch,
+    ImportResult,
+    ImportTemplate,
+    Inspection,
+  } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
   import AccountMapping, { type MappingTarget } from '$lib/AccountMapping.svelte';
+  import ColumnMapper from '$lib/ColumnMapper.svelte';
   import { queue } from '$lib/queue.svelte';
 
   const TEMPLATE =
@@ -29,37 +36,129 @@
   let input = $state<HTMLInputElement>();
   let mapping = $state<Record<string, MappingTarget>>({});
   let reviewTimer: ReturnType<typeof setTimeout>;
+  let inspection = $state<Inspection | null>(null);
+  let mapperOpen = $state(false);
+  // The layout drawn in the mapper; null lets the API detect the format or find a saved template.
+  let layout = $state<ColumnLayout | null>(null);
+  let templateName = $state('');
+  let templates = $state<ImportTemplate[]>([]);
+  let wantMapper = false;
 
-  onMount(() => void loadHistory());
+  onMount(() => void Promise.all([loadHistory(), loadTemplates()]));
 
   async function loadHistory() {
     history = (await api.get<{ imports: ImportBatch[] }>('/imports')).imports;
   }
 
+  async function loadTemplates() {
+    templates = (await api.get<{ templates: ImportTemplate[] }>('/imports/templates')).templates;
+  }
+
+  function adopt(result: ImportResult) {
+    preview = result;
+    mapping = Object.fromEntries(
+      result.accounts.map((a) => [
+        a.key,
+        a.account_id
+          ? { account_id: a.account_id }
+          : {
+              create: {
+                name: a.new_account?.name ?? a.name,
+                kind: a.new_account?.kind ?? 'current',
+                bank_id: a.new_account?.bank_id ?? '',
+              },
+            },
+      ]),
+    );
+  }
+
+  async function openMapper(f: File) {
+    inspection = await api.upload<Inspection>('/imports/inspect', f);
+    mapperOpen = true;
+    preview = null;
+  }
+
+  async function previewMapped(drawn: ColumnLayout, name: string) {
+    if (!file) return;
+    busy = true;
+    layout = drawn;
+    templateName = name;
+    mapping = {};
+    try {
+      adopt(await api.upload<ImportResult>('/imports/preview', file, undefined, uploadFields()));
+      mapperOpen = false;
+      if (inspection) inspection = { ...inspection, suggested: drawn };
+    } catch (e) {
+      toasts.show(errorText(e), 'error');
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function editMapping() {
+    if (!file) return;
+    if (inspection) {
+      mapperOpen = true;
+      return;
+    }
+    busy = true;
+    try {
+      await openMapper(file);
+    } catch (e) {
+      toasts.show(errorText(e), 'error');
+    } finally {
+      busy = false;
+    }
+  }
+
+  function reset() {
+    preview = null;
+    file = null;
+    layout = null;
+    inspection = null;
+    mapperOpen = false;
+  }
+
+  function chooseForMapper() {
+    wantMapper = true;
+    input?.click();
+  }
+
+  async function deleteTemplate(template: ImportTemplate) {
+    if (!confirm(t('mapper.deleteConfirm', { name: template.name }))) return;
+    try {
+      await api.delete(`/imports/templates/${template.id}`);
+      toasts.show(t('mapper.deleted'), 'success');
+      await loadTemplates();
+    } catch (e) {
+      toasts.show(errorText(e), 'error');
+    }
+  }
+
+  const readableAsCsv = (f: File) => /\.(csv|txt)$/i.test(f.name) || f.type.startsWith('text/');
+
   async function choose(f: File | undefined) {
     if (!f) return;
+    const toMapper = wantMapper;
+    wantMapper = false;
+    reset();
     file = f;
     error = '';
-    preview = null;
     busy = true;
     try {
       mapping = {};
-      preview = await api.upload<ImportResult>('/imports/preview', f);
-      mapping = Object.fromEntries(
-        preview.accounts.map((a) => [
-          a.key,
-          a.account_id
-            ? { account_id: a.account_id }
-            : {
-                create: {
-                  name: a.new_account?.name ?? a.name,
-                  kind: a.new_account?.kind ?? 'current',
-                  bank_id: a.new_account?.bank_id ?? '',
-                },
-              },
-        ]),
-      );
+      if (toMapper) await openMapper(f);
+      else adopt(await api.upload<ImportResult>('/imports/preview', f));
     } catch (e) {
+      // A CSV no parser knows goes to the mapper rather than ending in an error.
+      if (e instanceof ApiError && e.code === 'unsupported_format' && readableAsCsv(f)) {
+        try {
+          await openMapper(f);
+          return;
+        } catch (inner) {
+          e = inner;
+        }
+      }
       error = errorText(e);
       file = null;
     } finally {
@@ -71,7 +170,7 @@
     if (!file) return;
     busy = true;
     try {
-      const done = await api.upload<ImportResult>('/imports', file, { force }, mappingField());
+      const done = await api.upload<ImportResult>('/imports', file, { force }, uploadFields(true));
       toasts.show(t('import.done', { count: done.rows_new }), 'success');
       if (done.rows_refreshed > 0) toasts.show(t('import.refreshedDone', { count: done.rows_refreshed }));
       toasts.show(
@@ -81,9 +180,8 @@
           transfers: done.transfers_matched + done.own_transfers,
         }),
       );
-      preview = null;
-      file = null;
-      await Promise.all([loadHistory(), taxonomy.reloadAccounts(), queue.refresh()]);
+      reset();
+      await Promise.all([loadHistory(), loadTemplates(), taxonomy.reloadAccounts(), queue.refresh()]);
     } catch (e) {
       toasts.show(errorText(e), 'error');
       if (e instanceof ApiError && e.code === 'already_imported') preview = null;
@@ -103,8 +201,11 @@
     }
   }
 
-  function mappingField(): Record<string, string> {
-    return { mapping: JSON.stringify(mapping) };
+  function uploadFields(committing = false): Record<string, string> {
+    const fields: Record<string, string> = { mapping: JSON.stringify(mapping) };
+    if (layout) fields.layout = JSON.stringify(layout);
+    if (layout && committing && templateName) fields.template_name = templateName;
+    return fields;
   }
 
   // Counts of new and known rows depend on the target account, so the preview follows the mapping.
@@ -114,7 +215,7 @@
     reviewTimer = setTimeout(async () => {
       if (!file) return;
       try {
-        preview = await api.upload<ImportResult>('/imports/preview', file, undefined, mappingField());
+        preview = await api.upload<ImportResult>('/imports/preview', file, undefined, uploadFields());
       } catch (e) {
         toasts.show(errorText(e), 'error');
       }
@@ -156,7 +257,17 @@
 
 <h1 class="display title">{t('import.title')}</h1>
 
-{#if !preview}
+{#if mapperOpen && file && inspection}
+  <section class="panel">
+    <ColumnMapper
+      {file}
+      {inspection}
+      {busy}
+      onpreview={previewMapped}
+      oncancel={() => (preview ? (mapperOpen = false) : reset())}
+    />
+  </section>
+{:else if !preview}
   <section class="drop" class:dragging aria-busy={busy}>
     <span class="glyph"><Icon name="upload-simple" size={34} weight="duotone" /></span>
     <h2 class="display">{t('import.drop')}</h2>
@@ -169,6 +280,7 @@
       onchange={(e) => choose(e.currentTarget.files?.[0])}
     />
     <Button variant="quiet" {busy} onclick={() => input?.click()}>{t('import.choose')}</Button>
+    <button type="button" class="link" onclick={chooseForMapper}>{t('mapper.manual')}</button>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
   </section>
 
@@ -179,6 +291,24 @@
     <p>{t('import.formatOptional')}</p>
     <Button variant="quiet" icon="download-simple" onclick={downloadTemplate}>{t('import.template')}</Button>
   </details>
+
+  <details class="panel format" data-testid="templates">
+    <summary>{t('mapper.templates')} ({templates.length})</summary>
+    {#if templates.length === 0}
+      <p>{t('mapper.templatesEmpty')}</p>
+    {:else}
+      <ul class="templates">
+        {#each templates as tpl (tpl.id)}
+          <li>
+            <span>{tpl.name}</span>
+            <Button variant="ghost" icon="trash" onclick={() => deleteTemplate(tpl)}
+              >{t('mapper.deleteTemplate')}</Button
+            >
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </details>
 {:else}
   <section class="panel preview">
     <div class="preview-head">
@@ -186,7 +316,13 @@
       {#if preview.period_from && preview.period_to}
         <span class="period">{shortDate(preview.period_from)} – {shortDate(preview.period_to)}</span>
       {/if}
+      {#if layout || preview.template}
+        <Button variant="quiet" icon="pencil-simple" {busy} onclick={editMapping}>{t('mapper.edit')}</Button>
+      {/if}
     </div>
+    {#if preview.template && !layout}
+      <p class="note">{t('mapper.byTemplate', { name: preview.template.name })}</p>
+    {/if}
 
     {#if preview.already_imported}
       <p class="verdict warn"><Icon name="warning" size={22} weight="fill" />{t('import.alreadyImported')}</p>
@@ -244,7 +380,7 @@
     {/if}
 
     <div class="actions">
-      <Button variant="ghost" onclick={() => ((preview = null), (file = null))}>{t('import.discard')}</Button>
+      <Button variant="ghost" onclick={reset}>{t('import.discard')}</Button>
       {#if !preview.already_imported}
         {#if preview.checks_passed}
           <Button
@@ -437,6 +573,29 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .link {
+    margin-top: 6px;
+    border: 0;
+    background: none;
+    color: var(--brand);
+    font: inherit;
+    font-size: var(--text-micro);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .templates {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .templates li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
   .note {
     margin: 0 0 12px;

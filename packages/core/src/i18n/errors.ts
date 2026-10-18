@@ -22,7 +22,10 @@ const cs: ErrorMessages = {
   unknown_scope: 'Neznámé oprávnění tokenu.',
   token_ttl_too_long: 'Token může platit nejvýš rok.',
   unsupported_format:
-    'Tento soubor neumím přečíst. Podporuji CSV z mBank CZ, slovenský konsolidovaný výpis Revolut a formát coin-book CSV.',
+    'Tento soubor neumím přečíst. Podporuji CSV z mBank CZ, slovenský konsolidovaný výpis Revolut, ABO (GPC) a coin-book CSV; jiné CSV načtete přes mapování sloupců.',
+  layout_invalid: 'Mapování není úplné: potřebuje datum, částku (nebo příjem a výdaj), popis a měnu.',
+  layout_mismatch:
+    'Soubor neodpovídá mapování: u některého řádku nejde přečíst datum nebo částku. Zkontrolujte sloupce a formát data.',
   balance_mismatch: 'Výpis nesouhlasí se svými kontrolními součty.',
   already_imported: 'Tento soubor už je naimportovaný.',
   already_rolled_back: 'Import už byl vrácen.',
@@ -67,7 +70,10 @@ const sk: ErrorMessages = {
   unknown_scope: 'Neznáme oprávnenie tokenu.',
   token_ttl_too_long: 'Token môže platiť najviac rok.',
   unsupported_format:
-    'Tento súbor neviem prečítať. Podporujem CSV z mBank CZ, slovenský konsolidovaný výpis Revolut a formát coin-book CSV.',
+    'Tento súbor neviem prečítať. Podporujem CSV z mBank CZ, slovenský konsolidovaný výpis Revolut, ABO (GPC) a coin-book CSV; iné CSV načítate cez mapovanie stĺpcov.',
+  layout_invalid: 'Mapovanie nie je úplné: potrebuje dátum, sumu (alebo príjem a výdavok), popis a menu.',
+  layout_mismatch:
+    'Súbor nezodpovedá mapovaniu: pri niektorom riadku nejde prečítať dátum alebo sumu. Skontrolujte stĺpce a formát dátumu.',
   balance_mismatch: 'Výpis nesúhlasí so svojimi kontrolnými súčtami.',
   already_imported: 'Tento súbor už je naimportovaný.',
   already_rolled_back: 'Import už bol vrátený.',
@@ -112,7 +118,11 @@ const en: ErrorMessages = {
   unknown_scope: 'Unknown token permission.',
   token_ttl_too_long: 'A token can be valid for a year at most.',
   unsupported_format:
-    'I can’t read this file. I support mBank CZ CSV, the Slovak Revolut consolidated statement and the coin-book CSV format.',
+    'I can’t read this file. I support mBank CZ CSV, the Slovak Revolut consolidated statement, ABO (GPC) and coin-book CSV; read any other CSV through the column mapping.',
+  layout_invalid:
+    'The mapping is incomplete: it needs a date, an amount (or money in and out), a description and a currency.',
+  layout_mismatch:
+    'The file does not fit the mapping: a row’s date or amount cannot be read. Check the columns and the date format.',
   balance_mismatch: 'The statement does not match its own control totals.',
   already_imported: 'This file has already been imported.',
   already_rolled_back: 'The import has already been undone.',
