@@ -5,7 +5,9 @@ WORKDIR /src
 COPY . .
 RUN pnpm install --frozen-lockfile
 ARG BUILD_VERSION=dev
-RUN COINBOOK_WEB_VERSION=$BUILD_VERSION pnpm --filter @coin-book/web build
+# The public landing site's address; empty (any household's installation) keeps search engines out.
+ARG SITE_URL=
+RUN COINBOOK_WEB_VERSION=$BUILD_VERSION COINBOOK_SITE_URL=$SITE_URL pnpm --filter @coin-book/web build
 
 FROM caddy:2.10-alpine
 

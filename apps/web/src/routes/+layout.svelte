@@ -7,15 +7,16 @@
   import { i18n, t } from '@coin-book/core/i18n';
   import { theme } from '@coin-book/core/theme';
   import Toasts from '@coin-book/ui/Toasts.svelte';
+  import { landingLocale } from '$lib/landing';
 
   let { children } = $props();
 
-  // The landing page is for everyone; only the sign-in page sends a signed-in user on.
-  const publicPaths = ['/', '/login'];
+  // The landing pages are for everyone; only the sign-in page sends a signed-in user on.
+  const isLanding = $derived(landingLocale(page.url.pathname) !== null);
 
   onMount(async () => {
     theme.init();
-    document.documentElement.lang = i18n.locale;
+    if (!isLanding) document.documentElement.lang = i18n.locale;
     auth.init(() => goto('/login'));
     try {
       await auth.restore();
@@ -26,13 +27,14 @@
 
   $effect(() => {
     if (!auth.ready) return;
-    const isPublic = publicPaths.includes(page.url.pathname);
+    const isPublic = isLanding || page.url.pathname === '/login';
     if (!auth.signedIn && !isPublic) goto('/login');
     if (auth.signedIn && page.url.pathname === '/login') goto('/overview');
   });
 </script>
 
-{#if auth.ready}
+<!-- A prerendered landing page shows at once; the app waits for the session. -->
+{#if auth.ready || isLanding}
   {@render children()}
 {:else}
   <div class="boot" aria-live="polite">{t('common.loading')}</div>

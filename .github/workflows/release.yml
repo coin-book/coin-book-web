@@ -54,5 +54,6 @@ jobs:
           build-args: |
             BUILD_VERSION=${{ env.RELEASED == 'true' && env.VERSION || format('main-{0}', github.sha) }}
             BUILD_COMMIT=${{ github.sha }}
+            SITE_URL=${{ vars.COINBOOK_SITE_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

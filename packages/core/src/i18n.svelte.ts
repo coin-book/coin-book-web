@@ -45,7 +45,16 @@ class I18n {
 export const i18n = new I18n();
 
 export function t(key: MessageKey, params: Record<string, string | number> = {}): string {
-  const template = dictionaries[i18n.locale][key] ?? cs[key] ?? key;
+  return translate(i18n.locale, key, params);
+}
+
+/** Translates in a locale the page dictates, such as a landing page's own language. */
+export function translate(
+  locale: Locale,
+  key: MessageKey,
+  params: Record<string, string | number> = {},
+): string {
+  const template = dictionaries[locale][key] ?? cs[key] ?? key;
   return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? `{${name}}`));
 }
 

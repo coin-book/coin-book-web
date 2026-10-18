@@ -1,0 +1,26 @@
+# coin-book
+
+> coin-book is a self-hosted personal finance app for a household. It imports bank statements, sorts transactions into categories, tracks a monthly budget and shows investments, including the Czech three-year tax exemption test. It runs on the household's own server (Docker, TrueNAS SCALE); several users share one installation and each sees only their own data.
+
+This file describes the software. Every installation is private: its data is not public and is not served to crawlers.
+
+## Features
+
+- Import of mBank CZ CSV, Air Bank CSV, the Revolut consolidated statement (Slovak), ABO/GPC from any Czech bank, the coin-book CSV format, and any other bank's CSV through a column mapper whose mappings are kept per bank.
+- A preview before anything is written, the statement's own control totals, no duplicates on re-import, recognition of the same payments across two formats of one account, and undo of a whole import.
+- Categorisation by rules, by the bank's own categories and by a learned classifier, with a triage queue for the rest.
+- Monthly budget with spending pace, money-flow and category reports, net worth.
+- Investments from the Revolut statement: positions valued at Yahoo Finance prices and ČNB exchange rates, realised gains per year, dividends, the three-year test per lot.
+- Transfers between own accounts are paired and kept out of income and spending.
+- A read-only MCP server lets an AI assistant answer questions about the household's finances with a scoped agent token.
+- Interface in Czech, Slovak and English.
+
+## Pages
+
+- [Landing page in Czech](/)
+- [Landing page in Slovak](/sk)
+- [Landing page in English](/en)
+
+## Source
+
+- [coin-book on GitHub](https://github.com/coin-book): the API (Go, PostgreSQL), the web client (SvelteKit), the MCP server and the Docker Compose distribution.

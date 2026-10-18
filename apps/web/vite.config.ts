@@ -8,7 +8,10 @@ const API_TARGET = process.env.COINBOOK_API_URL ?? 'http://127.0.0.1:8082';
 
 export default defineConfig({
   plugins: [sveltekit(), tailwindcss()],
-  define: { __WEB_VERSION__: JSON.stringify(process.env.COINBOOK_WEB_VERSION ?? 'dev') },
+  define: {
+    __WEB_VERSION__: JSON.stringify(process.env.COINBOOK_WEB_VERSION ?? 'dev'),
+    __SITE_URL__: JSON.stringify((process.env.COINBOOK_SITE_URL ?? '').replace(/\/+$/, '')),
+  },
   server: {
     port: 5373,
     host: '127.0.0.1',

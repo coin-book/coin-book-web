@@ -21,5 +21,6 @@ SvelteKit 2 / Svelte 5 SPA of coin-book. Spec: `../technicka-specifikace.md` (ch
 - Amounts render through `MoneyAmount`/`formatMoney`; `format-vectors.json` is byte-identical with `coin-book-api/testdata/`.
 - Map API errors by `code` in `packages/core/src/i18n/errors.ts`, never by `detail`.
 - Motion only in response to an action; `prefers-reduced-motion` is honoured globally.
-- The landing page (`/`) shows the app in pictures: after any visible change, retake them with `make landing-shots` against a fresh demo stack (`make reset` in coin-book-local) and keep the landing copy true to the features.
+- The landing pages (`/`, `/sk`, `/en`) are prerendered HTML, everything else is the SPA (`app.html` fallback). Search engines are let in only when the build gets `COINBOOK_SITE_URL` (Docker `SITE_URL`, repo variable in release); otherwise `noindex` and `robots.txt` shuts everything.
+- The landing page shows the app in pictures: after any visible change, retake them with `make landing-shots` against a fresh demo stack (`make reset` in coin-book-local) and keep the landing copy true to the features.
 - E2E locators: buttons and fields by role and label; containers and repeated items by `data-testid` (with `data-code` or `data-tx` to pick one), never by CSS class.
