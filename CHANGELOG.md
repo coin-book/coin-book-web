@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/coin-book/coin-book-web/compare/v1.1.0...v1.2.0) (2026-10-18)
+
+
+### Features
+
+* **web:** landing page in Czech, Slovak and English on its own URLs, with SEO, robots.txt and llms.txt ([97499d7](https://github.com/coin-book/coin-book-web/commit/97499d780986936fed4cca57a669eb86f14cd226))
+* **web:** landing page shows dark pictures in the dark theme, retaken from the demo ([d77ecdb](https://github.com/coin-book/coin-book-web/commit/d77ecdb0a6ebda864c06b21cbeb0585487129b9f))
+
 ## [1.1.0](https://github.com/coin-book/coin-book-web/compare/v1.0.0...v1.1.0) (2026-10-18)
 
 
