@@ -197,6 +197,13 @@ export const en: Record<MessageKey, string> = {
   'import.rowsDuplicate': '{count} already known',
   'import.commit': 'Import {count} transactions',
   'import.commitAnyway': 'Import anyway',
+  'import.inOtherStatement':
+    '{count} transactions are already in the account from another statement (such as CSV and ABO of the same account). They are not written again.',
+  'import.rowInOtherStatement': 'Already in the account from another statement',
+  'import.refreshed':
+    '{count} known transactions get the details this statement adds (payment symbols, counterparty).',
+  'import.refreshedDone': 'Details added to {count} transactions',
+  'import.commitRefresh': 'Add details to {count} transactions',
   'import.discard': 'Discard preview',
   'import.done': 'Imported {count} transactions',
   'import.doneDetail':

@@ -193,6 +193,13 @@ export const cs = {
   'import.rowsDuplicate': '{count} už známých',
   'import.commit': 'Importovat {count} transakcí',
   'import.commitAnyway': 'Importovat přesto',
+  'import.inOtherStatement':
+    '{count} transakcí už v účtu je z jiného výpisu (třeba CSV a ABO téhož účtu). Znovu se nezapíší.',
+  'import.rowInOtherStatement': 'Už v účtu z jiného výpisu',
+  'import.refreshed':
+    'U {count} už známých transakcí se doplní údaje z výpisu (platební symboly, protistrana).',
+  'import.refreshedDone': 'Doplněny údaje u {count} transakcí',
+  'import.commitRefresh': 'Doplnit údaje u {count} transakcí',
   'import.discard': 'Zahodit náhled',
   'import.done': 'Naimportováno {count} transakcí',
   'import.doneDetail':

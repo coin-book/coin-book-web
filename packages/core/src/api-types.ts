@@ -1365,7 +1365,7 @@ export interface components {
             /** Format: int64 */
             line: number;
             /** @enum {string} */
-            status: "new" | "duplicate";
+            status: "new" | "duplicate" | "in_other_statement";
         };
         ImportResult: {
             accounts: components["schemas"]["ImportAccount"][];
@@ -1400,10 +1400,23 @@ export interface components {
             period_to?: string;
             /** @description The first 500 rows with their status. */
             rows: components["schemas"]["ImportPreviewRow"][];
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Includes rows_in_other_statement.
+             */
             rows_duplicate: number;
+            /**
+             * Format: int64
+             * @description Rows the target account already holds from another format of the same bank account; not written.
+             */
+            rows_in_other_statement: number;
             /** Format: int64 */
             rows_new: number;
+            /**
+             * Format: int64
+             * @description Known rows a newer parser reads more out of (payment symbols, counterparty); the import rewrites them.
+             */
+            rows_refreshed: number;
             /** Format: int64 */
             rows_total: number;
             /** Format: int64 */

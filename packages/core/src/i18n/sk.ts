@@ -196,6 +196,13 @@ export const sk: Record<MessageKey, string> = {
   'import.rowsDuplicate': '{count} už známych',
   'import.commit': 'Importovať {count} transakcií',
   'import.commitAnyway': 'Importovať aj tak',
+  'import.inOtherStatement':
+    '{count} transakcií už v účte je z iného výpisu (napríklad CSV a ABO toho istého účtu). Znova sa nezapíšu.',
+  'import.rowInOtherStatement': 'Už v účte z iného výpisu',
+  'import.refreshed':
+    'Pri {count} už známych transakciách sa doplnia údaje z výpisu (platobné symboly, protistrana).',
+  'import.refreshedDone': 'Doplnené údaje pri {count} transakciách',
+  'import.commitRefresh': 'Doplniť údaje pri {count} transakciách',
   'import.discard': 'Zahodiť náhľad',
   'import.done': 'Naimportovaných {count} transakcií',
   'import.doneDetail':

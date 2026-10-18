@@ -73,6 +73,7 @@
     try {
       const done = await api.upload<ImportResult>('/imports', file, { force }, mappingField());
       toasts.show(t('import.done', { count: done.rows_new }), 'success');
+      if (done.rows_refreshed > 0) toasts.show(t('import.refreshedDone', { count: done.rows_refreshed }));
       toasts.show(
         t('import.doneDetail', {
           rule: done.categorized_by_rule + done.categorized_by_file + done.categorized_by_model,
@@ -216,9 +217,22 @@
       {/each}
     </ul>
 
+    {#if preview.rows_in_other_statement > 0}
+      <p class="note" data-testid="in-other-statement">
+        {t('import.inOtherStatement', { count: preview.rows_in_other_statement })}
+      </p>
+    {/if}
+    {#if preview.rows_refreshed > 0}
+      <p class="note" data-testid="refreshed">{t('import.refreshed', { count: preview.rows_refreshed })}</p>
+    {/if}
+
     <div class="rows">
       {#each preview.rows as row (row.account_key + row.line)}
-        <div class="row" class:duplicate={row.status === 'duplicate'}>
+        <div
+          class="row"
+          class:duplicate={row.status !== 'new'}
+          title={row.status === 'in_other_statement' ? t('import.rowInOtherStatement') : undefined}
+        >
           <span class="date num">{shortDate(row.booked_on)}</span>
           <span class="desc">{row.description}</span>
           <MoneyAmount amount={row.amount} signed />
@@ -233,8 +247,14 @@
       <Button variant="ghost" onclick={() => ((preview = null), (file = null))}>{t('import.discard')}</Button>
       {#if !preview.already_imported}
         {#if preview.checks_passed}
-          <Button {busy} disabled={preview.rows_new === 0 || missingName} onclick={() => commit(false)}>
-            {t('import.commit', { count: preview.rows_new })}
+          <Button
+            {busy}
+            disabled={(preview.rows_new === 0 && preview.rows_refreshed === 0) || missingName}
+            onclick={() => commit(false)}
+          >
+            {preview.rows_new === 0 && preview.rows_refreshed > 0
+              ? t('import.commitRefresh', { count: preview.rows_refreshed })
+              : t('import.commit', { count: preview.rows_new })}
           </Button>
         {:else}
           <Button variant="danger" {busy} disabled={missingName} onclick={() => commit(true)}>
@@ -417,6 +437,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .note {
+    margin: 0 0 12px;
+    font-size: var(--text-body);
+    color: var(--ink-soft);
   }
   .showing {
     margin: 8px 0 0;
