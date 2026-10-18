@@ -15,10 +15,28 @@ test('the demo portfolio, an instrument and its Yahoo symbol', async ({ page }) 
     await expect(page.getByTestId('realized-year').and(page.locator('[data-year="2026"]'))).toBeVisible();
   });
 
+  await test.step('positions grouped by account by default, by broker, or not at all', async () => {
+    await expect(page.getByTestId('position-group')).toHaveCount(2);
+    await page.getByRole('button', { name: 'Podle brokera' }).click();
+    await expect(page).toHaveURL(/seskupit=broker/);
+    await expect(page.getByTestId('position-group')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Neseskupovat' }).click();
+    await expect(page).toHaveURL(/seskupit=ne/);
+    await expect(page.getByTestId('position-group')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Podle účtu' }).click();
+    await expect(page).not.toHaveURL(/seskupit/);
+    await expect(page.getByTestId('position-group')).toHaveCount(2);
+  });
+
   await test.step('open lots and a symbol of ones own', async () => {
     await page.getByRole('link', { name: 'AAPL' }).first().click();
     await expect(page.getByRole('heading', { name: 'AAPL', level: 1 })).toBeVisible();
     await expect(page.getByTestId('open-lot')).toHaveCount(2);
+    await expect(page.getByTestId('instrument-facts')).toContainText('Moje obchody');
+    await expect(page.getByTestId('instrument-facts')).toContainText(/Poprvé koupeno\s*2. 3. 2022/);
+    await expect(page.getByTestId('instrument-facts')).toContainText(
+      /Realizovaný zisk\s*\+4\s149\s*Kč\s*\+32,2\s%/,
+    );
     await expect(page.getByTestId('open-lot').first()).toContainText('Osvobozeno');
 
     const symbol = page.getByLabel('Symbol Yahoo Finance');

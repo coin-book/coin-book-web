@@ -95,3 +95,10 @@ function incrementLastDigit(whole: string, fraction: string): [string, string] {
 export function formatPrice(value: string, currency: string): string {
   return `${formatDecimal(value, PRICE_MIN_DECIMALS, PRICE_MAX_DECIMALS)}${NBSP}${currencyLabel(currency)}`;
 }
+
+/** A gain as a share of what was paid, "+32,2 %"; empty without a cost to measure against. */
+export function formatGainPercent(gainMinor: number, costMinor: number): string {
+  if (costMinor <= 0) return '';
+  const value = (gainMinor / costMinor) * 100;
+  return `${value > 0 ? '+' : ''}${formatDecimal(value.toFixed(1), 1, 1)}${NBSP}%`;
+}

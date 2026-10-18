@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import vectors from './format-vectors.json';
-import { formatDecimal, formatMoney, formatPrice, formatWhole, parseMinor } from './money';
+import { formatDecimal, formatGainPercent, formatMoney, formatPrice, formatWhole, parseMinor } from './money';
 
 describe('formatMoney', () => {
   it.each(vectors)('matches the Go formatter for $minor $currency', (v) => {
@@ -54,5 +54,13 @@ describe('formatPrice', () => {
   it('keeps two decimals and at most four', () => {
     expect(formatPrice('300', 'USD')).toBe('300,00\u00a0$');
     expect(formatPrice('12.34567', 'EUR')).toBe('12,3457\u00a0€');
+  });
+});
+
+describe('formatGainPercent', () => {
+  it('signs the share of the cost and needs a cost', () => {
+    expect(formatGainPercent(414912, 1290088)).toBe('+32,2\u00a0%');
+    expect(formatGainPercent(-1000, 26000)).toBe('−3,8\u00a0%');
+    expect(formatGainPercent(5, 0)).toBe('');
   });
 });

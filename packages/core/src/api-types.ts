@@ -1263,6 +1263,17 @@ export interface components {
             month: string;
             nodes: components["schemas"]["FlowNode"][];
         };
+        HoldingSummary: {
+            dividends_net_czk: components["schemas"]["Amount"];
+            /** Format: date */
+            first_bought_on?: string;
+            /** @description All purchases with fees. */
+            invested_czk: components["schemas"]["Amount"];
+            /** @description What the sold lots cost; the gain's base for a percentage. */
+            realized_cost_czk: components["schemas"]["Amount"];
+            realized_gain_czk: components["schemas"]["Amount"];
+            sold_quantity: string;
+        };
         ImportAccount: {
             account_id?: string;
             checks: components["schemas"]["ImportCheck"][];
@@ -1389,10 +1400,14 @@ export interface components {
         };
         InstrumentDetail: {
             instrument: components["schemas"]["Instrument"];
+            /** @description What Yahoo says about the symbol; absent until it is priced. */
+            market?: components["schemas"]["MarketProfile"];
             /** @description Absent once everything is sold. */
             position?: components["schemas"]["Position"];
             /** @description Sold lots, oldest first. */
             sales: components["schemas"]["SoldLot"][];
+            /** @description The user's whole history with the instrument, in CZK. */
+            summary: components["schemas"]["HoldingSummary"];
             /** @description Buys and dividends, oldest first. */
             trades: components["schemas"]["Trade"][];
         };
@@ -1450,6 +1465,35 @@ export interface components {
         MarkOwnOutputBody: {
             /** Format: int64 */
             applied_to_other: number;
+        };
+        MarketProfile: {
+            /** @description The quote's. */
+            currency: string;
+            day_high?: string;
+            day_low?: string;
+            /** Format: int64 */
+            day_volume?: number;
+            /** @example NasdaqGS */
+            exchange?: string;
+            /** @example America/New_York */
+            exchange_timezone?: string;
+            fifty_two_week_high?: string;
+            fifty_two_week_low?: string;
+            /**
+             * Format: date
+             * @description When the symbol first traded.
+             */
+            first_trade_on?: string;
+            /** @description Yahoo's type: EQUITY, ETF, MUTUALFUND, … */
+            instrument_type?: string;
+            long_name?: string;
+            /** @description Change against the previous close, in percent. */
+            market_change_percent?: string;
+            /** @description The last regular-session price. */
+            market_price?: string;
+            /** Format: date-time */
+            market_time?: string;
+            symbol: string;
         };
         MeOutputBody: {
             /** Format: date-time */
@@ -1559,6 +1603,8 @@ export interface components {
             value_czk: components["schemas"]["Amount"];
         };
         Position: {
+            /** @description Only when positions are split per account. */
+            account_id?: string;
             /** @description In the lots' currency; absent when lots were bought in different currencies. */
             cost?: components["schemas"]["Amount"];
             /** @description Absent when a lot has no CZK cost. */
@@ -3775,7 +3821,10 @@ export interface operations {
     };
     "get-portfolio": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description One position per instrument and account instead of one per instrument. */
+                per_account?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3802,6 +3851,15 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

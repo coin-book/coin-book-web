@@ -1,17 +1,42 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/state';
   import { api } from '@coin-book/core/api';
   import { shortDate } from '@coin-book/core/dates';
   import { errorText } from '@coin-book/core/errors';
-  import { t } from '@coin-book/core/i18n';
-  import { formatDecimal, formatPrice } from '@coin-book/core/money';
+  import { pluralKey, t, type MessageKey } from '@coin-book/core/i18n';
+  import { colorVar } from '@coin-book/core/colors';
+  import { formatDecimal, formatGainPercent, formatPrice } from '@coin-book/core/money';
+  import { taxonomy } from '@coin-book/core/taxonomy';
   import type { Portfolio, Position, PriceStatus, Realized } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
+  import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
 
   const CZK = 'CZK';
   const POLL_MS = 3000;
+  const FALLBACK_COLORS = ['chrpa', 'mandarinka', 'laguna', 'malina', 'smaragd', 'ametyst'];
+
+  /** The `seskupit` URL parameter; without it, positions are grouped per account. */
+  const groupings = [
+    { param: 'ne', key: 'none' },
+    { param: '', key: 'account' },
+    { param: 'broker', key: 'broker' },
+  ] as const;
+  type Grouping = (typeof groupings)[number];
+  const perAccount = groupings[1];
+  const grouping = $derived<Grouping>(
+    groupings.find((g) => g.param === (page.url.searchParams.get('seskupit') ?? '')) ?? perAccount,
+  );
+
+  function groupBy(g: Grouping) {
+    const url = new URL(page.url);
+    if (g.param) url.searchParams.set('seskupit', g.param);
+    else url.searchParams.delete('seskupit');
+    void goto(url, { replaceState: true, noScroll: true, keepFocus: true });
+  }
 
   let portfolio = $state<Portfolio | null>(null);
   let realized = $state<Realized | null>(null);
@@ -25,12 +50,13 @@
   }
 
   async function load() {
+    const perAccount = grouping.key !== 'none';
     try {
       const [p, r] = await Promise.all([
-        api.get<Portfolio>('/investments/portfolio'),
+        api.get<Portfolio>('/investments/portfolio', { per_account: perAccount }),
         api.get<Realized>('/investments/realized'),
       ]);
-      if (destroyed) return;
+      if (destroyed || perAccount !== (grouping.key !== 'none')) return;
       [portfolio, realized] = [p, r];
       error = '';
       if (p.prices.running) schedule();
@@ -40,6 +66,7 @@
   }
 
   $effect(() => {
+    void grouping;
     void load();
   });
   onDestroy(() => {
@@ -57,6 +84,10 @@
     }
   }
 
+  function instrumentsCount(n: number) {
+    return t(`investments.positionsCount.${pluralKey(n)}` as MessageKey, { count: n });
+  }
+
   function label(p: { instrument: Position['instrument'] }) {
     return p.instrument.ticker || p.instrument.name || p.instrument.isin;
   }
@@ -65,6 +96,65 @@
     if (!p.value_czk || !p.cost_czk) return null;
     return { minor: p.value_czk.minor - p.cost_czk.minor, currency: CZK };
   }
+
+  type PositionGroup = {
+    key: string;
+    label: string;
+    detail: string;
+    /** The account's colour key; none for a broker. */
+    colorKey?: string | null;
+    positions: Position[];
+    value: number;
+    cost: number;
+    gain: number;
+  };
+
+  function brokerOf(accountId: string | null | undefined) {
+    const account = accountId ? taxonomy.accountsById.get(accountId) : undefined;
+    const name = account?.bank_id ? taxonomy.bankName(account.bank_id) : (account?.institution ?? '');
+    return { key: account?.bank_id ?? account?.institution ?? '', name };
+  }
+
+  /** Groups with their value and gain in CZK, over the positions that have both. */
+  const groups = $derived.by<PositionGroup[]>(() => {
+    const positions = portfolio?.positions ?? [];
+    if (grouping.key === 'none')
+      return [{ key: '', label: '', detail: '', positions, value: 0, cost: 0, gain: 0 }];
+    const byKey = new Map<string, PositionGroup>();
+    for (const p of positions) {
+      const account = p.account_id ? taxonomy.accountsById.get(p.account_id) : undefined;
+      const broker = brokerOf(p.account_id);
+      const [key, label, detail] =
+        grouping.key === 'account'
+          ? [p.account_id ?? '', account?.name ?? '', broker.name]
+          : [broker.key, broker.name, ''];
+      let group = byKey.get(key);
+      if (!group) {
+        group = {
+          key,
+          label,
+          detail,
+          colorKey: grouping.key === 'account' ? account?.color_key : undefined,
+          positions: [],
+          value: 0,
+          cost: 0,
+          gain: 0,
+        };
+        byKey.set(key, group);
+      }
+      group.positions.push(p);
+      const gain = gainCZK(p);
+      if (p.value_czk && p.cost_czk && gain) {
+        group.value += p.value_czk.minor;
+        group.cost += p.cost_czk.minor;
+        group.gain += gain.minor;
+      }
+    }
+    const sorted = [...byKey.values()].sort((a, b) => a.label.localeCompare(b.label));
+    // Groups without an account colour take one in a fixed order, so neighbouring cards differ.
+    sorted.forEach((g, i) => (g.colorKey ||= FALLBACK_COLORS[i % FALLBACK_COLORS.length]));
+    return sorted;
+  });
 
   const isEmpty = $derived(
     portfolio !== null && portfolio.positions.length === 0 && (realized?.lots.length ?? 0) === 0,
@@ -141,75 +231,126 @@
     {/if}
 
     {#if portfolio.positions.length > 0}
-      <section class="panel">
+      <div class="positions-head">
         <h2>{t('investments.positions')}</h2>
-        <div class="scroll">
-          <table class="positions">
-            <thead>
-              <tr>
-                <th>{t('investments.instrument')}</th>
-                <th class="num">{t('investments.quantity')}</th>
-                <th class="num">{t('investments.price')}</th>
-                <th class="num">{t('investments.positionValue')}</th>
-                <th class="num">{t('investments.gain')}</th>
-                <th>{t('investments.timeTest')}</th>
-                <th class="num">{t('investments.dividends')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each portfolio.positions as p (p.instrument.isin)}
-                {@const gain = gainCZK(p)}
-                <tr data-testid="position" data-isin={p.instrument.isin}>
-                  <td>
-                    <a href="/investice/{p.instrument.isin}" class="ticker">{label(p)}</a>
-                    {#if p.instrument.ticker && p.instrument.name}<span class="name">{p.instrument.name}</span
-                      >{/if}
-                    {#if p.incomplete_history}<span class="warn badge"
-                        >{t('investments.incompleteTitle')}</span
-                      >{/if}
-                  </td>
-                  <td class="num">{formatDecimal(p.quantity, 0, 4)}</td>
-                  <td class="num">
-                    {#if p.quote}{formatPrice(p.quote.close, p.quote.currency)}{:else}<span class="quiet"
-                        >{t('investments.noPrice')}</span
-                      >{/if}
-                  </td>
-                  <td class="num">
-                    {#if p.value_czk}<MoneyAmount amount={p.value_czk} whole />{:else if p.cost_czk}<span
-                        class="quiet"><MoneyAmount amount={p.cost_czk} whole /></span
-                      >{/if}
-                    {#if p.value}<span class="sub"><MoneyAmount amount={p.value} size="sm" whole /></span
-                      >{/if}
-                  </td>
-                  <td class="num"
-                    >{#if gain}<MoneyAmount amount={gain} whole signed />{/if}</td
-                  >
-                  <td>
-                    {#if !p.next_exempt_on}
-                      <span class="exempt">{t('investments.allExempt')}</span>
-                    {:else}
-                      {t('investments.exemptFrom', { date: shortDate(p.next_exempt_on) })}
-                      {#if Number(p.exempt_quantity) > 0}
-                        <span class="sub"
-                          >{t('investments.exemptPart', {
-                            quantity: formatDecimal(p.exempt_quantity, 0, 4),
-                          })}</span
-                        >
-                      {/if}
-                    {/if}
-                  </td>
-                  <td class="num">
-                    {#if p.dividends_net_czk.minor !== 0}<MoneyAmount
-                        amount={p.dividends_net_czk}
-                        whole
-                      />{/if}
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
+        <div class="grouping" role="group" aria-label={t('investments.groupBy')}>
+          {#each groupings as g (g.key)}
+            <button type="button" aria-pressed={grouping.key === g.key} onclick={() => groupBy(g)}
+              >{t(`investments.group.${g.key}`)}</button
+            >
+          {/each}
         </div>
-      </section>
+      </div>
+      {#each groups as group (group.key)}
+        <section
+          class="panel positions-panel"
+          class:grouped={grouping.key !== 'none'}
+          style:--accent={group.colorKey ? colorVar(group.colorKey) : 'var(--ink-faint)'}
+          data-testid={grouping.key !== 'none' ? 'position-group' : undefined}
+        >
+          {#if grouping.key !== 'none'}
+            <header class="group-head">
+              <span class="group-icon" aria-hidden="true">
+                <Icon
+                  name={grouping.key === 'account' ? 'chart-line-up' : 'bank'}
+                  size={20}
+                  weight="duotone"
+                />
+              </span>
+              <div class="group-name">
+                <h3>{group.label}</h3>
+                <span class="quiet"
+                  >{[group.detail, instrumentsCount(group.positions.length)]
+                    .filter(Boolean)
+                    .join(' · ')}</span
+                >
+              </div>
+              <dl class="group-totals">
+                <div>
+                  <dt>{t('investments.positionValue')}</dt>
+                  <dd><MoneyAmount amount={{ minor: group.value, currency: CZK }} size="lg" whole /></dd>
+                </div>
+                <div>
+                  <dt>{t('investments.gain')}</dt>
+                  <dd>
+                    <MoneyAmount amount={{ minor: group.gain, currency: CZK }} size="lg" whole signed />
+                    <span class="change" class:up={group.gain > 0}
+                      >{formatGainPercent(group.gain, group.cost)}</span
+                    >
+                  </dd>
+                </div>
+              </dl>
+            </header>
+          {/if}
+          <div class="scroll">
+            <table class="positions">
+              <thead>
+                <tr>
+                  <th>{t('investments.instrument')}</th>
+                  <th class="num">{t('investments.quantity')}</th>
+                  <th class="num">{t('investments.price')}</th>
+                  <th class="num">{t('investments.positionValue')}</th>
+                  <th class="num">{t('investments.gain')}</th>
+                  <th>{t('investments.timeTest')}</th>
+                  <th class="num">{t('investments.dividends')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each group.positions as p (p.instrument.isin + (p.account_id ?? ''))}
+                  {@const gain = gainCZK(p)}
+                  <tr data-testid="position" data-isin={p.instrument.isin}>
+                    <td>
+                      <a href="/investice/{p.instrument.isin}" class="ticker">{label(p)}</a>
+                      {#if p.instrument.ticker && p.instrument.name}<span class="name"
+                          >{p.instrument.name}</span
+                        >{/if}
+                      {#if p.incomplete_history}<span class="warn badge"
+                          >{t('investments.incompleteTitle')}</span
+                        >{/if}
+                    </td>
+                    <td class="num">{formatDecimal(p.quantity, 0, 4)}</td>
+                    <td class="num">
+                      {#if p.quote}{formatPrice(p.quote.close, p.quote.currency)}{:else}<span class="quiet"
+                          >{t('investments.noPrice')}</span
+                        >{/if}
+                    </td>
+                    <td class="num">
+                      {#if p.value_czk}<MoneyAmount amount={p.value_czk} whole />{:else if p.cost_czk}<span
+                          class="quiet"><MoneyAmount amount={p.cost_czk} whole /></span
+                        >{/if}
+                      {#if p.value}<span class="sub"><MoneyAmount amount={p.value} size="sm" whole /></span
+                        >{/if}
+                    </td>
+                    <td class="num"
+                      >{#if gain}<MoneyAmount amount={gain} whole signed />{/if}</td
+                    >
+                    <td>
+                      {#if !p.next_exempt_on}
+                        <span class="exempt">{t('investments.allExempt')}</span>
+                      {:else}
+                        {t('investments.exemptFrom', { date: shortDate(p.next_exempt_on) })}
+                        {#if Number(p.exempt_quantity) > 0}
+                          <span class="sub"
+                            >{t('investments.exemptPart', {
+                              quantity: formatDecimal(p.exempt_quantity, 0, 4),
+                            })}</span
+                          >
+                        {/if}
+                      {/if}
+                    </td>
+                    <td class="num">
+                      {#if p.dividends_net_czk.minor !== 0}<MoneyAmount
+                          amount={p.dividends_net_czk}
+                          whole
+                        />{/if}
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      {/each}
     {/if}
 
     {#if realized.years.length > 0}
@@ -404,6 +545,91 @@
   th.num,
   td.num {
     text-align: right;
+  }
+  .positions-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin: 8px 0 12px;
+  }
+  .positions-head h2 {
+    margin: 0;
+    font-size: var(--text-title);
+  }
+  .grouping {
+    display: flex;
+    gap: 4px;
+  }
+  .grouping button {
+    border: 0;
+    background: none;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font: inherit;
+    font-size: var(--text-micro);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .grouping button[aria-pressed='true'] {
+    background: color-mix(in oklch, var(--brand) 14%, transparent);
+    color: var(--ink);
+    font-weight: 650;
+  }
+  /* Each account or broker is a card of its own, marked by the account's colour. */
+  .positions-panel.grouped {
+    border-left: 5px solid var(--accent);
+  }
+  .group-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 20px;
+    padding-bottom: 16px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .group-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    color: var(--accent);
+    background: color-mix(in oklch, var(--accent) 16%, transparent);
+  }
+  .group-name {
+    flex: 1 1 200px;
+  }
+  .group-name h3 {
+    margin: 0 0 2px;
+    font-size: var(--text-lead);
+  }
+  .group-name span {
+    font-size: var(--text-micro);
+  }
+  .group-totals {
+    display: flex;
+    gap: clamp(16px, 4vw, 36px);
+    margin: 0;
+  }
+  .group-totals dt {
+    font-size: var(--text-micro);
+    color: var(--ink-faint);
+    margin-bottom: 2px;
+  }
+  .group-totals dd {
+    margin: 0;
+  }
+  .change {
+    margin-left: 6px;
+    font-size: var(--text-micro);
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .change.up {
+    color: var(--income);
   }
   .ticker {
     color: var(--ink);

@@ -7,7 +7,8 @@
     low?: string | null;
     close: string;
   };
-  export type CandleMarker = { day: string; kind: 'buy' | 'sell' };
+  /** A trade on the chart; text describes it in the tooltip, the kind's label stands in without it. */
+  export type CandleMarker = { day: string; kind: 'buy' | 'sell'; text?: string };
   export type CandleLabels = {
     open: string;
     high: string;
@@ -106,13 +107,17 @@
 
   /** A trade lands on the first trading day on or after it; one outside the range is not drawn. */
   const placedMarkers = $derived.by(() => {
-    const placed: { i: number; kind: CandleMarker['kind'] }[] = [];
+    const placed: { i: number; kind: CandleMarker['kind']; text?: string }[] = [];
     for (const m of markers) {
       const i = points.findIndex((p) => p.day >= m.day);
-      if (i >= 0 && (i > 0 || points[0].day === m.day)) placed.push({ i, kind: m.kind });
+      if (i >= 0 && (i > 0 || points[0].day === m.day)) placed.push({ i, kind: m.kind, text: m.text });
     }
     return placed;
   });
+  /** One mark per day and kind, however many trades it stands for. */
+  const drawnMarkers = $derived(
+    placedMarkers.filter((m, k) => placedMarkers.findIndex((o) => o.i === m.i && o.kind === m.kind) === k),
+  );
 
   function markerPath(i: number, kind: CandleMarker['kind']) {
     const cx = x(i);
@@ -131,11 +136,9 @@
   }
 
   const hoveredPoint = $derived(hovered !== null ? points[hovered] : null);
-  const hoveredTrades = $derived(
-    hovered !== null ? placedMarkers.filter((m) => m.i === hovered).map((m) => m.kind) : [],
-  );
+  const hoveredTrades = $derived(hovered !== null ? placedMarkers.filter((m) => m.i === hovered) : []);
   const price = (v: number) => formatPrice(String(v), currency);
-  const tooltipLeft = $derived(hovered !== null ? Math.min(x(hovered) + 12, Math.max(0, width - 200)) : 0);
+  const tooltipLeft = $derived(hovered !== null ? Math.min(x(hovered) + 12, Math.max(0, width - 290)) : 0);
 </script>
 
 <figure class="candles" bind:clientWidth={width}>
@@ -187,7 +190,7 @@
           {/if}
         </g>
       {/each}
-      {#each placedMarkers as m, k (k)}
+      {#each drawnMarkers as m, k (k)}
         <path class="marker {m.kind}" d={markerPath(m.i, m.kind)} />
       {/each}
     </svg>
@@ -206,8 +209,12 @@
           <dt>{labels.close}</dt>
           <dd class="num">{price(hoveredPoint.close)}</dd>
         </dl>
-        {#each hoveredTrades as kind, k (k)}
-          <p class="trade {kind}">{kind === 'buy' ? labels.buy : labels.sell}</p>
+        {#each hoveredTrades as trade, k (k)}
+          <p class="trade">
+            <svg class="key-marker {trade.kind}" viewBox="0 0 12 10" aria-hidden="true"
+              ><path d={trade.kind === 'buy' ? 'M6,0 L12,10 H0 Z' : 'M6,10 L12,0 H0 Z'} /></svg
+            >{trade.text ?? (trade.kind === 'buy' ? labels.buy : labels.sell)}
+          </p>
         {/each}
       </div>
     {/if}
@@ -320,6 +327,7 @@
     position: absolute;
     top: 8px;
     min-width: 170px;
+    max-width: 280px;
     padding: 10px 12px;
     background: var(--surface-raised);
     box-shadow: var(--shadow-float);
@@ -341,8 +349,11 @@
     text-align: right;
   }
   .trade {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     margin: 6px 0 0;
-    font-weight: 650;
+    font-weight: 600;
   }
   .legend {
     display: flex;

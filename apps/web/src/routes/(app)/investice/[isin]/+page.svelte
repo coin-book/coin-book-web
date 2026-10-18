@@ -4,8 +4,8 @@
   import { api } from '@coin-book/core/api';
   import { shiftMonth, shortDate, todayISO } from '@coin-book/core/dates';
   import { errorText } from '@coin-book/core/errors';
-  import { apiErrorMessage, t } from '@coin-book/core/i18n';
-  import { formatDecimal, formatPrice } from '@coin-book/core/money';
+  import { apiErrorMessage, t, type MessageKey } from '@coin-book/core/i18n';
+  import { formatDecimal, formatGainPercent, formatMoney, formatPrice } from '@coin-book/core/money';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
   import type { CandleList, InstrumentDetail, PriceStatus } from '@coin-book/core/types';
@@ -124,12 +124,38 @@
   const markers = $derived<CandleMarker[]>([
     ...(detail?.trades ?? [])
       .filter((tr) => tr.kind === 'buy')
-      .map((tr) => ({ day: tr.day, kind: 'buy' as const })),
-    ...[...new Set((detail?.sales ?? []).map((s) => s.sold_on))].map((day) => ({
-      day,
+      .map((tr) => ({
+        day: tr.day,
+        kind: 'buy' as const,
+        text: `${t('investments.buy')} ${pieces(tr.quantity ?? '0')} · ${formatMoney(tr.net)}`,
+      })),
+    ...(detail?.sales ?? []).map((s) => ({
+      day: s.sold_on,
       kind: 'sell' as const,
+      text: `${t('investments.sell')} ${pieces(s.quantity)} · ${t('investments.gain').toLowerCase()} ${formatMoney(s.gain, { signed: true })}`,
     })),
   ]);
+
+  function pieces(quantity: string) {
+    return t('investments.pieces', { quantity: formatDecimal(quantity, 0, 4) });
+  }
+
+  const instrumentTypes: Record<string, MessageKey> = {
+    EQUITY: 'investments.type.equity',
+    ETF: 'investments.type.etf',
+    MUTUALFUND: 'investments.type.fund',
+  };
+
+  function priceSpan(low: string | undefined, high: string | undefined, currency: string) {
+    return low && high ? `${formatPrice(low, currency)} – ${formatPrice(high, currency)}` : '';
+  }
+
+  /** Where the price sits between the 52-week low and high, 0–100. */
+  function rangePosition(m: NonNullable<InstrumentDetail['market']>) {
+    const [low, high, now] = [m.fifty_two_week_low, m.fifty_two_week_high, m.market_price].map(Number);
+    if (!m.fifty_two_week_low || !m.fifty_two_week_high || !m.market_price || high <= low) return null;
+    return Math.min(100, Math.max(0, ((now - low) / (high - low)) * 100));
+  }
   const title = $derived(detail ? detail.instrument.ticker || detail.instrument.name || isin : isin);
   const position = $derived(detail?.position ?? null);
   const gain = $derived(
@@ -185,6 +211,75 @@
       <p class="quiet">{t('investments.soldOut')}</p>
     {/if}
   </header>
+
+  <section class="panel facts" data-testid="instrument-facts">
+    {#if detail.market}
+      {@const m = detail.market}
+      {@const position52 = rangePosition(m)}
+      <div>
+        <h2>{t('investments.facts')}</h2>
+        <dl>
+          {#if m.long_name}<dt>{t('investments.fact.name')}</dt>
+            <dd>{m.long_name}</dd>{/if}
+          {#if m.instrument_type}<dt>{t('investments.fact.type')}</dt>
+            <dd>
+              {instrumentTypes[m.instrument_type] ? t(instrumentTypes[m.instrument_type]) : m.instrument_type}
+            </dd>{/if}
+          {#if m.exchange}<dt>{t('investments.fact.exchange')}</dt>
+            <dd>{m.exchange} · {m.symbol}</dd>{/if}
+          {#if m.market_price}<dt>{t('investments.price')}</dt>
+            <dd class="num">
+              {formatPrice(m.market_price, m.currency)}
+              {#if m.market_change_percent}<span class:up={Number(m.market_change_percent) > 0} class="change"
+                  >{Number(m.market_change_percent) > 0 ? '+' : ''}{formatDecimal(
+                    m.market_change_percent,
+                    2,
+                    2,
+                  )}&nbsp;%</span
+                >{/if}
+            </dd>{/if}
+          {#if m.day_low && m.day_high}<dt>{t('investments.fact.day')}</dt>
+            <dd class="num">{priceSpan(m.day_low, m.day_high, m.currency)}</dd>{/if}
+          {#if m.fifty_two_week_low && m.fifty_two_week_high}<dt>{t('investments.fact.year')}</dt>
+            <dd class="num">
+              {priceSpan(m.fifty_two_week_low, m.fifty_two_week_high, m.currency)}
+              {#if position52 !== null}<span class="range" aria-hidden="true"
+                  ><i style="left: {position52}%"></i></span
+                >{/if}
+            </dd>{/if}
+          {#if m.day_volume}<dt>{t('investments.fact.volume')}</dt>
+            <dd class="num">{formatDecimal(String(m.day_volume))}</dd>{/if}
+          {#if m.first_trade_on}<dt>{t('investments.fact.listed')}</dt>
+            <dd>{shortDate(m.first_trade_on)}</dd>{/if}
+          <dt>ISIN</dt>
+          <dd>{detail.instrument.isin}</dd>
+        </dl>
+      </div>
+    {/if}
+    <div>
+      <h2>{t('investments.history')}</h2>
+      <dl>
+        {#if detail.summary.first_bought_on}<dt>{t('investments.fact.firstBought')}</dt>
+          <dd>{shortDate(detail.summary.first_bought_on)}</dd>{/if}
+        <dt>{t('investments.fact.invested')}</dt>
+        <dd><MoneyAmount amount={detail.summary.invested_czk} whole /></dd>
+        {#if Number(detail.summary.sold_quantity) > 0}<dt>{t('investments.fact.sold')}</dt>
+          <dd class="num">{pieces(detail.summary.sold_quantity)}</dd>
+          <dt>{t('investments.fact.realized')}</dt>
+          <dd>
+            <MoneyAmount amount={detail.summary.realized_gain_czk} whole signed />
+            <span class="change" class:up={detail.summary.realized_gain_czk.minor > 0}
+              >{formatGainPercent(
+                detail.summary.realized_gain_czk.minor,
+                detail.summary.realized_cost_czk.minor,
+              )}</span
+            >
+          </dd>{/if}
+        {#if detail.summary.dividends_net_czk.minor !== 0}<dt>{t('investments.dividendsNet')}</dt>
+          <dd><MoneyAmount amount={detail.summary.dividends_net_czk} whole /></dd>{/if}
+      </dl>
+    </div>
+  </section>
 
   <section class="panel" data-testid="candles">
     <div class="panel-head">
@@ -318,8 +413,12 @@
                 <td class="num">{formatDecimal(s.quantity, 0, 8)}</td>
                 <td class="num">
                   <MoneyAmount amount={s.gain} signed />
+                  <span class="change" class:up={s.gain.minor > 0}
+                    >{formatGainPercent(s.gain.minor, s.cost.minor)}</span
+                  >
                   {#if s.gain_czk}<span class="sub"
-                      ><MoneyAmount amount={s.gain_czk} size="sm" whole signed /></span
+                      ><MoneyAmount amount={s.gain_czk} size="sm" whole signed />
+                      {#if s.cost_czk}{formatGainPercent(s.gain_czk.minor, s.cost_czk.minor)}{/if}</span
                     >{/if}
                 </td>
                 <td>
@@ -337,6 +436,49 @@
 {/if}
 
 <style>
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 8px 40px;
+  }
+  .facts dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 18px;
+    margin: 0;
+  }
+  .facts dt {
+    color: var(--ink-soft);
+  }
+  .facts dd {
+    margin: 0;
+  }
+  .change {
+    margin-left: 6px;
+    color: var(--ink-soft);
+  }
+  .change.up {
+    color: var(--income);
+  }
+  .range {
+    position: relative;
+    display: block;
+    width: 160px;
+    height: 4px;
+    margin-top: 6px;
+    border-radius: 2px;
+    background: var(--line);
+  }
+  .range i {
+    position: absolute;
+    top: -3px;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    border-radius: 50%;
+    background: var(--brand);
+    border: 2px solid var(--surface);
+  }
   .back {
     display: inline-block;
     margin-bottom: 14px;
