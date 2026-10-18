@@ -140,8 +140,8 @@
   </div>
 
   <p class="hint">{t('mapper.headerHint')}</p>
-  <div class="grid-scroll">
-    <table class="grid">
+  <div class="cells-scroll">
+    <table class="cells">
       <thead>
         <tr>
           <th></th>
@@ -276,41 +276,41 @@
     font-size: var(--text-micro);
     color: var(--ink-faint);
   }
-  .grid-scroll {
+  .cells-scroll {
     overflow-x: auto;
     border: 1px solid var(--line);
     border-radius: 12px;
   }
-  .grid {
+  .cells {
     border-collapse: collapse;
     font-size: var(--text-micro);
     white-space: nowrap;
   }
-  .grid th {
+  .cells th {
     position: sticky;
     top: 0;
     padding: 8px 6px;
     background: var(--canvas);
     text-align: left;
   }
-  .grid th select {
+  .cells th select {
     font-size: var(--text-micro);
     padding: 6px 8px;
     max-width: 14em;
   }
-  .grid th select.assigned {
+  .cells th select.assigned {
     border-color: var(--brand);
     color: var(--brand);
     font-weight: 650;
   }
-  .grid td {
+  .cells td {
     padding: 6px 10px;
     border-top: 1px solid var(--line);
     max-width: 22em;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .grid td.assigned {
+  .cells td.assigned {
     background: color-mix(in oklch, var(--brand) 6%, transparent);
   }
   tr.before td {
