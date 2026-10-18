@@ -145,6 +145,9 @@
     flex-direction: column;
     gap: 14px;
     padding: 22px 14px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
   }
   .brand {
     display: flex;
@@ -277,6 +280,7 @@
       height: auto;
       flex-direction: row;
       padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+      overflow: visible;
       background: var(--surface);
       border-top: 1px solid var(--line);
     }
