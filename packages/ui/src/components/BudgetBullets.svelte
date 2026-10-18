@@ -22,9 +22,11 @@
     label: string;
     /** Share of the month gone (0–1); null hides the pace marker. */
     elapsed: number | null;
+    /** Called when anywhere on a line's row is clicked. */
+    onselect?: (line: BudgetBullet) => void;
   };
 
-  let { lines, currency, label, elapsed }: Props = $props();
+  let { lines, currency, label, elapsed, onselect }: Props = $props();
 
   // Each row is a caption line (name left, spent of plan right) over a full-width bullet.
   const ROW_HEIGHT = 50;
@@ -62,7 +64,7 @@
   }
 </script>
 
-<div class="bullets" bind:clientWidth={width} style="height: {height}px">
+<div class="bullets" class:clickable={onselect} bind:clientWidth={width} style="height: {height}px">
   <BarChart
     data={rows}
     y="key"
@@ -74,6 +76,10 @@
       { key: 'over', value: 'over', color: 'var(--over)' },
     ]}
     seriesLayout="stack"
+    onTooltipClick={(_e, detail) => {
+      const line = lines.find((l) => l.key === (detail.data as Row).key);
+      if (line) onselect?.(line);
+    }}
     c="key"
     cDomain={rows.map((r) => r.key)}
     cRange={rows.map((r) => colorVar(r.colorKey))}
@@ -159,6 +165,9 @@
 </div>
 
 <style>
+  .clickable :global(svg) {
+    cursor: pointer;
+  }
   .bullets {
     --bullet-track: color-mix(in oklch, var(--ink) 9%, transparent);
     width: 100%;

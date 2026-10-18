@@ -13,9 +13,15 @@
   import { colorVar } from '@coin-book/core/colors';
   import { formatWhole } from '@coin-book/core/money';
 
-  type Props = { bars: CategoryBar[]; currency: string; label: string };
+  type Props = {
+    bars: CategoryBar[];
+    currency: string;
+    label: string;
+    /** Called when anywhere on a bar's row is clicked. */
+    onselect?: (bar: CategoryBar) => void;
+  };
 
-  let { bars, currency, label }: Props = $props();
+  let { bars, currency, label, onselect }: Props = $props();
 
   // Each row is a caption line (name left, amount right) over a full-width bar.
   const ROW_HEIGHT = 42;
@@ -35,7 +41,13 @@
   }
 </script>
 
-<nav class="bars" aria-label={label} bind:clientWidth={width} style="height: {height}px">
+<nav
+  class="bars"
+  class:clickable={onselect}
+  aria-label={label}
+  bind:clientWidth={width}
+  style="height: {height}px"
+>
   <BarChart
     data={ranked}
     y="key"
@@ -47,6 +59,10 @@
     cRange={ranked.map((b) => colorVar(b.colorKey))}
     padding={PADDING}
     bandPadding={0}
+    onTooltipClick={(_e, detail) => {
+      const bar = byKey.get((detail.data as CategoryBar).key);
+      if (bar) onselect?.(bar);
+    }}
     axis={false}
     grid={false}
     rule={false}
@@ -108,6 +124,9 @@
   }
   .bars :global(svg) {
     overflow: visible;
+  }
+  .clickable :global(svg) {
+    cursor: pointer;
   }
   .track {
     fill: color-mix(in oklch, var(--ink) 6%, transparent);

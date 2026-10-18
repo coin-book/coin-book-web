@@ -7,7 +7,7 @@
     column: number;
     href?: string;
   };
-  export type SankeyLink = { source: string; target: string; amountMinor: number };
+  export type SankeyLink = { source: string; target: string; amountMinor: number; href?: string };
 </script>
 
 <script lang="ts">
@@ -68,6 +68,7 @@
   });
 
   const byKey = $derived(new Map(nodes.map((n) => [n.key, n])));
+  const linkHrefs = $derived(new Map(links.map((l) => [l.source + '→' + l.target, l.href])));
 
   /** Shares are of the money that came in, or of what went out when nothing came in. */
   function shareBase(laidOut: N[]) {
@@ -185,22 +186,31 @@
 
               <g class="links">
                 {#each ls as l, i (linkKey(l))}
-                  <path
-                    role="presentation"
-                    class="band"
-                    class:dim={active !== null && !touches(l, active)}
-                    class:lit={active !== null && touches(l, active)}
-                    d={band(l)}
-                    fill="url(#{uid}-band-{i})"
-                    onpointermove={(e) => {
-                      active = accountEndIsSource(l) ? nodeOf(l.target).key : nodeOf(l.source).key;
-                      context.tooltip.show(e, { link: l } satisfies Hovered);
-                    }}
-                    onpointerleave={() => {
-                      active = null;
-                      context.tooltip.hide();
-                    }}
-                  />
+                  {@const href = linkHrefs.get(linkKey(l))}
+                  <svelte:element
+                    this={href ? 'a' : 'g'}
+                    {href}
+                    aria-label={href
+                      ? `${nodeOf(l.source).label} → ${nodeOf(l.target).label}: ${formatWhole(l.amountMinor, currency)}`
+                      : undefined}
+                  >
+                    <path
+                      role="presentation"
+                      class="band"
+                      class:dim={active !== null && !touches(l, active)}
+                      class:lit={active !== null && touches(l, active)}
+                      d={band(l)}
+                      fill="url(#{uid}-band-{i})"
+                      onpointermove={(e) => {
+                        active = accountEndIsSource(l) ? nodeOf(l.target).key : nodeOf(l.source).key;
+                        context.tooltip.show(e, { link: l } satisfies Hovered);
+                      }}
+                      onpointerleave={() => {
+                        active = null;
+                        context.tooltip.hide();
+                      }}
+                    />
+                  </svelte:element>
                 {/each}
               </g>
 
@@ -226,26 +236,26 @@
                     onfocusin={() => (active = n.key)}
                     onfocusout={() => (active = null)}
                   >
-                    <rect
-                      x={n.x0}
-                      y={n.y0}
-                      width={NODE_WIDTH}
-                      height={h}
-                      rx="4"
-                      fill={nodeColor(n)}
-                      filter="url(#{uid}-lift)"
-                    />
-                    <rect
-                      class="light"
-                      x={n.x0}
-                      y={n.y0}
-                      width={NODE_WIDTH}
-                      height={h}
-                      rx="4"
-                      fill="url(#{uid}-light)"
-                    />
-
                     <svelte:element this={href ? 'a' : 'g'} {href} class="caption">
+                      <rect
+                        x={n.x0}
+                        y={n.y0}
+                        width={NODE_WIDTH}
+                        height={h}
+                        rx="4"
+                        fill={nodeColor(n)}
+                        filter="url(#{uid}-lift)"
+                      />
+                      <rect
+                        class="light"
+                        x={n.x0}
+                        y={n.y0}
+                        width={NODE_WIDTH}
+                        height={h}
+                        rx="4"
+                        fill="url(#{uid}-light)"
+                      />
+
                       {#if account}
                         <text
                           class="name"
@@ -351,6 +361,19 @@
   }
   .band {
     transition: opacity 180ms ease;
+  }
+  a .band,
+  a.caption rect {
+    cursor: pointer;
+  }
+  a:focus-visible .band {
+    opacity: 1;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  a.caption:focus-visible rect:not(.light) {
+    stroke: var(--ink);
+    stroke-width: 2;
   }
   .band.lit {
     opacity: 1;

@@ -72,11 +72,32 @@ test('command palette navigates', async ({ page }) => {
   await expect(page).toHaveURL(/\/ucty/);
 });
 
-test('overview draws where the money flowed and the last twelve months', async ({ page }) => {
+// One test for the overview's charts: the suite signs in once per test and stays under the login rate limit.
+test('overview charts draw and open the transactions behind what was clicked', async ({ page }) => {
   await expect(page.getByRole('img', { name: 'Tok peněz' })).toBeVisible();
   await expect(page.getByRole('img', { name: 'Posledních dvanáct měsíců' })).toBeVisible();
+
+  // A bar's row, away from its caption link.
+  const bars = page.getByRole('navigation', { name: 'Kam šly peníze' });
+  const barsBox = (await bars.boundingBox())!;
+  await page.mouse.click(barsBox.x + barsBox.width * 0.5, barsBox.y + 30);
+  await expect(page).toHaveURL(/\/transakce\?kategorie=[^&]+&od=\d{4}-\d{2}-01&do=/);
+  await page.goBack();
+
+  // A flow between an account and a category.
+  await page.getByTestId('flows-panel').getByRole('link', { name: /→/ }).first().click({ force: true });
+  await expect(page).toHaveURL(/\/transakce\?ucet=[^&]+(&kategorie=[^&]+)?&od=/);
+  await page.goBack();
+
   await page.getByTestId('flows-panel').getByRole('button', { name: 'Zobrazit jako tabulku' }).click();
   await expect(page.getByTestId('flows-panel').getByRole('table')).toBeVisible();
+
+  // The bottom segment of the last month's column: its biggest category.
   await page.getByTestId('categories-panel').locator('summary').click();
-  await expect(page.getByRole('img', { name: 'Výdaje podle kategorií po měsících' })).toBeVisible();
+  const stacked = page.getByRole('img', { name: 'Výdaje podle kategorií po měsících' });
+  await expect(stacked).toBeVisible();
+  await stacked.scrollIntoViewIfNeeded();
+  const stackBox = (await stacked.boundingBox())!;
+  await page.mouse.click(stackBox.x + stackBox.width * 0.95, stackBox.y + stackBox.height * 0.8);
+  await expect(page).toHaveURL(/\/transakce\?kategorie=[^&]+&od=/);
 });

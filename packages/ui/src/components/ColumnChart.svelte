@@ -24,8 +24,8 @@
     label: string;
     /** stacked: one column per group, segments per series; grouped: a column per series side by side. */
     mode?: 'grouped' | 'stacked';
-    /** Called with a group's key when its column is clicked. */
-    onselect?: (key: string) => void;
+    /** Called when a column is clicked; stacked charts also pass the series of the segment hit. */
+    onselect?: (key: string, seriesKey?: string) => void;
   };
 
   let { series, groups, currency, label, mode = 'grouped', onselect }: Props = $props();
@@ -35,6 +35,7 @@
   const MAX_COLUMN = 24;
 
   let width = $state(0);
+  let context = $state<any>();
 
   const byKey = $derived(new Map(groups.map((g) => [g.key, g])));
 
@@ -54,6 +55,22 @@
       value: (g: ColumnGroup) => g.values[s.key] ?? 0,
     })),
   );
+
+  /**
+   * The series whose stacked segment is under the pointer. The tooltip layer sits above the
+   * bars and takes the click, so the segment is read from the pointer's height instead.
+   */
+  function segmentAt(e: MouseEvent, group: ColumnGroup): string | undefined {
+    const svg = (e.target as Element | null)?.closest('svg');
+    if (mode !== 'stacked' || !svg || !context?.yScale?.invert) return undefined;
+    const value = context.yScale.invert(e.clientY - svg.getBoundingClientRect().top - PADDING.top);
+    let top = 0;
+    for (const s of series) {
+      top += group.values[s.key] ?? 0;
+      if (value >= 0 && value <= top) return s.key;
+    }
+    return undefined;
+  }
 
   /** Compact tick labels from minor units: 0, 20k, 1,5M. */
   function compact(minor: number) {
@@ -76,7 +93,11 @@
       groupPadding={0.1}
       padding={PADDING}
       yNice
-      onTooltipClick={(_e, detail) => onselect?.((detail.data as ColumnGroup).key)}
+      bind:context
+      onTooltipClick={(e, detail) => {
+        const group = detail.data as ColumnGroup;
+        onselect?.(group.key, segmentAt(e, group));
+      }}
       props={{
         xAxis: {
           format: (key: string) => byKey.get(key)?.label ?? '',

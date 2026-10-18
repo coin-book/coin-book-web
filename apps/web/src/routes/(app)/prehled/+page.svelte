@@ -109,8 +109,24 @@
       }
     }),
   );
+  /** A flow opens the transactions behind it: the account's, in the category at the other end. */
+  function flowHref(sourceKey: string, targetKey: string) {
+    const ends = [flowNodesByKey.get(sourceKey), flowNodesByKey.get(targetKey)];
+    const account = ends.find((n) => n?.kind === 'account');
+    const category = ends.find((n) => n?.kind !== 'account' && n?.kind !== 'saving');
+    if (!account?.account_id) return undefined;
+    const params = new URLSearchParams({ ucet: account.account_id });
+    if (category?.category_id) params.set('kategorie', category.category_id);
+    return `/transakce?${params}&${monthRange(month)}`;
+  }
+  const flowNodesByKey = $derived(new Map((flows?.nodes ?? []).map((n) => [n.key, n])));
   const flowLinks = $derived<SankeyLink[]>(
-    (flows?.links ?? []).map((l) => ({ source: l.source, target: l.target, amountMinor: l.amount_minor })),
+    (flows?.links ?? []).map((l) => ({
+      source: l.source,
+      target: l.target,
+      amountMinor: l.amount_minor,
+      href: flowHref(l.source, l.target),
+    })),
   );
 
   const trendSeries = $derived<ColumnSeries[]>([
@@ -174,6 +190,13 @@
     }),
   );
 
+  /** A segment of the stacked chart opens that category's transactions in that month. */
+  function selectCategoryMonth(m: string, seriesKey?: string) {
+    if (seriesKey === 'uncategorized') return goto('/k-vyreseni');
+    if (!seriesKey || seriesKey === 'other') return goto(`/prehled?mesic=${m}`);
+    return goto(`/transakce?kategorie=${seriesKey}&${monthRange(m)}`);
+  }
+
   function lastDay(m: string) {
     const [y, mo] = m.split('-').map(Number);
     return new Date(Date.UTC(y, mo, 0)).toISOString().slice(0, 10);
@@ -209,7 +232,7 @@
       plannedMinor: line.planned_minor,
       spentMinor: line.spent_minor,
       status: line.status,
-      href: `/rozpocet/${month}`,
+      href: `/transakce?kategorie=${line.category_id}&${monthRange(month)}`,
     })),
   );
   const allCalm = $derived(burning.every((l) => l.status === 'on_track'));
@@ -290,7 +313,12 @@
     {#if segments.length > 0}
       <section class="panel ribbon">
         <h2>{t('overview.whereMoneyWent')}</h2>
-        <CategoryBars bars={segments} currency={CURRENCY} label={t('overview.whereMoneyWent')} />
+        <CategoryBars
+          bars={segments}
+          currency={CURRENCY}
+          label={t('overview.whereMoneyWent')}
+          onselect={(b) => b.href && goto(b.href)}
+        />
       </section>
     {/if}
 
@@ -342,6 +370,7 @@
             currency={CURRENCY}
             label={t('overview.burning')}
             elapsed={paceElapsed}
+            onselect={(line) => line.href && goto(line.href)}
           />
           {#if allCalm}<p class="quiet calm">{t('overview.allCalm')}</p>{/if}
         {/if}
@@ -380,7 +409,7 @@
           currency={CURRENCY}
           label={t('overview.categoriesTrend')}
           mode="stacked"
-          onselect={(m) => goto(`/prehled?mesic=${m}`)}
+          onselect={selectCategoryMonth}
         />
       </details>
     {/if}
