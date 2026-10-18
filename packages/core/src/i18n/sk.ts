@@ -13,8 +13,8 @@ export const sk: Record<MessageKey, string> = {
   'nav.search': 'Hľadať…',
   'nav.logout': 'Odhlásiť',
   'nav.resize': 'Zmeniť šírku menu',
-  'nav.collapse': 'Skryť menu',
-  'nav.expand': 'Zobraziť menu',
+  'nav.collapse': 'Zbaliť menu',
+  'nav.expand': 'Rozbaliť menu',
 
   'auth.loginTitle': 'Prihlásenie',
   'auth.registerTitle': 'Založte si účet',

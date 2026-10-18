@@ -11,8 +11,8 @@ export const cs = {
   'nav.search': 'Hledat…',
   'nav.logout': 'Odhlásit',
   'nav.resize': 'Změnit šířku menu',
-  'nav.collapse': 'Skrýt menu',
-  'nav.expand': 'Zobrazit menu',
+  'nav.collapse': 'Zbalit menu',
+  'nav.expand': 'Rozbalit menu',
 
   'auth.loginTitle': 'Přihlášení',
   'auth.registerTitle': 'Založte si účet',

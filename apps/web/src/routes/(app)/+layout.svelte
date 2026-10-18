@@ -25,9 +25,11 @@
   let paletteOpen = $state(false);
   let helpOpen = $state(false);
   let railWidth = $state(storedRailWidth());
+  // Collapsed shows icons only and keeps railWidth for expanding again.
   let collapsed = $state(stored(RAIL_COLLAPSED_KEY) === 'true');
   let resizing = $state(false);
-  const compact = $derived(railWidth < RAIL_COMPACT_BELOW);
+  const shownWidth = $derived(collapsed ? RAIL_MIN : railWidth);
+  const compact = $derived(shownWidth < RAIL_COMPACT_BELOW);
 
   function stored(key: string): string | null {
     try {
@@ -61,8 +63,20 @@
   }
 
   function setRailWidth(width: number) {
+    setCollapsed(false);
     railWidth = clampRail(width);
     store(RAIL_WIDTH_KEY, String(railWidth));
+  }
+
+  // A menu dragged down to icons expands to the default width, not to its own narrow one.
+  function toggleRail() {
+    if (!compact) {
+      setCollapsed(true);
+    } else if (railWidth < RAIL_COMPACT_BELOW) {
+      setRailWidth(RAIL_DEFAULT);
+    } else {
+      setCollapsed(false);
+    }
   }
 
   function startResize(e: PointerEvent) {
@@ -79,7 +93,7 @@
     const step = { ArrowLeft: -RAIL_KEY_STEP, ArrowRight: RAIL_KEY_STEP }[e.key];
     if (step) {
       e.preventDefault();
-      setRailWidth(railWidth + step);
+      setRailWidth(shownWidth + step);
     } else if (e.key === 'Home' || e.key === 'End') {
       e.preventDefault();
       setRailWidth(e.key === 'Home' ? RAIL_MIN : RAIL_MAX);
@@ -144,12 +158,24 @@
 
 <svelte:window {onkeydown} />
 
-<div class="shell" class:resizing class:collapsed style:--rail-width="{railWidth}px">
+<div class="shell" class:resizing style:--rail-width="{shownWidth}px">
   <nav class="rail" class:compact aria-label="coin-book">
-    <a class="brand" href="/overview" aria-label="coin-book">
-      <span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="display brand-name">coin-book</span>
-    </a>
+    <div class="brand-row">
+      <a class="brand" href="/overview" aria-label="coin-book">
+        <span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="display brand-name">coin-book</span>
+      </a>
+      <button
+        type="button"
+        class="rail-toggle"
+        aria-label={compact ? t('nav.expand') : t('nav.collapse')}
+        title={compact ? t('nav.expand') : t('nav.collapse')}
+        aria-expanded={!compact}
+        onclick={toggleRail}
+      >
+        <Icon name={compact ? 'caret-right' : 'caret-left'} size={16} weight="bold" />
+      </button>
+    </div>
     <button
       type="button"
       class="search"
@@ -196,27 +222,8 @@
           <span class="label">{t('nav.logout')}</span>
         </button>
       </li>
-      <li class="rail-collapse">
-        <button
-          type="button"
-          title={compact ? t('nav.collapse') : undefined}
-          onclick={() => setCollapsed(true)}
-        >
-          <Icon name="caret-left" size={20} />
-          <span class="label">{t('nav.collapse')}</span>
-        </button>
-      </li>
     </ul>
   </nav>
-  <button
-    type="button"
-    class="rail-expand"
-    aria-label={t('nav.expand')}
-    title={t('nav.expand')}
-    onclick={() => setCollapsed(false)}
-  >
-    <Icon name="caret-right" size={18} weight="bold" />
-  </button>
   <!-- A focusable separator is the ARIA window-splitter pattern; Svelte counts every separator as static. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
   <div
@@ -226,7 +233,7 @@
     aria-label={t('nav.resize')}
     aria-valuemin={RAIL_MIN}
     aria-valuemax={RAIL_MAX}
-    aria-valuenow={railWidth}
+    aria-valuenow={shownWidth}
     tabindex="0"
     onpointerdown={startResize}
     onpointermove={resize}
@@ -323,6 +330,31 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .rail-toggle {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: none;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+  }
+  .rail-toggle:hover {
+    background: color-mix(in oklch, var(--ink) 5%, transparent);
+    color: var(--ink);
+  }
+  .rail.compact .brand-row {
+    flex-direction: column;
   }
   .brand {
     display: flex;
@@ -444,46 +476,12 @@
     min-width: 0;
     padding: 30px clamp(16px, 4vw, 48px) 80px;
   }
-  .rail-expand {
-    display: none;
-  }
-  @media (min-width: 861px) {
-    .shell.collapsed {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .shell.collapsed .rail,
-    .shell.collapsed .rail-handle {
-      display: none;
-    }
-    .shell.collapsed .content {
-      padding-left: max(64px, clamp(16px, 4vw, 48px));
-    }
-    .shell.collapsed .rail-expand {
-      position: fixed;
-      z-index: 30;
-      top: 18px;
-      left: 14px;
-      display: grid;
-      place-items: center;
-      width: 36px;
-      height: 36px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--surface);
-      color: var(--ink-soft);
-      box-shadow: var(--shadow-float);
-      cursor: pointer;
-    }
-    .shell.collapsed .rail-expand:hover {
-      color: var(--brand);
-    }
-  }
   @media (max-width: 860px) {
     .shell {
       grid-template-columns: 1fr;
     }
     .rail-handle,
-    .rail-collapse {
+    .rail-toggle {
       display: none;
     }
     .rail {
