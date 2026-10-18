@@ -15,6 +15,7 @@ describe('dates', () => {
   it('names months in the nominative', () => {
     expect(monthName('2026-10', 'cs')).toBe('Říjen 2026');
     expect(monthName('2026-10', 'sk')).toBe('Október 2026');
+    expect(monthName('2026-10', 'en')).toBe('October 2026');
   });
 
   it('abbreviates June and July apart', () => {

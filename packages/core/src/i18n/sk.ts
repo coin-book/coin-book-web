@@ -71,6 +71,12 @@ export const sk: Record<MessageKey, string> = {
   'overview.emptyTitle': 'Zatiaľ tu nič nie je',
   'overview.emptyLead': 'Nahrajte výpis z mBank alebo Revolutu a prehľad sa naplní.',
   'overview.toImport': 'Nahrať výpis',
+  'overview.vsPrevious': '{change} oproti minulému mesiacu',
+  'overview.setAsideCount': 'na vlastné účty: {count}',
+  'overview.netWorth': 'Čisté imanie dnes',
+  'overview.netWorthSplit': 'Účty {cash} · Investície {investments}',
+  'overview.charts': 'Grafy',
+  'overview.noSpending': 'Tento mesiac zatiaľ bez výdavkov.',
   'overview.uncategorized': 'Nezaradené',
 
   'tx.searchPlaceholder': 'Protistrana, popis alebo suma',
@@ -136,6 +142,10 @@ export const sk: Record<MessageKey, string> = {
   'learn.thresholdHint':
     'Automaticky zaradené transakcie sa objavia v Na vyriešenie na kontrolu. Pravidlá a ručné voľby majú vždy prednosť.',
   'learn.saved': 'Nastavenie uložené',
+  'triage.queue': 'Rad',
+  'triage.progress': '{done} z {total} hotovo',
+  'triage.more': 'a ďalších {count}',
+  'triage.groupRule': 'Pravidlo zaradí aj ďalšie {count} od {name}.',
   'triage.remaining': 'Zostáva roztriediť {count}',
   'triage.suggestion': 'Návrh',
   'triage.skip': 'Preskočiť',
@@ -452,11 +462,60 @@ export const sk: Record<MessageKey, string> = {
   'investments.positionsCount.one': '{count} titul',
   'investments.positionsCount.few': '{count} tituly',
   'investments.positionsCount.many': '{count} titulov',
+  'investments.dividendsYear': 'Dividendy {year}',
+  'investments.realizedYear': 'Realizované {year}',
+  'investments.allocation': 'Rozloženie podľa účtov',
+  'investments.tab.positions': 'Pozície',
+  'investments.tab.realized': 'Realizované zisky',
+  'investments.tab.dividends': 'Dividendy',
+  'investments.tab.timeTest': 'Test 3 rokov',
+  'investments.trendLabel': '{ticker} za posledný rok',
+  'investments.exemptPartOf': '{done}/{total} ks splnené',
+  'investments.nothingSold': 'Zatiaľ nič predané.',
+  'investments.noDividends': 'Zatiaľ žiadne dividendy.',
+  'investments.dividendsGross': 'Hrubé dividendy',
+  'investments.timeTestLead':
+    'Otvorené loty podľa toho, kedy splnia test 3 rokov. Zisk z lotu drženého dlhšie je od dane oslobodený.',
   'investments.soldOut': 'Všetko predané.',
 
   'settings.about': 'O aplikácii',
   'settings.versionWeb': 'Webová aplikácia',
   'settings.versionApi': 'Server',
+
+  'landing.tagline': 'Vaše peniaze prehľadne, na vašom serveri',
+  'landing.lead':
+    'coin-book načíta výpisy z mBank a Revolutu, roztriedi transakcie, postráži rozpočet a ukáže investície vrátane testu 3 rokov. Beží u vás doma a dáta nikam neodchádzajú.',
+  'landing.open': 'Otvoriť aplikáciu',
+  'landing.register': 'Založiť účet',
+  'landing.overview.title': 'Celý mesiac na jednej obrazovke',
+  'landing.overview.body': 'Koľko zostáva minúť, kam išli peniaze, tok medzi účtami a čisté imanie.',
+  'landing.triage.title': 'Roztriedenie za pár minút',
+  'landing.triage.body':
+    'Nezaradené transakcie v rade podľa protistrany. Aplikácia sa učí z vašich volieb, navrhne kategóriu a jedno pravidlo vyrieši všetky platby u rovnakého obchodníka.',
+  'landing.budget.title': 'Rozpočet, ktorý stráži tempo',
+  'landing.budget.body':
+    'Plán po kategóriách s ukazovateľom, či míňate rýchlejšie, než by sa do konca mesiaca zmestilo. Prevzatie z minulého mesiaca jedným kliknutím.',
+  'landing.investments.title': 'Akcie a ETF na jednom mieste',
+  'landing.investments.body':
+    'Pozície z Revolutu podľa účtov, hodnota podľa aktuálnych cien a kurzov ČNB, realizované zisky po rokoch a dividendy.',
+  'landing.instrument.title': 'Graf, obchody a test 3 rokov',
+  'landing.instrument.body':
+    'Pri každom titule sviečkový graf s vašimi nákupmi a predajmi, základné údaje z burzy a loty s dátumom, kedy splnia test 3 rokov na oslobodenie od dane.',
+  'landing.imports.title': 'Import, ktorému môžete veriť',
+  'landing.imports.body':
+    'mBank, Revolut alebo vlastné CSV. Náhľad pred zápisom, kontrolné súčty z výpisu, žiadne duplicity pri opakovanom nahraní a vrátenie celého importu.',
+  'landing.promisesTitle': 'Vaše dáta zostávajú vaše',
+  'landing.promise.selfHosted.title': 'Beží u vás',
+  'landing.promise.selfHosted.body':
+    'Na NAS (TrueNAS) alebo v Dockeri na počítači. Žiadna cudzia služba výpisy nečíta.',
+  'landing.promise.private.title': 'Každý vidí len svoje',
+  'landing.promise.private.body':
+    'Viac používateľov na jednej inštalácii, oddelenie dát stráži databáza sama.',
+  'landing.promise.agents.title': 'AI asistent len na čítanie',
+  'landing.promise.agents.body':
+    'Token s vybranými oprávneniami pre Claude a iných agentov cez MCP. Každý prístup sa zapíše.',
+  'landing.promise.backups.title': 'Záloha jedným príkazom',
+  'landing.promise.backups.body': 'Databáza aj pôvodné výpisy v jednom súbore, voliteľne zašifrované.',
 
   'common.close': 'Zavrieť',
   'common.loading': 'Načítavam…',

@@ -7,5 +7,5 @@ export async function signIn(page: Page) {
   await page.getByLabel('E-mail').fill(DEMO.email);
   await page.getByLabel('Heslo').fill(DEMO.password);
   await page.getByRole('button', { name: 'Přihlásit' }).click();
-  await expect(page).toHaveURL(/\/prehled/);
+  await expect(page).toHaveURL(/\/overview/);
 }

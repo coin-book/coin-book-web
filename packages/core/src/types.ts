@@ -34,3 +34,4 @@ export type Candle = Schemas['Candle'];
 export type Realized = Schemas['RealizedOutputBody'];
 export type CandleList = Schemas['CandlesOutputBody'];
 export type Version = Schemas['VersionOutputBody'];
+export type NetWorth = Schemas['NetWorth'];

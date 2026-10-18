@@ -123,7 +123,8 @@
                   `categories.kind.${main.kind}`,
                 )}{main.budget_group_id ? `, ${groupName(main.budget_group_id)}` : ''}</span
               >
-              <a class="meta count" href="/transakce?kategorie={main.id}">{txCount(transactionsOf(main))}</a>
+              <a class="meta count" href="/transactions?category={main.id}">{txCount(transactionsOf(main))}</a
+              >
             </div>
             <button
               type="button"
@@ -148,7 +149,7 @@
                     <span class="num">{sub.usage?.transactions ?? 0}</span>
                   </button>
                 {:else}
-                  <a class="sub" href="/transakce?kategorie={sub.id}">
+                  <a class="sub" href="/transactions?category={sub.id}">
                     {categoryName(sub)}
                     <span class="num">{sub.usage?.transactions ?? 0}</span>
                   </a>

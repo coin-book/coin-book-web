@@ -16,7 +16,7 @@
 
   const CURRENCY = 'CZK';
 
-  const month = $derived(page.params.mesic ?? '');
+  const month = $derived(page.params.month ?? '');
 
   let budget = $state<BudgetMonth | null>(null);
   let error = $state('');
@@ -49,7 +49,7 @@
       plannedMinor: line.planned_minor,
       spentMinor: line.spent_minor,
       status: line.status,
-      href: line.category_id ? `/transakce?kategorie=${line.category_id}&od=${month}-01` : undefined,
+      href: line.category_id ? `/transactions?category=${line.category_id}&from=${month}-01` : undefined,
     })),
   );
 
@@ -106,7 +106,7 @@
 <svelte:head><title>{t('budget.title')} · coin-book</title></svelte:head>
 
 <header class="head">
-  <MonthSwitcher {month} hrefFor={(m) => `/rozpocet/${m}`} />
+  <MonthSwitcher {month} hrefFor={(m) => `/budget/${m}`} />
   {#if budget && !editing}
     <div class="head-actions">
       {#if budget.lines.length === 0}

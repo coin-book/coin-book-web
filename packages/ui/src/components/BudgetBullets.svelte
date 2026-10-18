@@ -34,7 +34,11 @@
   const CAPTION_OFFSET = 16;
   const PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
 
+  // Below this the name and all figures collide on one line; the remainder stays in the tooltip.
+  const NARROW_WIDTH = 480;
+
   let width = $state(0);
+  const narrow = $derived(width < NARROW_WIDTH);
 
   // Every bullet is measured against its own plan (or its spending when that is larger), so a
   // small budget reads as clearly as a large one. Three stacked parts on a 0–1 scale: the spent
@@ -112,9 +116,9 @@
             <text class="name" x={0} y={captionY}>{r.label}</text>
           </svelte:element>
           <text class="figures num" x={width} y={captionY} text-anchor="end">
-            <tspan class="rest" class:over={r.over > 0}>{remainingText(r)}</tspan><tspan class="sep"
-              >{'\u00a0·\u00a0'}</tspan
-            >{formatWhole(r.spentMinor, currency)}<tspan class="planned"
+            {#if !narrow}<tspan class="rest" class:over={r.over > 0}>{remainingText(r)}</tspan><tspan
+                class="sep">{'\u00a0·\u00a0'}</tspan
+              >{/if}{formatWhole(r.spentMinor, currency)}<tspan class="planned"
               >{'\u00a0/\u00a0'}{formatWhole(r.plannedMinor, currency)}</tspan
             >
           </text>

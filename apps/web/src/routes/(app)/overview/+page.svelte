@@ -2,16 +2,17 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { api } from '@coin-book/core/api';
-  import { currentMonth, shortMonth } from '@coin-book/core/dates';
+  import { currentMonth, shiftMonth, shortMonth } from '@coin-book/core/dates';
   import { errorText } from '@coin-book/core/errors';
   import { daysWord, i18n, t } from '@coin-book/core/i18n';
-  import { formatWhole } from '@coin-book/core/money';
+  import { formatGainPercent, formatWhole } from '@coin-book/core/money';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import type {
     BudgetMonth,
     CategoriesReport,
     FlowsReport,
     MonthlyReport,
+    NetWorth,
     Transaction,
   } from '@coin-book/core/types';
   import BudgetBullets, { type BudgetBullet } from '@coin-book/ui/BudgetBullets.svelte';
@@ -32,13 +33,14 @@
   const STACK_LIMIT = 7;
   const statusWeight = { over: 0, ahead_of_pace: 1, on_track: 2 } as const;
 
-  const month = $derived(page.url.searchParams.get('mesic') ?? currentMonth());
+  const month = $derived(page.url.searchParams.get('month') ?? currentMonth());
 
   let report = $state<MonthlyReport | null>(null);
   let budget = $state<BudgetMonth | null>(null);
   let recent = $state<Transaction[]>([]);
   let flows = $state<FlowsReport | null>(null);
   let history = $state<CategoriesReport | null>(null);
+  let netWorth = $state<NetWorth | null>(null);
   let error = $state('');
 
   $effect(() => {
@@ -50,8 +52,10 @@
       api.get<{ transactions: Transaction[] }>('/transactions', { limit: RECENT_LIMIT, to: lastDay(m) }),
       api.get<FlowsReport>(`/reports/flows/${m}`, { currency: CURRENCY }),
       api.get<CategoriesReport>('/reports/categories', { to: m, months: HISTORY_MONTHS, currency: CURRENCY }),
+      api.get<NetWorth>('/reports/net-worth'),
     ])
-      .then(([r, b, tx, f, h]) => {
+      .then(([r, b, tx, f, h, w]) => {
+        netWorth = w;
         report = r;
         budget = b;
         recent = tx.transactions;
@@ -61,8 +65,32 @@
       .catch((e) => (error = errorText(e)));
   });
 
+  /** The `chart` URL parameter picks the chart in the tabbed card; without it, the money flow. */
+  const charts = [
+    { param: '', key: 'flows', label: 'overview.flows' },
+    { param: 'trend', key: 'trend', label: 'overview.trend' },
+    { param: 'categories', key: 'categories', label: 'overview.categoriesTrend' },
+  ] as const;
+  const chart = $derived(
+    charts.find((c) => c.param === (page.url.searchParams.get('chart') ?? '')) ?? charts[0],
+  );
+
+  function showChart(param: string) {
+    const url = new URL(page.url);
+    if (param) url.searchParams.set('chart', param);
+    else url.searchParams.delete('chart');
+    void goto(url, { replaceState: true, noScroll: true, keepFocus: true });
+  }
+
+  /** Change against the month before, from the trend; empty when that month had nothing. */
+  function vsPreviousMonth(key: 'income_minor' | 'expense_minor') {
+    const previous = report?.trend.find((m) => m.month === shiftMonth(month, -1));
+    if (!report || !previous || previous[key] === 0) return '';
+    return formatGainPercent(report[key] - previous[key], previous[key]);
+  }
+
   function monthRange(m: string) {
-    return `od=${m}-01&do=${lastDay(m)}`;
+    return `from=${m}-01&to=${lastDay(m)}`;
   }
 
   function categoryName(id: string | null | undefined) {
@@ -79,7 +107,7 @@
             column: 0,
             label: categoryName(n.category_id),
             colorKey: n.category_id ? taxonomy.colorKey(n.category_id) : 'income',
-            href: n.category_id ? `/transakce?kategorie=${n.category_id}&${monthRange(month)}` : undefined,
+            href: n.category_id ? `/transactions?category=${n.category_id}&${monthRange(month)}` : undefined,
           };
         case 'account':
           return {
@@ -87,7 +115,7 @@
             column: 1,
             label: account?.name ?? '',
             colorKey: account?.color_key ?? 'bridlice',
-            href: `/transakce?ucet=${n.account_id}&${monthRange(month)}`,
+            href: `/transactions?account=${n.account_id}&${monthRange(month)}`,
           };
         case 'saving':
           return {
@@ -102,9 +130,7 @@
             column: 2,
             label: categoryName(n.category_id),
             colorKey: n.category_id ? taxonomy.colorKey(n.category_id) : 'uncategorized',
-            href: n.category_id
-              ? `/transakce?kategorie=${n.category_id}&${monthRange(month)}`
-              : '/k-vyreseni',
+            href: n.category_id ? `/transactions?category=${n.category_id}&${monthRange(month)}` : '/triage',
           };
       }
     }),
@@ -115,9 +141,9 @@
     const account = ends.find((n) => n?.kind === 'account');
     const category = ends.find((n) => n?.kind !== 'account' && n?.kind !== 'saving');
     if (!account?.account_id) return undefined;
-    const params = new URLSearchParams({ ucet: account.account_id });
-    if (category?.category_id) params.set('kategorie', category.category_id);
-    return `/transakce?${params}&${monthRange(month)}`;
+    const params = new URLSearchParams({ account: account.account_id });
+    if (category?.category_id) params.set('category', category.category_id);
+    return `/transactions?${params}&${monthRange(month)}`;
   }
   const flowNodesByKey = $derived(new Map((flows?.nodes ?? []).map((n) => [n.key, n])));
   const flowLinks = $derived<SankeyLink[]>(
@@ -192,9 +218,9 @@
 
   /** A segment of the stacked chart opens that category's transactions in that month. */
   function selectCategoryMonth(m: string, seriesKey?: string) {
-    if (seriesKey === 'uncategorized') return goto('/k-vyreseni');
-    if (!seriesKey || seriesKey === 'other') return goto(`/prehled?mesic=${m}`);
-    return goto(`/transakce?kategorie=${seriesKey}&${monthRange(m)}`);
+    if (seriesKey === 'uncategorized') return goto('/triage');
+    if (!seriesKey || seriesKey === 'other') return goto(`/overview?month=${m}`);
+    return goto(`/transactions?category=${seriesKey}&${monthRange(m)}`);
   }
 
   function lastDay(m: string) {
@@ -209,8 +235,8 @@
       colorKey: e.category_id ? taxonomy.colorKey(e.category_id) : 'uncategorized',
       amountMinor: e.amount_minor,
       href: e.category_id
-        ? `/transakce?kategorie=${e.category_id}&od=${month}-01&do=${lastDay(month)}`
-        : '/k-vyreseni',
+        ? `/transactions?category=${e.category_id}&from=${month}-01&to=${lastDay(month)}`
+        : '/triage',
     })),
   );
 
@@ -232,7 +258,7 @@
       plannedMinor: line.planned_minor,
       spentMinor: line.spent_minor,
       status: line.status,
-      href: `/transakce?kategorie=${line.category_id}&${monthRange(month)}`,
+      href: `/transactions?category=${line.category_id}&${monthRange(month)}`,
     })),
   );
   const allCalm = $derived(burning.every((l) => l.status === 'on_track'));
@@ -256,7 +282,7 @@
 <svelte:head><title>{t('nav.overview')} · coin-book</title></svelte:head>
 
 <header class="head">
-  <MonthSwitcher {month} hrefFor={(m) => `/prehled?mesic=${m}`} />
+  <MonthSwitcher {month} hrefFor={(m) => `/overview?month=${m}`} />
 </header>
 
 {#if error}
@@ -264,11 +290,11 @@
 {:else if report && budget}
   {#if isEmpty}
     <EmptyState icon="upload-simple" title={t('overview.emptyTitle')} lead={t('overview.emptyLead')}>
-      <Button href="/importy" icon="upload-simple">{t('overview.toImport')}</Button>
+      <Button href="/imports" icon="upload-simple">{t('overview.toImport')}</Button>
     </EmptyState>
   {:else}
-    <section class="hero">
-      <div class="left-to-spend">
+    <section class="kpis" data-testid="kpis">
+      <div class="kpi main">
         <h2>{t('overview.leftToSpend')}</h2>
         {#if hasBudget}
           <MoneyAmount amount={{ minor: budget.remaining_minor, currency: CURRENCY }} size="hero" whole />
@@ -285,82 +311,63 @@
           </p>
         {:else}
           <p class="pace">{t('overview.noBudget')}</p>
-          <Button variant="quiet" href="/rozpocet/{month}" icon="target">{t('overview.setBudget')}</Button>
+          <Button variant="quiet" href="/budget/{month}" icon="target">{t('overview.setBudget')}</Button>
         {/if}
       </div>
-      <dl class="totals">
-        <div>
-          <dt>{t('overview.income')}</dt>
-          <dd>
-            <MoneyAmount amount={{ minor: report.income_minor, currency: CURRENCY }} size="lg" whole signed />
-          </dd>
-        </div>
-        <div>
-          <dt>{t('overview.expenses')}</dt>
-          <dd>
-            <MoneyAmount amount={{ minor: report.expense_minor, currency: CURRENCY }} size="lg" whole />
-          </dd>
-        </div>
-        <div>
-          <dt>{t('overview.saved')}</dt>
-          <dd>
-            <MoneyAmount amount={{ minor: report.financial_minor, currency: CURRENCY }} size="lg" whole />
-          </dd>
-        </div>
-      </dl>
+      <div class="kpi">
+        <h2>{t('overview.income')}</h2>
+        <MoneyAmount amount={{ minor: report.income_minor, currency: CURRENCY }} size="lg" whole signed />
+        {#if vsPreviousMonth('income_minor')}<span class="quiet small"
+            >{t('overview.vsPrevious', { change: vsPreviousMonth('income_minor') })}</span
+          >{/if}
+      </div>
+      <div class="kpi">
+        <h2>{t('overview.expenses')}</h2>
+        <MoneyAmount amount={{ minor: report.expense_minor, currency: CURRENCY }} size="lg" whole />
+        {#if vsPreviousMonth('expense_minor')}<span class="quiet small"
+            >{t('overview.vsPrevious', { change: vsPreviousMonth('expense_minor') })}</span
+          >{/if}
+      </div>
+      <div class="kpi">
+        <h2>{t('overview.saved')}</h2>
+        <MoneyAmount amount={{ minor: report.financial_minor, currency: CURRENCY }} size="lg" whole />
+        {#if report.set_aside.length > 0}<span class="quiet small"
+            >{t('overview.setAsideCount', { count: report.set_aside.length })}</span
+          >{/if}
+      </div>
+      {#if netWorth}
+        <a class="kpi worth" href="/investments" data-testid="net-worth">
+          <h2>{t('overview.netWorth')}</h2>
+          <MoneyAmount amount={netWorth.total_czk} size="lg" whole />
+          <span class="quiet small"
+            >{t('overview.netWorthSplit', {
+              cash: formatWhole(netWorth.cash_czk.minor, 'CZK'),
+              investments: formatWhole(netWorth.investments_czk.minor, 'CZK'),
+            })}</span
+          >
+        </a>
+      {/if}
     </section>
 
-    {#if segments.length > 0}
+    <div class="columns">
       <section class="panel ribbon">
         <h2>{t('overview.whereMoneyWent')}</h2>
-        <CategoryBars
-          bars={segments}
-          currency={CURRENCY}
-          label={t('overview.whereMoneyWent')}
-          onselect={(b) => b.href && goto(b.href)}
-        />
+        {#if segments.length > 0}
+          <CategoryBars
+            bars={segments}
+            currency={CURRENCY}
+            label={t('overview.whereMoneyWent')}
+            onselect={(b) => b.href && goto(b.href)}
+          />
+        {:else}
+          <p class="quiet">{t('overview.noSpending')}</p>
+        {/if}
       </section>
-    {/if}
 
-    {#if flowLinks.length > 0}
-      <section class="panel" data-testid="flows-panel">
-        <h2>{t('overview.flows')}</h2>
-        <p class="quiet lead">{t('overview.flowsLead')}</p>
-        <Sankey
-          nodes={flowNodes}
-          links={flowLinks}
-          currency={CURRENCY}
-          label={t('overview.flows')}
-          tableLabel={t('overview.asTable')}
-        />
-      </section>
-    {/if}
-
-    {#if report.set_aside.length > 0}
-      <section class="panel" data-testid="set-aside-panel">
-        <div class="panel-head">
-          <h2>{t('overview.setAside')}</h2>
-          <a href="/ucty">{t('nav.accounts')}</a>
-        </div>
-        <p class="quiet lead">{t('overview.setAsideLead')}</p>
-        <ul class="set-aside">
-          {#each report.set_aside as flow (flow.account_id)}
-            <li>
-              <a href="/transakce?ucet={flow.account_id}"
-                >{taxonomy.accountsById.get(flow.account_id)?.name ?? ''}</a
-              >
-              <MoneyAmount amount={{ minor: flow.amount_minor, currency: CURRENCY }} whole signed />
-            </li>
-          {/each}
-        </ul>
-      </section>
-    {/if}
-
-    <div class="columns">
       <section class="panel">
         <div class="panel-head">
           <h2>{t('overview.burning')}</h2>
-          <a href="/rozpocet/{month}">{t('nav.budget')}</a>
+          <a href="/budget/{month}">{t('nav.budget')}</a>
         </div>
         {#if !hasBudget}
           <p class="quiet">{t('overview.noBudget')}</p>
@@ -375,50 +382,154 @@
           {#if allCalm}<p class="quiet calm">{t('overview.allCalm')}</p>{/if}
         {/if}
       </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>{t('overview.recent')}</h2>
-          <a href="/transakce">{t('overview.allTransactions')}</a>
-        </div>
-        <div class="recent">
-          {#each recent as tx (tx.id)}
-            <TransactionRow {tx} showAccount={false} oncategorize={onCategorize} onconfirm={onConfirm} />
-          {/each}
-        </div>
-      </section>
     </div>
 
-    <section class="panel" data-testid="trend-panel">
-      <h2>{t('overview.trend')}</h2>
-      <ColumnChart
-        series={trendSeries}
-        groups={trendGroups}
-        currency={CURRENCY}
-        label={t('overview.trend')}
-        onselect={(m) => goto(`/prehled?mesic=${m}`)}
-      />
+    <section class="panel charts" data-testid="charts-panel">
+      <div class="tabs" role="tablist" aria-label={t('overview.charts')}>
+        {#each charts as c (c.key)}
+          <button
+            type="button"
+            role="tab"
+            aria-selected={chart.key === c.key}
+            onclick={() => showChart(c.param)}>{t(c.label)}</button
+          >
+        {/each}
+      </div>
+
+      {#if chart.key === 'flows'}
+        <div data-testid="flows-panel">
+          {#if flowLinks.length > 0}
+            <p class="quiet lead">{t('overview.flowsLead')}</p>
+            <Sankey
+              nodes={flowNodes}
+              links={flowLinks}
+              currency={CURRENCY}
+              label={t('overview.flows')}
+              tableLabel={t('overview.asTable')}
+            />
+          {:else}
+            <p class="quiet">{t('overview.noSpending')}</p>
+          {/if}
+          {#if report.set_aside.length > 0}
+            <div class="set-aside-block" data-testid="set-aside-panel">
+              <h3>{t('overview.setAside')}</h3>
+              <p class="quiet lead">{t('overview.setAsideLead')}</p>
+              <ul class="set-aside">
+                {#each report.set_aside as flow (flow.account_id)}
+                  <li>
+                    <a href="/transactions?account={flow.account_id}"
+                      >{taxonomy.accountsById.get(flow.account_id)?.name ?? ''}</a
+                    >
+                    <MoneyAmount amount={{ minor: flow.amount_minor, currency: CURRENCY }} whole signed />
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          {/if}
+        </div>
+      {:else if chart.key === 'trend'}
+        <div data-testid="trend-panel">
+          <ColumnChart
+            series={trendSeries}
+            groups={trendGroups}
+            currency={CURRENCY}
+            label={t('overview.trend')}
+            onselect={(m) => goto(`/overview?month=${m}&chart=trend`)}
+          />
+        </div>
+      {:else}
+        <div data-testid="categories-panel">
+          <ColumnChart
+            series={stackSeries}
+            groups={stackGroups}
+            currency={CURRENCY}
+            label={t('overview.categoriesTrend')}
+            mode="stacked"
+            onselect={selectCategoryMonth}
+          />
+        </div>
+      {/if}
     </section>
 
-    {#if stackGroups.some((g) => Object.keys(g.values).length > 0)}
-      <details class="panel" data-testid="categories-panel">
-        <summary><h2>{t('overview.categoriesTrend')}</h2></summary>
-        <ColumnChart
-          series={stackSeries}
-          groups={stackGroups}
-          currency={CURRENCY}
-          label={t('overview.categoriesTrend')}
-          mode="stacked"
-          onselect={selectCategoryMonth}
-        />
-      </details>
-    {/if}
+    <section class="panel">
+      <div class="panel-head">
+        <h2>{t('overview.recent')}</h2>
+        <a href="/transactions">{t('overview.allTransactions')}</a>
+      </div>
+      <div class="recent">
+        {#each recent as tx (tx.id)}
+          <TransactionRow {tx} showAccount={false} oncategorize={onCategorize} onconfirm={onConfirm} />
+        {/each}
+      </div>
+    </section>
   {/if}
 {:else}
   <p class="quiet">{t('common.loading')}</p>
 {/if}
 
 <style>
+  .kpis {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.6fr) repeat(4, minmax(140px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--surface);
+    border-radius: var(--radius-panel);
+    padding: 18px 20px;
+    color: inherit;
+    text-decoration: none;
+  }
+  .kpi h2 {
+    margin: 0 0 4px;
+    font-size: var(--text-micro);
+    font-weight: 650;
+    color: var(--ink-faint);
+  }
+  a.kpi:hover {
+    box-shadow: var(--glow);
+  }
+  .small {
+    font-size: var(--text-micro);
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin: -6px 0 16px;
+    box-shadow: inset 0 -1px 0 var(--line);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .tabs button {
+    border: 0;
+    background: none;
+    padding: 8px 12px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tabs button[aria-selected='true'] {
+    color: var(--ink);
+    border-bottom-color: var(--brand);
+  }
+  .set-aside-block {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .set-aside-block h3 {
+    margin: 0 0 8px;
+    font-size: var(--text-body);
+    color: var(--ink-soft);
+  }
   .lead {
     margin: -6px 0 10px;
     font-size: var(--text-micro);
@@ -450,15 +561,6 @@
   .head {
     margin-bottom: 28px;
   }
-  .hero {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 28px;
-    margin-bottom: 30px;
-  }
-  .left-to-spend h2,
   .panel h2 {
     margin: 0 0 10px;
     font-size: var(--text-body);
@@ -470,19 +572,6 @@
     color: var(--ink-soft);
     max-width: 48ch;
   }
-  .totals {
-    display: flex;
-    gap: clamp(18px, 4vw, 44px);
-    margin: 0;
-  }
-  .totals dt {
-    font-size: var(--text-micro);
-    color: var(--ink-faint);
-    margin-bottom: 4px;
-  }
-  .totals dd {
-    margin: 0;
-  }
   .panel {
     background: var(--surface);
     border-radius: var(--radius-panel);
@@ -491,30 +580,6 @@
   }
   .ribbon {
     padding-bottom: 18px;
-  }
-  details.panel summary {
-    cursor: pointer;
-    list-style: none;
-  }
-  details.panel summary::-webkit-details-marker {
-    display: none;
-  }
-  details.panel summary h2 {
-    display: inline-block;
-    margin: 0;
-  }
-  details.panel summary h2::before {
-    content: '▸';
-    display: inline-block;
-    margin-right: 8px;
-    color: var(--ink-faint);
-    transition: transform 160ms ease;
-  }
-  details.panel[open] summary h2::before {
-    transform: rotate(90deg);
-  }
-  details.panel[open] summary {
-    margin-bottom: 14px;
   }
   .columns {
     display: grid;
@@ -552,6 +617,12 @@
   @media (max-width: 1100px) {
     .columns {
       grid-template-columns: 1fr;
+    }
+    .kpis {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .kpi.main {
+      grid-column: 1 / -1;
     }
   }
 </style>

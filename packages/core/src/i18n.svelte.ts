@@ -1,23 +1,27 @@
 import { cs, type MessageKey } from './i18n/cs';
 
 export type { MessageKey };
+import { en } from './i18n/en';
 import { sk } from './i18n/sk';
 import { errorMessages } from './i18n/errors';
 
-export type Locale = 'cs' | 'sk';
+export type Locale = 'cs' | 'sk' | 'en';
+
+export const locales: Locale[] = ['cs', 'sk', 'en'];
 
 const LOCALE_KEY = 'coinbook.locale';
 
-const dictionaries: Record<Locale, Record<MessageKey, string>> = { cs, sk };
+const dictionaries: Record<Locale, Record<MessageKey, string>> = { cs, sk, en };
 
 function initialLocale(): Locale {
   try {
     const stored = localStorage.getItem(LOCALE_KEY);
-    if (stored === 'cs' || stored === 'sk') return stored;
+    if (locales.includes(stored as Locale)) return stored as Locale;
   } catch {
-    // Storage blocked: fall through to the default.
+    // Storage blocked: fall through to the browser's languages.
   }
-  return 'cs';
+  const spoken = (navigator.languages ?? []).map((l) => l.slice(0, 2)) as Locale[];
+  return spoken.find((l) => locales.includes(l)) ?? 'cs';
 }
 
 class I18n {
@@ -34,7 +38,7 @@ class I18n {
   }
 
   get intlLocale(): string {
-    return this.locale === 'sk' ? 'sk-SK' : 'cs-CZ';
+    return { cs: 'cs-CZ', sk: 'sk-SK', en: 'en-GB' }[this.locale];
   }
 }
 
@@ -45,7 +49,7 @@ export function t(key: MessageKey, params: Record<string, string | number> = {})
   return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? `{${name}}`));
 }
 
-/** Czech and Slovak share the 1 / 2–4 / 5+ plural rule. */
+/** Czech and Slovak share the 1 / 2–4 / 5+ plural rule; English has no "few", so its few and many read the same. */
 export function pluralKey(n: number): 'one' | 'few' | 'many' {
   if (n === 1) return 'one';
   if (n >= 2 && n <= 4) return 'few';
@@ -60,6 +64,6 @@ export function apiErrorMessage(code: string): string {
   return errorMessages[i18n.locale][code] ?? errorMessages[i18n.locale].internal_error;
 }
 
-export function categoryName(c: { name_cs: string; name_sk: string }): string {
-  return i18n.locale === 'sk' ? c.name_sk : c.name_cs;
+export function categoryName(c: { name_cs: string; name_sk: string; name_en: string }): string {
+  return { cs: c.name_cs, sk: c.name_sk, en: c.name_en }[i18n.locale];
 }

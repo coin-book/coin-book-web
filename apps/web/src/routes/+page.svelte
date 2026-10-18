@@ -1,0 +1,243 @@
+<script lang="ts">
+  import { auth } from '@coin-book/core/auth';
+  import { t, type MessageKey } from '@coin-book/core/i18n';
+  import Button from '@coin-book/ui/Button.svelte';
+  import Icon from '@coin-book/ui/Icon.svelte';
+
+  // Pictures come from `make landing-shots`; retake them whenever the screens change.
+  const features: { key: string; image: string; icon: string }[] = [
+    { key: 'overview', image: '/landing/overview.jpg', icon: 'squares-four' },
+    { key: 'triage', image: '/landing/triage.jpg', icon: 'tray' },
+    { key: 'budget', image: '/landing/budget.jpg', icon: 'target' },
+    { key: 'investments', image: '/landing/investments.jpg', icon: 'chart-line-up' },
+    { key: 'instrument', image: '/landing/instrument.jpg', icon: 'chart-line-up' },
+    { key: 'imports', image: '/landing/imports.jpg', icon: 'upload-simple' },
+  ];
+  const promises = ['selfHosted', 'private', 'agents', 'backups'] as const;
+  const promiseIcons = {
+    selfHosted: 'house',
+    private: 'check-circle',
+    agents: 'lightning',
+    backups: 'download-simple',
+  };
+
+  const text = (key: string) => t(key as MessageKey);
+</script>
+
+<svelte:head>
+  <title>coin-book · {t('landing.tagline')}</title>
+  <meta name="description" content={t('landing.lead')} />
+</svelte:head>
+
+<main class="landing">
+  <header class="top">
+    <span class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>coin-book</span>
+    {#if auth.signedIn}
+      <Button href="/overview" icon="squares-four">{t('landing.open')}</Button>
+    {:else}
+      <Button variant="ghost" href="/login">{t('auth.login')}</Button>
+    {/if}
+  </header>
+
+  <section class="hero">
+    <h1 class="display">{t('landing.tagline')}</h1>
+    <p class="lead">{t('landing.lead')}</p>
+    <div class="cta">
+      {#if auth.signedIn}
+        <Button href="/overview" icon="squares-four">{t('landing.open')}</Button>
+      {:else}
+        <Button href="/login?register=1">{t('landing.register')}</Button>
+        <Button variant="quiet" href="/login">{t('auth.login')}</Button>
+      {/if}
+    </div>
+    <figure class="hero-shot">
+      <img src="/landing/overview.jpg" alt={text('landing.overview.title')} width="1280" height="820" />
+    </figure>
+  </section>
+
+  {#each features.slice(1) as f, i (f.key)}
+    <section class="feature" class:flip={i % 2 === 1} data-testid="landing-feature">
+      <div class="copy">
+        <span class="badge" aria-hidden="true"><Icon name={f.icon} size={20} weight="duotone" /></span>
+        <h2>{text(`landing.${f.key}.title`)}</h2>
+        <p>{text(`landing.${f.key}.body`)}</p>
+      </div>
+      <figure>
+        <img src={f.image} alt={text(`landing.${f.key}.title`)} width="1280" height="820" loading="lazy" />
+      </figure>
+    </section>
+  {/each}
+
+  <section class="promises">
+    <h2>{t('landing.promisesTitle')}</h2>
+    <ul>
+      {#each promises as p (p)}
+        <li>
+          <Icon name={promiseIcons[p]} size={22} weight="duotone" />
+          <h3>{text(`landing.promise.${p}.title`)}</h3>
+          <p>{text(`landing.promise.${p}.body`)}</p>
+        </li>
+      {/each}
+    </ul>
+  </section>
+
+  <footer class="foot">
+    <span>coin-book</span>
+    <a href="https://github.com/coin-book">GitHub</a>
+  </footer>
+</main>
+
+<style>
+  .landing {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 20px clamp(16px, 4vw, 40px) 40px;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: clamp(30px, 6vw, 70px);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: var(--text-lead);
+    font-weight: 800;
+  }
+  .mark {
+    display: grid;
+    gap: 3px;
+  }
+  .mark i {
+    display: block;
+    height: 5px;
+    border-radius: 3px;
+  }
+  .mark i:nth-child(1) {
+    width: 22px;
+    background: var(--cat-malina);
+  }
+  .mark i:nth-child(2) {
+    width: 16px;
+    background: var(--cat-slunecnice);
+  }
+  .mark i:nth-child(3) {
+    width: 19px;
+    background: var(--cat-smaragd);
+  }
+  .hero {
+    text-align: center;
+    margin-bottom: clamp(50px, 8vw, 100px);
+  }
+  .hero h1 {
+    margin: 0 auto 16px;
+    max-width: 18ch;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    line-height: 1.05;
+  }
+  .lead {
+    margin: 0 auto 26px;
+    max-width: 60ch;
+    font-size: var(--text-lead);
+    color: var(--ink-soft);
+  }
+  .cta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 40px;
+  }
+  figure {
+    margin: 0;
+  }
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 18px;
+    box-shadow: var(--shadow-float);
+    background: var(--surface);
+  }
+  .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+    gap: clamp(24px, 5vw, 60px);
+    align-items: center;
+    margin-bottom: clamp(50px, 8vw, 90px);
+  }
+  .feature.flip {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+  }
+  .feature.flip .copy {
+    order: 2;
+  }
+  .badge {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    color: var(--brand);
+    background: color-mix(in oklch, var(--brand) 14%, transparent);
+    margin-bottom: 14px;
+  }
+  .feature h2,
+  .promises h2 {
+    margin: 0 0 10px;
+    font-size: var(--text-title);
+  }
+  .feature p {
+    margin: 0;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .promises {
+    background: var(--surface);
+    border-radius: var(--radius-panel);
+    padding: clamp(22px, 4vw, 40px);
+    margin-bottom: 30px;
+  }
+  .promises ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 0;
+  }
+  .promises li {
+    color: var(--brand);
+  }
+  .promises h3 {
+    margin: 8px 0 4px;
+    font-size: var(--text-body);
+    color: var(--ink);
+  }
+  .promises p {
+    margin: 0;
+    font-size: var(--text-micro);
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--text-micro);
+    color: var(--ink-faint);
+  }
+  .foot a {
+    color: inherit;
+  }
+  @media (max-width: 820px) {
+    .feature,
+    .feature.flip {
+      grid-template-columns: 1fr;
+    }
+    .feature.flip .copy {
+      order: 0;
+    }
+  }
+</style>

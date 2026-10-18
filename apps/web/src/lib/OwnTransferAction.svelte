@@ -80,7 +80,7 @@
 {:else}
   <div class="form" data-testid="own-transfer-form">
     {#if targets.length === 0}
-      <p class="hint">{t('ownTransfer.noAccounts')} <a href="/ucty">{t('nav.accounts')}</a></p>
+      <p class="hint">{t('ownTransfer.noAccounts')} <a href="/accounts">{t('nav.accounts')}</a></p>
     {:else}
       <label class="field">
         <span>{tx.amount.minor < 0 ? t('ownTransfer.to') : t('ownTransfer.from')}</span>

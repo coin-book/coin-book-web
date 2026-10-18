@@ -5,7 +5,8 @@
   import { apiErrorMessage, t } from '@coin-book/core/i18n';
   import Button from '@coin-book/ui/Button.svelte';
 
-  let registering = $state(false);
+  // The landing page's "create an account" opens the form ready to register.
+  let registering = $state(page.url.searchParams.get('register') === '1');
   let email = $state('');
   let password = $state('');
   let busy = $state(false);

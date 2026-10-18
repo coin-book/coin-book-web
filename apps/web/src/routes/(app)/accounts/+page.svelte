@@ -286,7 +286,7 @@
 
 {#if taxonomy.accounts.length === 0 && !creating}
   <EmptyState icon="bank" title={t('accounts.empty')}>
-    <Button href="/importy" icon="upload-simple">{t('overview.toImport')}</Button>
+    <Button href="/imports" icon="upload-simple">{t('overview.toImport')}</Button>
   </EmptyState>
 {:else if taxonomy.accounts.length > 0}
   <section class="totals">

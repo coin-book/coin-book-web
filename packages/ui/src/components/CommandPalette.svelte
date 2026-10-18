@@ -71,7 +71,7 @@
                     value="search-transactions"
                     keywords={[query]}
                     class="palette-item"
-                    onSelect={() => go(`/transakce?q=${encodeURIComponent(query.trim())}`)}
+                    onSelect={() => go(`/transactions?q=${encodeURIComponent(query.trim())}`)}
                   >
                     <Icon name="list-bullets" />
                     <span>{t('palette.searchTransactions', { query: query.trim() })}</span>

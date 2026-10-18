@@ -1,7 +1,7 @@
 import { api } from '@coin-book/core/api';
 import type { Triage } from '@coin-book/core/types';
 
-/** The "K vyřešení" badge: uncategorised transactions waiting for the user. */
+/** The triage badge: uncategorised transactions waiting for the user. */
 class Queue {
   remaining = $state(0);
 

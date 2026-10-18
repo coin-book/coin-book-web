@@ -4,7 +4,7 @@ import { signIn } from './helpers';
 test.beforeEach(async ({ page }) => signIn(page));
 
 test('the auto-categorisation threshold is saved and can be turned off again', async ({ page }) => {
-  await page.goto('/nastaveni');
+  await page.goto('/settings');
   const select = page.getByLabel('Automatické zařazování při importu');
   await expect(page.getByText(/Teď se učí z \d+ transakcí/)).toBeVisible();
 
@@ -18,7 +18,7 @@ test('the auto-categorisation threshold is saved and can be turned off again', a
 });
 
 test('uncategorised transactions carry a suggestion that one click accepts', async ({ page }) => {
-  await page.goto('/transakce?nezarazene=1');
+  await page.goto('/transactions?uncategorized=1');
   await expect(
     page.locator('[data-tx]').first().or(page.getByText('Žádné transakce neodpovídají filtru.')),
   ).toBeVisible();

@@ -645,6 +645,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/net-worth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What the user owns today: account balances and investments, in CZK
+         * @description Agent tokens need the `reports:read` scope.
+         */
+        get: operations["get-net-worth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/rules": {
         parameters: {
             query?: never;
@@ -1026,6 +1046,7 @@ export interface components {
             code: string;
             id: string;
             name_cs: string;
+            name_en: string;
             name_sk: string;
             /** Format: int64 */
             sort: number;
@@ -1137,6 +1158,7 @@ export interface components {
             /** @enum {string} */
             kind: "income" | "expense" | "financial" | "transfer";
             name_cs: string;
+            name_en: string;
             name_sk: string;
             parent_id?: string;
             /** Format: int64 */
@@ -1549,6 +1571,20 @@ export interface components {
             /** @description The last six months, oldest first. */
             trend: components["schemas"]["MonthTotals"][];
         };
+        NetWorth: {
+            /** @description Balances of the accounts that are not archived, at the latest ČNB rates. */
+            cash_czk: components["schemas"]["Amount"];
+            /** @description Market value of the open positions. */
+            investments_czk: components["schemas"]["Amount"];
+            total_czk: components["schemas"]["Amount"];
+            /** @description Currencies held without a ČNB rate yet; their balances are left out. */
+            unconverted: string[];
+            /**
+             * Format: int64
+             * @description Positions without a price or rate, left out.
+             */
+            unvalued_positions: number;
+        };
         NewAccount: {
             /** @description Bank register id; the import fills it from the parser or account number. */
             bank_id?: string;
@@ -1622,6 +1658,8 @@ export interface components {
             quantity: string;
             /** @description Absent without a usable price. */
             quote?: components["schemas"]["Quote"];
+            /** @description The last year's weekly closes, oldest first, in the quote's currency; empty without prices. */
+            trend: string[];
             value?: components["schemas"]["Amount"];
             /** @description Absent without a price or an exchange rate. */
             value_czk?: components["schemas"]["Amount"];
@@ -4247,6 +4285,53 @@ export interface operations {
             };
         };
     };
+    "get-net-worth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetWorth"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "list-rules": {
         parameters: {
             query?: never;
@@ -5171,6 +5256,8 @@ export interface operations {
             query?: {
                 /** @description Transactions the user skipped in this session. */
                 skip?: string[];
+                /** @description Show this transaction while it is still uncategorised, even if skipped; otherwise the next one. */
+                id?: string;
             };
             header?: never;
             path?: never;

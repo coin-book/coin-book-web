@@ -1,13 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-test('a new user registers and starts with an empty book of their own', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByRole('button', { name: 'Nemáte účet? Založte si ho.' }).click();
+test('a visitor reads the landing page, registers and starts with an empty book', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Vaše peníze přehledně, na vašem serveru');
+  await expect(page.getByTestId('landing-feature')).toHaveCount(5);
+  await page.getByRole('link', { name: 'Založit účet' }).click();
+  await expect(page.getByRole('heading', { name: 'Založte si účet' })).toBeVisible();
   await page.getByLabel('E-mail').fill(`e2e-${Date.now()}@coinbook.local`);
   await page.getByLabel('Heslo').fill('heslo-heslo-1');
   await page.getByRole('button', { name: 'Založit a přihlásit' }).click();
 
-  await expect(page).toHaveURL(/\/prehled/);
+  await expect(page).toHaveURL(/\/overview/);
   await expect(page.getByRole('heading', { name: 'Zatím tu nic není' })).toBeVisible();
   await page.getByRole('link', { name: /Účty/ }).click();
   await expect(page.getByText('Účty vzniknou samy při prvním importu.')).toBeVisible();

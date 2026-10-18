@@ -69,6 +69,12 @@ export const cs = {
   'overview.emptyTitle': 'Zatím tu nic není',
   'overview.emptyLead': 'Nahrajte výpis z mBank nebo Revolutu a přehled se naplní.',
   'overview.toImport': 'Nahrát výpis',
+  'overview.vsPrevious': '{change} proti minulému měsíci',
+  'overview.setAsideCount': 'na vlastní účty: {count}',
+  'overview.netWorth': 'Čisté jmění dnes',
+  'overview.netWorthSplit': 'Účty {cash} · Investice {investments}',
+  'overview.charts': 'Grafy',
+  'overview.noSpending': 'Tento měsíc zatím bez výdajů.',
   'overview.uncategorized': 'Nezařazeno',
 
   'tx.searchPlaceholder': 'Protistrana, popis nebo částka',
@@ -134,6 +140,10 @@ export const cs = {
   'learn.thresholdHint':
     'Automaticky zařazené transakce se objeví v K vyřešení ke kontrole. Pravidla a ruční volby mají vždy přednost.',
   'learn.saved': 'Nastavení uloženo',
+  'triage.queue': 'Fronta',
+  'triage.progress': '{done} z {total} hotovo',
+  'triage.more': 'a dalších {count}',
+  'triage.groupRule': 'Pravidlo zařadí i další {count} od {name}.',
   'triage.remaining': 'Zbývá roztřídit {count}',
   'triage.suggestion': 'Návrh',
   'triage.skip': 'Přeskočit',
@@ -449,11 +459,59 @@ export const cs = {
   'investments.positionsCount.one': '{count} titul',
   'investments.positionsCount.few': '{count} tituly',
   'investments.positionsCount.many': '{count} titulů',
+  'investments.dividendsYear': 'Dividendy {year}',
+  'investments.realizedYear': 'Realizováno {year}',
+  'investments.allocation': 'Rozložení podle účtů',
+  'investments.tab.positions': 'Pozice',
+  'investments.tab.realized': 'Realizované zisky',
+  'investments.tab.dividends': 'Dividendy',
+  'investments.tab.timeTest': 'Test 3 let',
+  'investments.trendLabel': '{ticker} za poslední rok',
+  'investments.exemptPartOf': '{done}/{total} ks splněno',
+  'investments.nothingSold': 'Zatím nic prodáno.',
+  'investments.noDividends': 'Zatím žádné dividendy.',
+  'investments.dividendsGross': 'Hrubé dividendy',
+  'investments.timeTestLead':
+    'Otevřené loty podle toho, kdy splní test 3 let. Zisk z lotu drženého déle je od daně osvobozený.',
   'investments.soldOut': 'Vše prodáno.',
 
   'settings.about': 'O aplikaci',
   'settings.versionWeb': 'Webová aplikace',
   'settings.versionApi': 'Server',
+
+  'landing.tagline': 'Vaše peníze přehledně, na vašem serveru',
+  'landing.lead':
+    'coin-book načte výpisy z mBank a Revolutu, roztřídí transakce, pohlídá rozpočet a ukáže investice včetně testu 3 let. Běží u vás doma a data nikam neodcházejí.',
+  'landing.open': 'Otevřít aplikaci',
+  'landing.register': 'Založit účet',
+  'landing.overview.title': 'Celý měsíc na jedné obrazovce',
+  'landing.overview.body': 'Kolik zbývá utratit, kam šly peníze, tok mezi účty a čisté jmění.',
+  'landing.triage.title': 'Roztřídění za pár minut',
+  'landing.triage.body':
+    'Nezařazené transakce ve frontě podle protistrany. Aplikace se učí z vašich voleb, navrhne kategorii a jedno pravidlo vyřeší všechny platby u stejného obchodníka.',
+  'landing.budget.title': 'Rozpočet, který hlídá tempo',
+  'landing.budget.body':
+    'Plán po kategoriích s ukazatelem, jestli utrácíte rychleji, než by se do konce měsíce vešlo. Převzetí z minulého měsíce jedním kliknutím.',
+  'landing.investments.title': 'Akcie a ETF na jednom místě',
+  'landing.investments.body':
+    'Pozice z Revolutu podle účtů, hodnota podle aktuálních cen a kurzů ČNB, realizované zisky po letech a dividendy.',
+  'landing.instrument.title': 'Graf, obchody a test 3 let',
+  'landing.instrument.body':
+    'U každého titulu svíčkový graf s vašimi nákupy a prodeji, základní údaje z burzy a loty s datem, kdy splní test 3 let pro osvobození od daně.',
+  'landing.imports.title': 'Import, kterému můžete věřit',
+  'landing.imports.body':
+    'mBank, Revolut nebo vlastní CSV. Náhled před zápisem, kontrolní součty z výpisu, žádné duplicity při opakovaném nahrání a vrácení celého importu.',
+  'landing.promisesTitle': 'Vaše data zůstávají vaše',
+  'landing.promise.selfHosted.title': 'Běží u vás',
+  'landing.promise.selfHosted.body':
+    'Na NAS (TrueNAS) nebo v Dockeru na počítači. Žádná cizí služba výpisy nečte.',
+  'landing.promise.private.title': 'Každý vidí jen svoje',
+  'landing.promise.private.body': 'Více uživatelů na jedné instalaci, oddělení dat hlídá databáze sama.',
+  'landing.promise.agents.title': 'AI asistent jen na čtení',
+  'landing.promise.agents.body':
+    'Token s vybranými oprávněními pro Claude a jiné agenty přes MCP. Každý přístup se zapíše.',
+  'landing.promise.backups.title': 'Záloha jedním příkazem',
+  'landing.promise.backups.body': 'Databáze i původní výpisy v jednom souboru, volitelně zašifrované.',
 
   'common.close': 'Zavřít',
   'common.loading': 'Načítám…',

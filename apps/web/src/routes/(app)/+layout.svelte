@@ -17,28 +17,28 @@
   let helpOpen = $state(false);
 
   const nav = $derived([
-    { href: '/prehled', label: t('nav.overview'), icon: 'squares-four' },
-    { href: '/transakce', label: t('nav.transactions'), icon: 'list-bullets' },
-    { href: '/k-vyreseni', label: t('nav.triage'), icon: 'tray', badge: queue.remaining },
-    { href: `/rozpocet/${currentMonth()}`, match: '/rozpocet', label: t('nav.budget'), icon: 'target' },
-    { href: '/investice', label: t('nav.investments'), icon: 'chart-line-up' },
-    { href: '/importy', label: t('nav.imports'), icon: 'upload-simple' },
+    { href: '/overview', label: t('nav.overview'), icon: 'squares-four' },
+    { href: '/transactions', label: t('nav.transactions'), icon: 'list-bullets' },
+    { href: '/triage', label: t('nav.triage'), icon: 'tray', badge: queue.remaining },
+    { href: `/budget/${currentMonth()}`, match: '/budget', label: t('nav.budget'), icon: 'target' },
+    { href: '/investments', label: t('nav.investments'), icon: 'chart-line-up' },
+    { href: '/imports', label: t('nav.imports'), icon: 'upload-simple' },
   ]);
   const secondary = $derived([
-    { href: '/ucty', label: t('nav.accounts'), icon: 'bank' },
-    { href: '/kategorie', label: t('nav.categories'), icon: 'tag' },
-    { href: '/nastaveni', label: t('nav.settings'), icon: 'gear' },
+    { href: '/accounts', label: t('nav.accounts'), icon: 'bank' },
+    { href: '/categories', label: t('nav.categories'), icon: 'tag' },
+    { href: '/settings', label: t('nav.settings'), icon: 'gear' },
   ]);
   const destinations = $derived(
     [...nav, ...secondary].map((n) => ({ id: n.href, label: n.label, icon: n.icon, href: n.href })),
   );
   const actions = $derived([
-    { id: 'upload', label: t('palette.upload'), icon: 'upload-simple', href: '/importy' },
+    { id: 'upload', label: t('palette.upload'), icon: 'upload-simple', href: '/imports' },
     {
       id: 'next-budget',
       label: t('palette.nextBudget'),
       icon: 'target',
-      href: `/rozpocet/${shiftMonth(currentMonth(), 1)}`,
+      href: `/budget/${shiftMonth(currentMonth(), 1)}`,
     },
   ]);
 
@@ -67,7 +67,7 @@
       helpOpen = !helpOpen;
     } else if (e.key === '/') {
       e.preventDefault();
-      goto('/transakce?focus=search');
+      goto('/transactions?focus=search');
     }
   }
 </script>
@@ -76,7 +76,7 @@
 
 <div class="shell">
   <nav class="rail" aria-label="coin-book">
-    <a class="brand" href="/prehled" aria-label="coin-book">
+    <a class="brand" href="/overview" aria-label="coin-book">
       <span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="display brand-name">coin-book</span>
     </a>

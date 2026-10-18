@@ -5,13 +5,13 @@ test.beforeEach(async ({ page }) => signIn(page));
 
 test('a payment can be marked as a transfer to an own account and back', async ({ page }) => {
   const account = `Spořák ${Date.now()}`;
-  await page.goto('/ucty');
+  await page.goto('/accounts');
   await page.getByRole('button', { name: 'Nový účet' }).click();
   await page.getByLabel('Název').fill(account);
   await page.getByRole('button', { name: 'Založit účet' }).click();
   await expect(page.getByText(account)).toBeVisible();
 
-  await page.goto('/transakce?nezarazene=1');
+  await page.goto('/transactions?uncategorized=1');
   const txId = await page.locator('[data-tx]').first().getAttribute('data-tx');
   const row = page.getByTestId('transaction-row').filter({ has: page.locator(`[data-tx="${txId}"]`) });
   await row.locator('[data-tx]').click();

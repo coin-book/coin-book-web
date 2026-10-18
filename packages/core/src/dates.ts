@@ -44,16 +44,36 @@ const slovakMonths = [
   'December',
 ];
 
-export function monthName(month: string, locale: 'cs' | 'sk'): string {
+const englishMonths = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+const months = { cs: czechMonths, sk: slovakMonths, en: englishMonths };
+
+export function monthName(month: string, locale: 'cs' | 'sk' | 'en'): string {
   const [y, m] = month.split('-').map(Number);
-  return `${(locale === 'sk' ? slovakMonths : czechMonths)[m - 1]} ${y}`;
+  return `${months[locale][m - 1]} ${y}`;
 }
 
 const czechShort = ['led', 'úno', 'bře', 'dub', 'kvě', 'čvn', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro'];
 const slovakShort = ['jan', 'feb', 'mar', 'apr', 'máj', 'jún', 'júl', 'aug', 'sep', 'okt', 'nov', 'dec'];
+const englishShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function shortMonth(month: string, locale: 'cs' | 'sk'): string {
-  return (locale === 'sk' ? slovakShort : czechShort)[Number(month.slice(5, 7)) - 1];
+const shortMonths = { cs: czechShort, sk: slovakShort, en: englishShort };
+
+export function shortMonth(month: string, locale: 'cs' | 'sk' | 'en'): string {
+  return shortMonths[locale][Number(month.slice(5, 7)) - 1];
 }
 
 export function dayLabel(iso: string, locale: string): string {

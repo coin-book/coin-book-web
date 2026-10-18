@@ -11,7 +11,8 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 8_000 },
   reporter: [['list']],
-  use: { baseURL, trace: 'retain-on-failure', screenshot: 'only-on-failure' },
+  // The app follows the browser's language; the specs read Czech copy.
+  use: { baseURL, locale: 'cs-CZ', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   projects: [
     { name: 'desktop', testIgnore: /mobile\.spec\.ts/, use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 1000 } } },
     { name: 'mobile', testMatch: /mobile\.spec\.ts/, use: { ...devices['Pixel 7'] } },

@@ -6,19 +6,29 @@
     amount: Amount;
     /** Show "+" on positive amounts and colour them as income. */
     signed?: boolean;
+    /** A gain or a loss: signed, a gain in the income colour, a loss in the loss colour. */
+    gain?: boolean;
     size?: 'sm' | 'md' | 'lg' | 'hero';
     /** Drop the haléře, for budgets and headline numbers. */
     whole?: boolean;
     class?: string;
   };
 
-  let { amount, signed = false, size = 'md', whole = false, class: className = '' }: Props = $props();
+  let {
+    amount,
+    signed = false,
+    gain = false,
+    size = 'md',
+    whole = false,
+    class: className = '',
+  }: Props = $props();
 
-  const parts = $derived(moneyParts(amount, { signed }));
-  const isIncome = $derived(signed && amount.minor > 0);
+  const parts = $derived(moneyParts(amount, { signed: signed || gain }));
+  const isIncome = $derived((signed || gain) && amount.minor > 0);
+  const isLoss = $derived(gain && amount.minor < 0);
 </script>
 
-<span class="money num size-{size} {className}" class:income={isIncome}>
+<span class="money num size-{size} {className}" class:income={isIncome} class:loss={isLoss}>
   {#if parts.sign}<span class="sign" class:minus={parts.sign !== '+'}>{parts.sign}</span>{/if}<span
     class="whole">{parts.whole}</span
   >{#if parts.fraction && !whole}<span class="fraction">,{parts.fraction}</span>{/if}<span class="currency"
@@ -34,6 +44,9 @@
   }
   .income {
     color: var(--income);
+  }
+  .loss {
+    color: var(--loss);
   }
   .income.size-lg,
   .income.size-hero {

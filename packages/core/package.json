@@ -18,7 +18,8 @@
     "./toast": "./src/toast.svelte.ts",
     "./types": "./src/types.ts",
     "./colors": "./src/colors.ts",
-    "./learning": "./src/learning.ts"
+    "./learning": "./src/learning.ts",
+    "./legacy-url": "./src/legacy-url.ts"
   },
   "devDependencies": {
     "svelte": "^5.57.1",

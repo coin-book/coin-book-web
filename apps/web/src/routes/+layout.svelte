@@ -10,7 +10,8 @@
 
   let { children } = $props();
 
-  const publicPaths = ['/login'];
+  // The landing page is for everyone; only the sign-in page sends a signed-in user on.
+  const publicPaths = ['/', '/login'];
 
   onMount(async () => {
     theme.init();
@@ -27,7 +28,7 @@
     if (!auth.ready) return;
     const isPublic = publicPaths.includes(page.url.pathname);
     if (!auth.signedIn && !isPublic) goto('/login');
-    if (auth.signedIn && isPublic) goto('/prehled');
+    if (auth.signedIn && page.url.pathname === '/login') goto('/overview');
   });
 </script>
 

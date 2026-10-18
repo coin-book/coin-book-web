@@ -21,11 +21,11 @@
   const params = $derived(page.url.searchParams);
   const filter = $derived({
     q: params.get('q') ?? '',
-    account_id: params.get('ucet') ?? '',
-    category_id: params.get('kategorie') ?? '',
-    from: params.get('od') ?? '',
-    to: params.get('do') ?? '',
-    uncategorized: params.get('nezarazene') === '1',
+    account_id: params.get('account') ?? '',
+    category_id: params.get('category') ?? '',
+    from: params.get('from') ?? '',
+    to: params.get('to') ?? '',
+    uncategorized: params.get('uncategorized') === '1',
     auto: params.get('auto') === '1',
   });
 
@@ -158,7 +158,7 @@
   </label>
   <select
     value={filter.account_id}
-    onchange={(e) => setParam('ucet', e.currentTarget.value)}
+    onchange={(e) => setParam('account', e.currentTarget.value)}
     aria-label={t('nav.accounts')}
   >
     <option value="">{t('tx.allAccounts')}</option>
@@ -166,7 +166,7 @@
   </select>
   <select
     value={filter.category_id}
-    onchange={(e) => setParam('kategorie', e.currentTarget.value)}
+    onchange={(e) => setParam('category', e.currentTarget.value)}
     aria-label={t('nav.categories')}
   >
     <option value="">{t('tx.allCategories')}</option>
@@ -181,7 +181,7 @@
     <input
       type="checkbox"
       checked={filter.uncategorized}
-      onchange={(e) => setParam('nezarazene', e.currentTarget.checked ? '1' : '')}
+      onchange={(e) => setParam('uncategorized', e.currentTarget.checked ? '1' : '')}
     />
     {t('tx.onlyUncategorized')}
   </label>

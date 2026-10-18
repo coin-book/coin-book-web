@@ -120,7 +120,7 @@
   <fieldset>
     <legend>{t('settings.language')}</legend>
     <div class="segmented">
-      {#each [['cs', 'Čeština'], ['sk', 'Slovenčina']] as [value, label] (value)}
+      {#each [['cs', 'Čeština'], ['sk', 'Slovenčina'], ['en', 'English']] as [value, label] (value)}
         <button type="button" class:on={i18n.locale === value} onclick={() => i18n.set(value as Locale)}
           >{label}</button
         >

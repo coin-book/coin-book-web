@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => signIn(page));
 test('a category can be created, given a subcategory, renamed and deleted', async ({ page }) => {
   const run = Date.now();
   const name = `Mazlíčci ${run}`;
-  await page.goto('/kategorie');
+  await page.goto('/categories');
 
   await page.getByRole('button', { name: 'Nová kategorie' }).click();
   await page.getByLabel('Název', { exact: true }).fill(name);
@@ -45,7 +45,7 @@ test('a category can be created, given a subcategory, renamed and deleted', asyn
 });
 
 test('a system category keeps its name but takes the user’s colour', async ({ page }) => {
-  await page.goto('/kategorie');
+  await page.goto('/categories');
   await page
     .locator('[data-testid=category-card][data-code=transport]')
     .getByRole('button', { name: /^Upravit/ })

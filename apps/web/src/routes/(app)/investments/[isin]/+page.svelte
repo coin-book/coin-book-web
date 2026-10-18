@@ -167,7 +167,7 @@
 
 <svelte:head><title>{title} · {t('nav.investments')} · coin-book</title></svelte:head>
 
-<a class="back" href="/investice">← {t('investments.back')}</a>
+<a class="back" href="/investments">← {t('investments.back')}</a>
 
 {#if error}
   <p class="error" role="alert">{error}</p>
@@ -203,7 +203,7 @@
         {#if gain}
           <div>
             <dt>{t('investments.gain')}</dt>
-            <dd><MoneyAmount amount={gain} size="lg" whole signed /></dd>
+            <dd><MoneyAmount amount={gain} size="lg" whole gain /></dd>
           </div>
         {/if}
       </dl>
@@ -230,7 +230,10 @@
           {#if m.market_price}<dt>{t('investments.price')}</dt>
             <dd class="num">
               {formatPrice(m.market_price, m.currency)}
-              {#if m.market_change_percent}<span class:up={Number(m.market_change_percent) > 0} class="change"
+              {#if m.market_change_percent}<span
+                  class:up={Number(m.market_change_percent) > 0}
+                  class:down={Number(m.market_change_percent) < 0}
+                  class="change"
                   >{Number(m.market_change_percent) > 0 ? '+' : ''}{formatDecimal(
                     m.market_change_percent,
                     2,
@@ -267,8 +270,11 @@
           <dd class="num">{pieces(detail.summary.sold_quantity)}</dd>
           <dt>{t('investments.fact.realized')}</dt>
           <dd>
-            <MoneyAmount amount={detail.summary.realized_gain_czk} whole signed />
-            <span class="change" class:up={detail.summary.realized_gain_czk.minor > 0}
+            <MoneyAmount amount={detail.summary.realized_gain_czk} whole gain />
+            <span
+              class="change"
+              class:up={detail.summary.realized_gain_czk.minor > 0}
+              class:down={detail.summary.realized_gain_czk.minor < 0}
               >{formatGainPercent(
                 detail.summary.realized_gain_czk.minor,
                 detail.summary.realized_cost_czk.minor,
@@ -412,13 +418,18 @@
                 <td>{shortDate(s.sold_on)}</td>
                 <td class="num">{formatDecimal(s.quantity, 0, 8)}</td>
                 <td class="num">
-                  <MoneyAmount amount={s.gain} signed />
-                  <span class="change" class:up={s.gain.minor > 0}
+                  <MoneyAmount amount={s.gain} gain />
+                  <span class="change" class:up={s.gain.minor > 0} class:down={s.gain.minor < 0}
                     >{formatGainPercent(s.gain.minor, s.cost.minor)}</span
                   >
                   {#if s.gain_czk}<span class="sub"
-                      ><MoneyAmount amount={s.gain_czk} size="sm" whole signed />
-                      {#if s.cost_czk}{formatGainPercent(s.gain_czk.minor, s.cost_czk.minor)}{/if}</span
+                      ><MoneyAmount amount={s.gain_czk} size="sm" whole gain />
+                      {#if s.cost_czk}<span
+                          class="change"
+                          class:up={s.gain_czk.minor > 0}
+                          class:down={s.gain_czk.minor < 0}
+                          >{formatGainPercent(s.gain_czk.minor, s.cost_czk.minor)}</span
+                        >{/if}</span
                     >{/if}
                 </td>
                 <td>
@@ -459,6 +470,9 @@
   }
   .change.up {
     color: var(--income);
+  }
+  .change.down {
+    color: var(--loss);
   }
   .range {
     position: relative;

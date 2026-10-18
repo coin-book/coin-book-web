@@ -19,6 +19,7 @@
   --color-brand-ink: var(--brand-ink);
   --color-income: var(--income);
   --color-over: var(--over);
+  --color-loss: var(--loss);
   --color-warn: var(--warn);
   --color-transfer: var(--transfer);
 
@@ -49,6 +50,8 @@
   --glow-text: none;
   --income: var(--brand);
   --over: #e5372c;
+  /* A loss in money, darker than --over so small text keeps 4.5:1 on white. */
+  --loss: #c42b21;
   --warn: #f5a300;
   --transfer: #8e8e93;
   --shadow-float: 0 18px 50px -12px rgb(29 29 31 / 0.28);
@@ -88,6 +91,7 @@
     --glow-text: none;
     --income: #3ddcaa;
     --over: #ff7a85;
+    --loss: #ff7a85;
     --warn: #ffc75a;
     --transfer: #8e88bf;
     --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.6);
@@ -120,6 +124,7 @@
   --glow-text: none;
   --income: #3ddcaa;
   --over: #ff7a85;
+  --loss: #ff7a85;
   --warn: #ffc75a;
   --transfer: #8e88bf;
   --shadow-float: 0 18px 50px -12px rgb(0 0 0 / 0.6);

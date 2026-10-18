@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install check lint fmt test test-e2e build api-types api-types-check
+.PHONY: help install check lint fmt test test-e2e landing-shots build api-types api-types-check
 
 help: ## Show this help
 	@grep -hE '^[a-z][a-zA-Z0-9_-]*:.*##' $(MAKEFILE_LIST) | \
@@ -22,6 +22,9 @@ test: ## Unit tests (packages/core) including the money vectors shared with the 
 
 test-e2e: ## Playwright against the demo stack (COINBOOK_SEED_DEMO=true make up in coin-book-local)
 	pnpm --filter @coin-book/web test:e2e
+
+landing-shots: ## Retake the landing page's pictures from the demo stack (after any visible change)
+	pnpm --filter @coin-book/web exec playwright test -c playwright.screenshots.config.ts
 
 build: ## Static build into apps/web/build, served by Caddy in coin-book-local
 	pnpm --filter @coin-book/web build
