@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import vectors from './format-vectors.json';
-import { formatMoney, formatWhole, parseMinor } from './money';
+import { formatDecimal, formatMoney, formatPrice, formatWhole, parseMinor } from './money';
 
 describe('formatMoney', () => {
   it.each(vectors)('matches the Go formatter for $minor $currency', (v) => {
@@ -30,5 +30,29 @@ describe('parseMinor', () => {
 
   it.each(['', 'abc', '1,234,5', '1,234'])('rejects %s', (input) => {
     expect(parseMinor(input, 'CZK')).toBeNull();
+  });
+});
+
+describe('formatDecimal', () => {
+  it('groups thousands and drops trailing zeros', () => {
+    expect(formatDecimal('1234.5000')).toBe('1\u00a0234,5');
+    expect(formatDecimal('0.12345678')).toBe('0,12345678');
+    expect(formatDecimal('5')).toBe('5');
+    expect(formatDecimal('-2.5')).toBe('−2,5');
+  });
+
+  it('rounds half away from zero, carrying into the whole part', () => {
+    expect(formatDecimal('1.81818182', 0, 4)).toBe('1,8182');
+    expect(formatDecimal('9.99995', 0, 4)).toBe('10');
+    expect(formatDecimal('999.96', 0, 1)).toBe('1\u00a0000');
+    expect(formatDecimal('-0.00001', 0, 4)).toBe('0');
+    expect(formatDecimal('2.5', 0, 0)).toBe('3');
+  });
+});
+
+describe('formatPrice', () => {
+  it('keeps two decimals and at most four', () => {
+    expect(formatPrice('300', 'USD')).toBe('300,00\u00a0$');
+    expect(formatPrice('12.34567', 'EUR')).toBe('12,3457\u00a0€');
   });
 });

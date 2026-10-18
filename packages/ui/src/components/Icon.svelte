@@ -2,6 +2,7 @@
   import type { Component } from 'svelte';
   import Airplane from 'phosphor-svelte/lib/AirplaneIcon';
   import ArrowDownLeft from 'phosphor-svelte/lib/ArrowDownLeftIcon';
+  import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
   import ArrowsLeftRight from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
   import Baby from 'phosphor-svelte/lib/BabyIcon';
   import Bank from 'phosphor-svelte/lib/BankIcon';
@@ -13,6 +14,7 @@
   import Car from 'phosphor-svelte/lib/CarIcon';
   import CaretLeft from 'phosphor-svelte/lib/CaretLeftIcon';
   import CaretRight from 'phosphor-svelte/lib/CaretRightIcon';
+  import ChartLineUp from 'phosphor-svelte/lib/ChartLineUpIcon';
   import Check from 'phosphor-svelte/lib/CheckIcon';
   import CheckCircle from 'phosphor-svelte/lib/CheckCircleIcon';
   import Coffee from 'phosphor-svelte/lib/CoffeeIcon';
@@ -73,6 +75,7 @@
   const icons: Record<string, Component<any>> = {
     airplane: Airplane,
     'arrow-down-left': ArrowDownLeft,
+    'arrows-clockwise': ArrowsClockwise,
     'arrows-left-right': ArrowsLeftRight,
     baby: Baby,
     bank: Bank,
@@ -85,6 +88,7 @@
     'caret-left': CaretLeft,
     'caret-right': CaretRight,
     check: Check,
+    'chart-line-up': ChartLineUp,
     'check-circle': CheckCircle,
     coffee: Coffee,
     copy: Copy,

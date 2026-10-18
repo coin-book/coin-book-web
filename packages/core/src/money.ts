@@ -64,3 +64,34 @@ export function parseMinor(input: string, currency: string): number | null {
   const minor = Number(whole + fraction.padEnd(exp, '0'));
   return cleaned.startsWith('-') ? -minor : minor;
 }
+
+const PRICE_MIN_DECIMALS = 2;
+const PRICE_MAX_DECIMALS = 4;
+
+/** A decimal string as the API sends prices and quantities: "1234.5" -> "1 234,5", rounded half away from zero. */
+export function formatDecimal(value: string, minDecimals = 0, maxDecimals = 10): string {
+  const negative = value.startsWith('-');
+  let [whole, fraction = ''] = value.replace('-', '').split('.');
+  if (fraction.length > maxDecimals) {
+    const roundUp = fraction[maxDecimals] >= '5';
+    fraction = fraction.slice(0, maxDecimals);
+    if (roundUp) [whole, fraction] = incrementLastDigit(whole, fraction);
+  }
+  const shown = fraction.replace(/0+$/, '').padEnd(minDecimals, '0');
+  const isZero = /^0*$/.test(whole + shown);
+  return `${negative && !isZero ? MINUS : ''}${groupThousands(whole)}${shown ? ',' + shown : ''}`;
+}
+
+function incrementLastDigit(whole: string, fraction: string): [string, string] {
+  const digits = (whole + fraction).split('').map(Number);
+  let i = digits.length - 1;
+  while (i >= 0 && digits[i] === 9) digits[i--] = 0;
+  if (i >= 0) digits[i]++;
+  const joined = (i < 0 ? '1' : '') + digits.join('');
+  return [joined.slice(0, joined.length - fraction.length), joined.slice(joined.length - fraction.length)];
+}
+
+/** A price per share: two decimals, up to four when the quote has them. */
+export function formatPrice(value: string, currency: string): string {
+  return `${formatDecimal(value, PRICE_MIN_DECIMALS, PRICE_MAX_DECIMALS)}${NBSP}${currencyLabel(currency)}`;
+}

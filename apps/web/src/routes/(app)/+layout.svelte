@@ -21,6 +21,7 @@
     { href: '/transakce', label: t('nav.transactions'), icon: 'list-bullets' },
     { href: '/k-vyreseni', label: t('nav.triage'), icon: 'tray', badge: queue.remaining },
     { href: `/rozpocet/${currentMonth()}`, match: '/rozpocet', label: t('nav.budget'), icon: 'target' },
+    { href: '/investice', label: t('nav.investments'), icon: 'chart-line-up' },
     { href: '/importy', label: t('nav.imports'), icon: 'upload-simple' },
   ]);
   const secondary = $derived([

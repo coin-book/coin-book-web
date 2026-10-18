@@ -13,6 +13,7 @@
     'transactions:read',
     'budgets:read',
     'reports:read',
+    'investments:read',
     'categories:read',
     'accounts:read',
   ] as const;

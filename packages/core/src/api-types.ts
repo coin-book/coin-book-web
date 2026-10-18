@@ -422,6 +422,148 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/investments/instruments/{isin}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One instrument: its position, trades and sold lots
+         * @description Agent tokens need the `investments:read` scope.
+         */
+        get: operations["get-instrument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investments/instruments/{isin}/candles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daily prices of an instrument
+         * @description Agent tokens need the `investments:read` scope.
+         */
+        get: operations["list-candles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investments/instruments/{isin}/yahoo-symbol": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the Yahoo Finance symbol prices are fetched under
+         * @description The symbol is the signed-in user's own; other holders keep theirs. Prices are fetched in the background.
+         */
+        put: operations["set-yahoo-symbol"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investments/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Open positions with their lots, value and the three-year time test
+         * @description Agent tokens need the `investments:read` scope.
+         */
+        get: operations["get-portfolio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investments/prices/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fetch prices and exchange rates now, in the background
+         * @description A request within a minute of the last refresh is ignored.
+         */
+        post: operations["refresh-prices"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investments/prices/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Whether prices are being fetched and when they last were
+         * @description Agent tokens need the `investments:read` scope.
+         */
+        get: operations["get-price-status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investments/realized": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sold lots and dividends per year, split into exempt and taxable gains
+         * @description A lot is exempt when held more than three years. Amounts are in CZK as the statements convert them; this is an overview, not a tax return.
+         *
+         *     Agent tokens need the `investments:read` scope.
+         */
+        get: operations["get-realized-gains"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -940,6 +1082,24 @@ export interface components {
             /** @description Main categories with spending but no budget line. */
             unbudgeted: components["schemas"]["UnbudgetedCategory"][];
         };
+        Candle: {
+            close: string;
+            /** Format: date */
+            day: string;
+            high?: string;
+            low?: string;
+            open?: string;
+            /** Format: int64 */
+            volume?: number;
+        };
+        CandlesOutputBody: {
+            /** @description Daily, oldest first. */
+            candles: components["schemas"]["Candle"][];
+            /** @description The quote's currency. */
+            currency: string;
+            /** @description Absent: the instrument has no Yahoo symbol, so no candles. */
+            symbol?: string;
+        };
         CategoriesReport: {
             currency: string;
             /** @description Oldest first. */
@@ -1015,7 +1175,7 @@ export interface components {
              */
             expires_in_days?: number;
             name: string;
-            scopes: ("accounts:read" | "transactions:read" | "categories:read" | "budgets:read" | "reports:read")[];
+            scopes: ("accounts:read" | "transactions:read" | "categories:read" | "budgets:read" | "reports:read" | "investments:read")[];
         };
         CreateAgentTokenOutputBody: {
             /** @description The token itself. Shown only in this response. */
@@ -1216,6 +1376,26 @@ export interface components {
             /** Format: int64 */
             transfers_matched: number;
         };
+        Instrument: {
+            /** @description Of the user's own trades in it. */
+            currency: string;
+            /** @example US0378331005 */
+            isin: string;
+            name: string;
+            /** @description Empty when no statement named it yet. */
+            ticker: string;
+            /** @description Absent: no prices, the position is valued at cost. */
+            yahoo_symbol?: string;
+        };
+        InstrumentDetail: {
+            instrument: components["schemas"]["Instrument"];
+            /** @description Absent once everything is sold. */
+            position?: components["schemas"]["Position"];
+            /** @description Sold lots, oldest first. */
+            sales: components["schemas"]["SoldLot"][];
+            /** @description Buys and dividends, oldest first. */
+            trades: components["schemas"]["Trade"][];
+        };
         ListAccountsOutputBody: {
             accounts: components["schemas"]["Account"][];
         };
@@ -1243,6 +1423,23 @@ export interface components {
         };
         ListTransfersOutputBody: {
             transfers: components["schemas"]["TransferPair"][];
+        };
+        Lot: {
+            account_id: string;
+            /** Format: date */
+            bought_on: string;
+            cost: components["schemas"]["Amount"];
+            cost_czk?: components["schemas"]["Amount"];
+            /**
+             * Format: date
+             * @description First sale day on which the lot passes the three-year time test.
+             */
+            exempt_from: string;
+            /**
+             * @description Decimal, may be fractional.
+             * @example 1.25
+             */
+            quantity: string;
         };
         MarkOwnInputBody: {
             /** @description The own account the money went to or came from. */
@@ -1342,6 +1539,47 @@ export interface components {
             in_tx_id: string;
             out_tx_id: string;
         };
+        Portfolio: {
+            cost_czk: components["schemas"]["Amount"];
+            /** @description Instruments with sales whose purchase was never imported; import older statements. */
+            incomplete_history: components["schemas"]["Instrument"][];
+            positions: components["schemas"]["Position"][];
+            prices: components["schemas"]["PriceStatus"];
+            /**
+             * Format: date
+             * @description Day of the ČNB rates used.
+             */
+            rates_on?: string;
+            /**
+             * Format: int64
+             * @description Positions left out of the totals.
+             */
+            unvalued: number;
+            /** @description Sum over positions that have both a CZK value and a CZK cost. */
+            value_czk: components["schemas"]["Amount"];
+        };
+        Position: {
+            /** @description In the lots' currency; absent when lots were bought in different currencies. */
+            cost?: components["schemas"]["Amount"];
+            /** @description Absent when a lot has no CZK cost. */
+            cost_czk?: components["schemas"]["Amount"];
+            dividends_net_czk: components["schemas"]["Amount"];
+            /** @description Held long enough to pass the time test today. */
+            exempt_quantity: string;
+            /** @description Some sold lot has no purchase in the imported statements. */
+            incomplete_history: boolean;
+            instrument: components["schemas"]["Instrument"];
+            /** @description Open lots, oldest first. */
+            lots: components["schemas"]["Lot"][];
+            /** Format: date */
+            next_exempt_on?: string;
+            quantity: string;
+            /** @description Absent without a usable price. */
+            quote?: components["schemas"]["Quote"];
+            value?: components["schemas"]["Amount"];
+            /** @description Absent without a price or an exchange rate. */
+            value_czk?: components["schemas"]["Amount"];
+        };
         Prediction: {
             category_id: string;
             /** Format: double */
@@ -1349,13 +1587,25 @@ export interface components {
             /** @description Words of the transaction that point at this category. */
             reasons: string[];
         };
+        PriceStatus: {
+            /** @description False when the server fetches no market data. */
+            enabled: boolean;
+            /**
+             * Format: int64
+             * @description Sources or symbols the last refresh could not fetch.
+             */
+            failures: number;
+            /** Format: date-time */
+            finished_at?: string;
+            running: boolean;
+        };
         Problem: {
             /**
              * ErrorCode
              * @description Stable machine-readable error identifier. Branch on this, not on `detail`.
              * @enum {string}
              */
-            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed";
+            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "invalid_symbol" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed";
             /** @description English explanation; localize from code instead of showing this. */
             detail?: string;
             errors?: components["schemas"]["ErrorDetail"][];
@@ -1364,6 +1614,20 @@ export interface components {
             /** Format: int64 */
             status: number;
             title: string;
+        };
+        Quote: {
+            /** @description Decimal. */
+            close: string;
+            /** @description The quote's, which may differ from the trades'. */
+            currency: string;
+            /** Format: date */
+            day: string;
+        };
+        RealizedOutputBody: {
+            /** @description Newest sale first. */
+            lots: components["schemas"]["SoldLot"][];
+            /** @description Newest first. */
+            years: components["schemas"]["YearGains"][];
         };
         ReplaceBudgetInputBody: {
             lines: components["schemas"]["BudgetLineInput"][];
@@ -1411,6 +1675,23 @@ export interface components {
              */
             readonly classifier_examples: number;
         };
+        SoldLot: {
+            account_id: string;
+            /** Format: date */
+            bought_on: string;
+            cost: components["schemas"]["Amount"];
+            cost_czk?: components["schemas"]["Amount"];
+            /** @description Held more than three years. */
+            exempt: boolean;
+            gain: components["schemas"]["Amount"];
+            gain_czk?: components["schemas"]["Amount"];
+            instrument: components["schemas"]["Instrument"];
+            proceeds: components["schemas"]["Amount"];
+            proceeds_czk?: components["schemas"]["Amount"];
+            quantity: string;
+            /** Format: date */
+            sold_on: string;
+        };
         StatusOutputBody: {
             /** @description Whether signing in with Google is available. */
             google: boolean;
@@ -1426,9 +1707,28 @@ export interface components {
             /** Format: int64 */
             uses: number;
         };
+        SymbolInputBody: {
+            /**
+             * @description Yahoo Finance symbol, e.g. EUNL.DE; empty removes it.
+             * @example EUNL.DE
+             */
+            symbol: string;
+        };
         TaxonomyOutputBody: {
             budget_groups: components["schemas"]["BudgetGroup"][];
             categories: components["schemas"]["Category"][];
+        };
+        Trade: {
+            account_id: string;
+            /** Format: date */
+            day: string;
+            /** @enum {string} */
+            kind: "buy" | "dividend";
+            /** @description A buy's cost with fees; a dividend after tax. */
+            net: components["schemas"]["Amount"];
+            net_czk?: components["schemas"]["Amount"];
+            /** @description Buys only. */
+            quantity?: string;
         };
         Transaction: {
             account_id: string;
@@ -1533,6 +1833,28 @@ export interface components {
             commit: string;
             go_version: string;
             version: string;
+        };
+        YearGains: {
+            cost_czk: components["schemas"]["Amount"];
+            dividends_gross_czk: components["schemas"]["Amount"];
+            dividends_net_czk: components["schemas"]["Amount"];
+            dividends_tax_czk: components["schemas"]["Amount"];
+            /** @description From lots that passed the time test. */
+            exempt_gain_czk: components["schemas"]["Amount"];
+            gain_czk: components["schemas"]["Amount"];
+            /** Format: int64 */
+            lots: number;
+            /**
+             * Format: int64
+             * @description Lots without CZK values, left out of the sums.
+             */
+            missing_czk: number;
+            proceeds_czk: components["schemas"]["Amount"];
+            taxable_gain_czk: components["schemas"]["Amount"];
+            /** @description What the yearly 100 000 Kč exemption is tested on. */
+            taxable_proceeds_czk: components["schemas"]["Amount"];
+            /** Format: int64 */
+            year: number;
         };
     };
     responses: never;
@@ -3225,6 +3547,402 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-instrument": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                isin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstrumentDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "list-candles": {
+        parameters: {
+            query?: {
+                /** @description First day; a year back when omitted. */
+                from?: string;
+            };
+            header?: never;
+            path: {
+                isin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandlesOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "set-yahoo-symbol": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                isin: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SymbolInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstrumentDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Portfolio"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "refresh-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-price-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-realized-gains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealizedOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
