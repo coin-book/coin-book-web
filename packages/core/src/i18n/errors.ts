@@ -22,7 +22,7 @@ const cs: ErrorMessages = {
   unknown_scope: 'Neznámé oprávnění tokenu.',
   token_ttl_too_long: 'Token může platit nejvýš rok.',
   unsupported_format:
-    'Tento soubor neumím přečíst. Podporuji CSV z mBank CZ, slovenský konsolidovaný výpis Revolut, ABO (GPC) a coin-book CSV; jiné CSV načtete přes mapování sloupců.',
+    'Tento soubor neumím přečíst. Podporuji CSV z mBank CZ a Air Bank, slovenský konsolidovaný výpis Revolut, ABO (GPC) a coin-book CSV; jiné CSV načtete přes mapování sloupců.',
   layout_invalid: 'Mapování není úplné: potřebuje datum, částku (nebo příjem a výdaj), popis a měnu.',
   layout_mismatch:
     'Soubor neodpovídá mapování: u některého řádku nejde přečíst datum nebo částku. Zkontrolujte sloupce a formát data.',
@@ -70,7 +70,7 @@ const sk: ErrorMessages = {
   unknown_scope: 'Neznáme oprávnenie tokenu.',
   token_ttl_too_long: 'Token môže platiť najviac rok.',
   unsupported_format:
-    'Tento súbor neviem prečítať. Podporujem CSV z mBank CZ, slovenský konsolidovaný výpis Revolut, ABO (GPC) a coin-book CSV; iné CSV načítate cez mapovanie stĺpcov.',
+    'Tento súbor neviem prečítať. Podporujem CSV z mBank CZ a Air Bank, slovenský konsolidovaný výpis Revolut, ABO (GPC) a coin-book CSV; iné CSV načítate cez mapovanie stĺpcov.',
   layout_invalid: 'Mapovanie nie je úplné: potrebuje dátum, sumu (alebo príjem a výdavok), popis a menu.',
   layout_mismatch:
     'Súbor nezodpovedá mapovaniu: pri niektorom riadku nejde prečítať dátum alebo sumu. Skontrolujte stĺpce a formát dátumu.',
@@ -118,7 +118,7 @@ const en: ErrorMessages = {
   unknown_scope: 'Unknown token permission.',
   token_ttl_too_long: 'A token can be valid for a year at most.',
   unsupported_format:
-    'I can’t read this file. I support mBank CZ CSV, the Slovak Revolut consolidated statement, ABO (GPC) and coin-book CSV; read any other CSV through the column mapping.',
+    'I can’t read this file. I support mBank CZ and Air Bank CSV, the Slovak Revolut consolidated statement, ABO (GPC) and coin-book CSV; read any other CSV through the column mapping.',
   layout_invalid:
     'The mapping is incomplete: it needs a date, an amount (or money in and out), a description and a currency.',
   layout_mismatch:
