@@ -183,7 +183,7 @@ export const sk: Record<MessageKey, string> = {
   'import.title': 'Importy',
   'import.drop': 'Pretiahnite výpis sem',
   'import.dropLead':
-    'mBank CZ (CSV), konsolidovaný výpis Revolut (CSV, slovensky) alebo vlastné coin-book CSV. Nič sa nezapíše, kým import nepotvrdíte.',
+    'mBank CZ (CSV), konsolidovaný výpis Revolut (CSV, slovensky), štandardné ABO (GPC) z ktorejkoľvek českej banky alebo vlastné coin-book CSV. Nič sa nezapíše, kým import nepotvrdíte.',
   'import.choose': 'Vybrať súbor',
   'import.previewOf': 'Náhľad: {file}',
   'import.checksOk': 'Kontrolné súčty sedia',
@@ -503,7 +503,7 @@ export const sk: Record<MessageKey, string> = {
     'Pri každom titule sviečkový graf s vašimi nákupmi a predajmi, základné údaje z burzy a loty s dátumom, kedy splnia test 3 rokov na oslobodenie od dane.',
   'landing.imports.title': 'Import, ktorému môžete veriť',
   'landing.imports.body':
-    'mBank, Revolut alebo vlastné CSV. Náhľad pred zápisom, kontrolné súčty z výpisu, žiadne duplicity pri opakovanom nahraní a vrátenie celého importu.',
+    'mBank, Revolut, ABO z ktorejkoľvek českej banky alebo vlastné CSV. Náhľad pred zápisom, kontrolné súčty z výpisu, žiadne duplicity pri opakovanom nahraní a vrátenie celého importu.',
   'landing.promisesTitle': 'Vaše dáta zostávajú vaše',
   'landing.promise.selfHosted.title': 'Beží u vás',
   'landing.promise.selfHosted.body':

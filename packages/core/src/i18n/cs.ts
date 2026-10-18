@@ -180,7 +180,7 @@ export const cs = {
   'import.title': 'Importy',
   'import.drop': 'Přetáhněte výpis sem',
   'import.dropLead':
-    'mBank CZ (CSV), konsolidovaný výpis Revolut (CSV, slovensky) nebo vlastní coin-book CSV. Nic se nezapíše, dokud import nepotvrdíte.',
+    'mBank CZ (CSV), konsolidovaný výpis Revolut (CSV, slovensky), standardní ABO (GPC) z kterékoli české banky nebo vlastní coin-book CSV. Nic se nezapíše, dokud import nepotvrdíte.',
   'import.choose': 'Vybrat soubor',
   'import.previewOf': 'Náhled: {file}',
   'import.checksOk': 'Kontrolní součty sedí',
@@ -500,7 +500,7 @@ export const cs = {
     'U každého titulu svíčkový graf s vašimi nákupy a prodeji, základní údaje z burzy a loty s datem, kdy splní test 3 let pro osvobození od daně.',
   'landing.imports.title': 'Import, kterému můžete věřit',
   'landing.imports.body':
-    'mBank, Revolut nebo vlastní CSV. Náhled před zápisem, kontrolní součty z výpisu, žádné duplicity při opakovaném nahrání a vrácení celého importu.',
+    'mBank, Revolut, ABO z kterékoli české banky nebo vlastní CSV. Náhled před zápisem, kontrolní součty z výpisu, žádné duplicity při opakovaném nahrání a vrácení celého importu.',
   'landing.promisesTitle': 'Vaše data zůstávají vaše',
   'landing.promise.selfHosted.title': 'Běží u vás',
   'landing.promise.selfHosted.body':

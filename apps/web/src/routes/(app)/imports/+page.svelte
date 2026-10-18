@@ -163,7 +163,7 @@
     <input
       bind:this={input}
       type="file"
-      accept=".csv,text/csv"
+      accept=".csv,text/csv,.gpc,.abo,.txt"
       hidden
       onchange={(e) => choose(e.currentTarget.files?.[0])}
     />

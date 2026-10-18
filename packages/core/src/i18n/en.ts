@@ -184,7 +184,7 @@ export const en: Record<MessageKey, string> = {
   'import.title': 'Imports',
   'import.drop': 'Drop a statement here',
   'import.dropLead':
-    'mBank CZ (CSV), Revolut consolidated statement (CSV, Slovak) or your own coin-book CSV. Nothing is written until you confirm the import.',
+    'mBank CZ (CSV), Revolut consolidated statement (CSV, Slovak), the standard ABO (GPC) from any Czech bank or your own coin-book CSV. Nothing is written until you confirm the import.',
   'import.choose': 'Choose a file',
   'import.previewOf': 'Preview: {file}',
   'import.checksOk': 'Control totals match',
@@ -507,7 +507,7 @@ export const en: Record<MessageKey, string> = {
     'A candlestick chart with your buys and sales for every instrument, key facts from the exchange, and lots with the day they pass the 3-year test for tax exemption.',
   'landing.imports.title': 'Imports you can trust',
   'landing.imports.body':
-    'mBank, Revolut or your own CSV. A preview before anything is written, the statement’s own control totals, no duplicates on re-upload, and undo for a whole import.',
+    'mBank, Revolut, ABO from any Czech bank or your own CSV. A preview before anything is written, the statement’s own control totals, no duplicates on re-upload, and undo for a whole import.',
   'landing.promisesTitle': 'Your data stays yours',
   'landing.promise.selfHosted.title': 'Runs at your place',
   'landing.promise.selfHosted.body':
