@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/coin-book/coin-book-web/compare/v1.2.0...v1.3.0) (2026-10-20)
+
+
+### Features
+
+* **web:** net worth with a balance sheet, mortgage detail, cash flow page and grouped accounts ([da4b047](https://github.com/coin-book/coin-book-web/commit/da4b0474b5d6486b1bd600228ea07eda658cf33c))
+
 ## [1.2.0](https://github.com/coin-book/coin-book-web/compare/v1.1.0...v1.2.0) (2026-10-18)
 
 
