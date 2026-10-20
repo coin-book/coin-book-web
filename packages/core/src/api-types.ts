@@ -93,6 +93,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/{id}/p2p-loans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A P2P platform's loans from its latest imported export
+         * @description Agent tokens need the `accounts:read` scope.
+         */
+        get: operations["get-p2p-loans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounts/{id}/performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What an asset valued at dates earned on the money transferred into it
+         * @description Agent tokens need the `accounts:read` scope.
+         */
+        get: operations["get-account-performance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounts/{id}/valuations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Values entered by hand for an asset, or balances owed on a loan
+         * @description Agent tokens need the `accounts:read` scope.
+         */
+        get: operations["list-account-valuations"];
+        put?: never;
+        /**
+         * Record an asset's value or a loan's balance at the end of a day
+         * @description A second value for the same day replaces the first. A loan's balance corrects its schedule from that day on.
+         */
+        post: operations["save-account-valuation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounts/{id}/valuations/{valuation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a value entered by hand */
+        delete: operations["delete-account-valuation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/agent-tokens": {
         parameters: {
             query?: never;
@@ -615,6 +696,107 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/loans/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A mortgage or loan today: balance, terms, next instalment, payments and interest per year
+         * @description Agent tokens need the `accounts:read` scope.
+         */
+        get: operations["get-loan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{account_id}/prepayment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What an extra payment today would save, keeping the instalment or the maturity
+         * @description Agent tokens need the `accounts:read` scope.
+         */
+        get: operations["simulate-loan-prepayment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{account_id}/reserve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Give a mortgage a reserve that lowers its interest, such as Air Bank's Chytrá rezerva
+         * @description Creates the reserve's account at the mortgage's bank. Transfers into and out of it are recognised by the bank's account number or operation type, and interest is charged on the balance less the reserve.
+         */
+        post: operations["enable-loan-reserve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{account_id}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every instalment from the first terms to the last
+         * @description Agent tokens need the `accounts:read` scope.
+         */
+        get: operations["get-loan-schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{account_id}/terms/{valid_from}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the terms in force from a day: the balance owed then, the rate and the instalment
+         * @description A refixation is new terms from its day. Payments to the loan are split by the schedule again.
+         */
+        put: operations["save-loan-terms"];
+        post?: never;
+        /** Remove the terms from a day */
+        delete: operations["delete-loan-terms"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -704,10 +886,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * What the user owns today: account balances and investments, in CZK
+         * What the user owns and owes today, per account and class, in CZK
          * @description Agent tokens need the `reports:read` scope.
          */
         get: operations["get-net-worth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/net-worth/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Net worth at each month's end, with what was saved and what the rest of the change was
+         * @description Agent tokens need the `reports:read` scope.
+         */
+        get: operations["get-net-worth-history"];
         put?: never;
         post?: never;
         delete?: never;
@@ -863,6 +1065,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transactions/{tx_id}/loan-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Record a transaction as an instalment of a mortgage or loan
+         * @description The interest becomes an expense, the principal a repayment; a transfer mark on the transaction is replaced.
+         */
+        put: operations["mark-loan-payment"];
+        post?: never;
+        /**
+         * The transaction does not pay a loan
+         * @description Its categories are cleared and it will not be recognised as a payment to the loan again.
+         */
+        delete: operations["unmark-loan-payment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transfers": {
         parameters: {
             query?: never;
@@ -1004,13 +1230,15 @@ export interface components {
             currency: string;
             id: string;
             /** @enum {string} */
-            institution: "mbank_cz" | "mbank_sk" | "revolut" | "ibkr" | "other";
+            institution: "mbank_cz" | "mbank_sk" | "revolut" | "ibkr" | "fingood" | "investown" | "portu" | "other";
             /** @enum {string} */
-            kind: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card";
+            kind: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card" | "p2p" | "pension" | "property" | "other_asset" | "mortgage" | "loan" | "loan_reserve";
             /** Format: date */
             last_booked_on?: string;
             name: string;
             opening_balance: components["schemas"]["Amount"];
+            /** @description The account this one belongs to: a pocket's main account, a loan reserve's mortgage. */
+            parent_id?: string;
             /** Format: int64 */
             transaction_count: number;
         };
@@ -1021,6 +1249,54 @@ export interface components {
              * @description Positive: put aside; negative: taken back.
              */
             amount_minor: number;
+        };
+        AccountPerformance: {
+            /** @description Money-weighted annual return (XIRR) as a decimal fraction, 0.085 = 8.5 %; absent when it cannot be told. */
+            annual_return?: string;
+            contributed: components["schemas"]["Amount"];
+            /** @description Transfers between this account and other own accounts, oldest first. */
+            flows: components["schemas"]["TransferFlow"][];
+            /** @description Value less the money put in net of what was taken out. */
+            gain?: components["schemas"]["Amount"];
+            /** @description The latest value; absent before the first. */
+            value?: components["schemas"]["Amount"];
+            /** Format: date */
+            valued_on?: string;
+            withdrawn: components["schemas"]["Amount"];
+        };
+        AccountValuation: {
+            id: string;
+            note: string;
+            /** @description For a loan: the balance owed, positive. */
+            value: components["schemas"]["Amount"];
+            /** Format: date */
+            valued_on: string;
+        };
+        AccountValue: {
+            account_id: string;
+            /** @enum {string} */
+            class: "cash" | "savings" | "investments" | "p2p" | "pension" | "property" | "other" | "mortgage" | "loan";
+            /**
+             * @description How soon the money could be spent; absent for a liability.
+             * @enum {string}
+             */
+            liquidity?: "immediate" | "days" | "locked";
+            /** @description An asset never valued, or a loan without terms or a balance; it counts as zero. */
+            unvalued: boolean;
+            /**
+             * @description ledger: balance from transactions; market: plus positions at market prices; snapshot: values entered by hand or imported; schedule: the loan's repayment schedule; flows: a loan reserve, transfers in less out from a statement balance.
+             * @enum {string}
+             */
+            valuation: "ledger" | "market" | "snapshot" | "schedule" | "flows";
+            /** @description In the account's currency, negative for a liability; a broker account's positions count only in value_czk. */
+            value: components["schemas"]["Amount"];
+            /** @description Absent without an exchange rate. */
+            value_czk?: components["schemas"]["Amount"];
+            /**
+             * Format: date
+             * @description The day of the value a snapshot account carries.
+             */
+            valued_on?: string;
         };
         AgentToken: {
             /** Format: date-time */
@@ -1048,6 +1324,8 @@ export interface components {
         AmbiguousTransfer: {
             /** @description Incoming movements that could be its other leg. */
             candidate_ids: string[];
+            /** @description Candidates whose account number one leg names as its counterparty account: the likelier ones. */
+            number_matches: string[];
             /** @description The outgoing leg. */
             transaction_id: string;
         };
@@ -1065,10 +1343,10 @@ export interface components {
             amount_minor: number;
             category_id: string;
             /**
-             * @description model: the learned classifier chose it; confirm or change it.
+             * @description model: the learned classifier chose it; confirm or change it. loan: a loan instalment split by its schedule.
              * @enum {string}
              */
-            source: "rule" | "manual" | "bank" | "model";
+            source: "rule" | "manual" | "bank" | "model" | "loan";
         };
         AuditEntry: {
             /** Format: int64 */
@@ -1294,7 +1572,7 @@ export interface components {
             bank_id?: string;
             currency: string;
             /** @enum {string} */
-            kind: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card";
+            kind: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card" | "p2p" | "pension" | "property" | "other_asset" | "mortgage" | "loan";
             name: string;
             /** Format: int64 */
             opening_balance_minor?: number;
@@ -1353,6 +1631,10 @@ export interface components {
             links: components["schemas"]["FlowLink"][];
             month: string;
             nodes: components["schemas"]["FlowNode"][];
+        };
+        HistoryOutputBody: {
+            /** @description Oldest first. */
+            months: components["schemas"]["NetWorthMonth"][];
         };
         HoldingSummary: {
             dividends_net_czk: components["schemas"]["Amount"];
@@ -1531,6 +1813,10 @@ export interface components {
             /** @description Buys and dividends, oldest first. */
             trades: components["schemas"]["Trade"][];
         };
+        KeyedAmount: {
+            key: string;
+            value: components["schemas"]["Amount"];
+        };
         ListAccountsOutputBody: {
             accounts: components["schemas"]["Account"][];
         };
@@ -1562,6 +1848,126 @@ export interface components {
         ListTransfersOutputBody: {
             transfers: components["schemas"]["TransferPair"][];
         };
+        LoanInstalment: {
+            /** @description Owed after this instalment. */
+            balance: components["schemas"]["Amount"];
+            /** Format: date */
+            due_on: string;
+            interest: components["schemas"]["Amount"];
+            principal: components["schemas"]["Amount"];
+            /**
+             * @description paid: bank payments booked nearest its due day paid it; assumed: due by today without payments, counted as paid by the schedule; projected: still to come.
+             * @enum {string}
+             */
+            status: "paid" | "assumed" | "projected";
+        };
+        LoanInterestYear: {
+            /** @description What may lower the tax base for one's own housing (mortgages only): 150 000 Kč a year, 300 000 Kč for housing financed before 2021. */
+            deductible: components["schemas"]["Amount"];
+            /** @description Interest of the instalments due that year by today. */
+            interest: components["schemas"]["Amount"];
+            /** Format: int64 */
+            year: number;
+        };
+        LoanOverview: {
+            account_id: string;
+            /** @description Owed today. */
+            balance: components["schemas"]["Amount"];
+            /** @description The terms in force today; absent before the first. */
+            current?: components["schemas"]["LoanTerms"];
+            /** @enum {string} */
+            kind: "mortgage" | "loan";
+            /** @description The next instalment after today; absent once repaid. */
+            next?: components["schemas"]["LoanInstalment"];
+            /**
+             * Format: date
+             * @description The last instalment's due day.
+             */
+            paid_off_on?: string;
+            /** @description Newest first. */
+            payments: components["schemas"]["LoanPaymentRow"][];
+            /** @description Interest of the projected instalments. */
+            remaining_interest: components["schemas"]["Amount"];
+            /** Format: int64 */
+            remaining_months: number;
+            /** @description A reserve held against the mortgage that bears no interest (Air Bank's Chytrá rezerva). */
+            reserve?: components["schemas"]["LoanReserve"];
+            /** @description Oldest first. */
+            terms: components["schemas"]["LoanTerms"][];
+            /** @description Newest first. */
+            years: components["schemas"]["LoanInterestYear"][];
+        };
+        LoanPayment: {
+            /** @description The mortgage or loan. */
+            account_id: string;
+            /** @description The split follows the schedule; false: the user split it. */
+            by_schedule: boolean;
+            /** Format: int64 */
+            interest_minor: number;
+            /** Format: int64 */
+            principal_minor: number;
+        };
+        LoanPaymentRow: {
+            /** @description Positive: paid. */
+            amount: components["schemas"]["Amount"];
+            /** Format: date */
+            booked_on: string;
+            /** @description The split follows the schedule; false: the user split it. */
+            by_schedule: boolean;
+            description: string;
+            interest: components["schemas"]["Amount"];
+            principal: components["schemas"]["Amount"];
+            transaction_id: string;
+        };
+        LoanRepayment: {
+            interest: components["schemas"]["Amount"];
+            /** Format: int64 */
+            months: number;
+            /** Format: date */
+            paid_off_on: string;
+            payment: components["schemas"]["Amount"];
+        };
+        LoanReserve: {
+            account_id: string;
+            /** @description Held today. */
+            balance: components["schemas"]["Amount"];
+            /** Format: date */
+            paid_off_on?: string;
+            /**
+             * Format: date
+             * @description When the loan would be repaid without the reserve.
+             */
+            paid_off_without_on?: string;
+            /** @description Interest saved on the instalments due by today. */
+            saved: components["schemas"]["Amount"];
+            /** @description Interest it will save on the projected instalments if it stays as it is. */
+            saves: components["schemas"]["Amount"];
+        };
+        LoanTerms: {
+            /**
+             * @description Percent a year, decimal.
+             * @example 4.89
+             */
+            annual_rate: string;
+            /** @description Owed on valid_from. */
+            balance: components["schemas"]["Amount"];
+            /**
+             * Format: date
+             * @description Absent for a rate that is not fixed.
+             */
+            fixed_until?: string;
+            /** Format: date */
+            maturity_on: string;
+            /** @description The monthly instalment. */
+            payment: components["schemas"]["Amount"];
+            /**
+             * Format: int64
+             * @description Day of the month the instalment is due; the month's last day when shorter.
+             */
+            payment_day: number;
+            /** Format: date */
+            valid_from: string;
+        };
         Lot: {
             account_id: string;
             /** Format: date */
@@ -1588,6 +1994,17 @@ export interface components {
         MarkOwnOutputBody: {
             /** Format: int64 */
             applied_to_other: number;
+        };
+        MarkPaymentInputBody: {
+            /** @description The mortgage or loan the payment pays. */
+            account_id: string;
+            /**
+             * Format: int64
+             * @description With principal_minor, the user's own split; both absent: split by the schedule.
+             */
+            interest_minor?: number;
+            /** Format: int64 */
+            principal_minor?: number;
         };
         MarketProfile: {
             /** @description The quote's. */
@@ -1673,10 +2090,27 @@ export interface components {
             trend: components["schemas"]["MonthTotals"][];
         };
         NetWorth: {
-            /** @description Balances of the accounts that are not archived, at the latest ČNB rates. */
+            accounts: components["schemas"]["AccountValue"][];
+            assets_czk: components["schemas"]["Amount"];
+            /** @description key: class; liabilities are negative. */
+            by_class: components["schemas"]["KeyedAmount"][];
+            /** @description key: immediate, days or locked. */
+            by_liquidity: components["schemas"]["KeyedAmount"][];
+            /** @description Balances of accounts valued by their transactions, including brokers' cash and loan reserves. */
             cash_czk: components["schemas"]["Amount"];
             /** @description Market value of the open positions. */
             investments_czk: components["schemas"]["Amount"];
+            /** @description Positive: what is owed. */
+            liabilities_czk: components["schemas"]["Amount"];
+            /** @description Average spending of the last twelve complete months, without transfers and repayments. */
+            monthly_expenses_czk: components["schemas"]["Amount"];
+            /** Format: date */
+            on: string;
+            /** @description Assets valued at dates: P2P, pension, property and others. */
+            other_assets_czk: components["schemas"]["Amount"];
+            /** @description Immediately available money in months of that spending; decimal, absent without spending. */
+            reserve_months?: string;
+            /** @description Assets less liabilities. */
             total_czk: components["schemas"]["Amount"];
             /** @description Currencies held without a ČNB rate yet; their balances are left out. */
             unconverted: string[];
@@ -1685,6 +2119,22 @@ export interface components {
              * @description Positions without a price or rate, left out.
              */
             unvalued_positions: number;
+        };
+        NetWorthMonth: {
+            assets_czk: components["schemas"]["Amount"];
+            by_class: components["schemas"]["KeyedAmount"][];
+            /** @description Against the end of the month before. */
+            change_czk: components["schemas"]["Amount"];
+            liabilities_czk: components["schemas"]["Amount"];
+            /** @description The month whose end (today for the current month) the values are at. */
+            month: string;
+            /** Format: date */
+            on: string;
+            /** @description The rest of the change: returns, revaluation, repayments of loans valued by schedule. */
+            other_change_czk: components["schemas"]["Amount"];
+            /** @description Income less spending of the month: the part of the change the user saved. */
+            saved_czk: components["schemas"]["Amount"];
+            total_czk: components["schemas"]["Amount"];
         };
         NewAccount: {
             /** @description Bank register id; the import fills it from the parser or account number. */
@@ -1715,6 +2165,65 @@ export interface components {
         };
         OwnCandidatesOutputBody: {
             candidates: components["schemas"]["OwnAccountCandidate"][];
+        };
+        P2PLoan: {
+            /** @description Late, overdue or not repaid as agreed. */
+            at_risk: boolean;
+            /** Format: int64 */
+            delay_days: number;
+            fees: components["schemas"]["Amount"];
+            /** Format: date */
+            final_payment_on?: string;
+            interest_paid: components["schemas"]["Amount"];
+            /** @description Percent a year, decimal. */
+            interest_rate: string;
+            invested: components["schemas"]["Amount"];
+            /** Format: date */
+            invested_on?: string;
+            loan_number: string;
+            market_gain: components["schemas"]["Amount"];
+            name: string;
+            next_payment?: components["schemas"]["Amount"];
+            /** Format: date */
+            next_payment_on?: string;
+            outstanding: components["schemas"]["Amount"];
+            overdue: components["schemas"]["Amount"];
+            penalty_interest: components["schemas"]["Amount"];
+            principal_returned: components["schemas"]["Amount"];
+            /** @description As the platform names it, e.g. Balonově or Anuitně. */
+            repayment: string;
+            repayment_status: string;
+            status: string;
+        };
+        P2PMaturity: {
+            /** @description Absent for loans without a final payment date. */
+            month?: string;
+            outstanding: components["schemas"]["Amount"];
+        };
+        P2PSnapshot: {
+            at_risk: components["schemas"]["Amount"];
+            /** @description Percent a year weighted by the outstanding principal. */
+            average_rate: string;
+            /** @description Interest, penalties and market gains less fees, since investing. */
+            earned: components["schemas"]["Amount"];
+            /** @description Absent for the first export. */
+            earned_since_previous?: components["schemas"]["Amount"];
+            /** @description Every imported export, oldest first. */
+            history: components["schemas"]["P2PSnapshotTotal"][];
+            loans: components["schemas"]["P2PLoan"][];
+            /** @description Outstanding principal by the month of the final payment, oldest first. */
+            maturities: components["schemas"]["P2PMaturity"][];
+            /** Format: date */
+            on: string;
+            outstanding: components["schemas"]["Amount"];
+            /** Format: date */
+            previous_on?: string;
+        };
+        P2PSnapshotTotal: {
+            earned: components["schemas"]["Amount"];
+            /** Format: date */
+            on: string;
+            outstanding: components["schemas"]["Amount"];
         };
         PairTransferInputBody: {
             in_tx_id: string;
@@ -1772,6 +2281,15 @@ export interface components {
             /** @description Words of the transaction that point at this category. */
             reasons: string[];
         };
+        PrepaymentOutputBody: {
+            /** @description Without the extra payment. */
+            current: components["schemas"]["LoanRepayment"];
+            extra: components["schemas"]["Amount"];
+            /** @description The maturity stays, the instalment gets lower. */
+            keep_maturity: components["schemas"]["LoanRepayment"];
+            /** @description The instalment stays, the loan ends sooner. */
+            keep_payment: components["schemas"]["LoanRepayment"];
+        };
         PriceStatus: {
             /** @description False when the server fetches no market data. */
             enabled: boolean;
@@ -1790,7 +2308,7 @@ export interface components {
              * @description Stable machine-readable error identifier. Branch on this, not on `detail`.
              * @enum {string}
              */
-            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "invalid_symbol" | "layout_invalid" | "layout_mismatch" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "nothing_to_match" | "password_too_short" | "rate_limited" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed";
+            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "invalid_symbol" | "layout_invalid" | "layout_mismatch" | "loan_split_mismatch" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "no_loan_terms" | "not_a_loan" | "not_a_loan_payment" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "not_valued_by_hand" | "nothing_to_match" | "password_too_short" | "rate_limited" | "reserve_exists" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed" | "valuation_mismatch";
             /** @description English explanation; localize from code instead of showing this. */
             detail?: string;
             errors?: components["schemas"]["ErrorDetail"][];
@@ -1817,6 +2335,10 @@ export interface components {
         ReplaceBudgetInputBody: {
             lines: components["schemas"]["BudgetLineInput"][];
         };
+        ReserveOutputBody: {
+            /** @description The reserve's account. */
+            account_id: string;
+        };
         RollbackOutputBody: {
             /** Format: int64 */
             removed: number;
@@ -1838,6 +2360,40 @@ export interface components {
         };
         RulesOutputBody: {
             rules: components["schemas"]["Rule"][];
+        };
+        SaveTermsInputBody: {
+            /**
+             * @description Percent a year.
+             * @example 4.89
+             */
+            annual_rate: string;
+            /**
+             * Format: int64
+             * @description Owed on valid_from.
+             */
+            balance_minor: number;
+            /** Format: date */
+            fixed_until?: string;
+            /** Format: date */
+            maturity_on: string;
+            /** Format: int64 */
+            payment_day: number;
+            /** Format: int64 */
+            payment_minor: number;
+        };
+        SaveValuationInputBody: {
+            note?: string;
+            /**
+             * Format: int64
+             * @description In the account's currency; for a loan the balance owed.
+             */
+            value_minor: number;
+            /** Format: date */
+            valued_on: string;
+        };
+        ScheduleOutputBody: {
+            /** @description From the first terms to the last instalment, oldest first. */
+            instalments: components["schemas"]["LoanInstalment"][];
         };
         SessionBody: {
             access_token: string;
@@ -1936,6 +2492,8 @@ export interface components {
             fee_minor: number;
             id: string;
             import_batch_id: string;
+            /** @description Set when the transaction pays an instalment of an own mortgage or loan. */
+            loan_payment?: components["schemas"]["LoanPayment"];
             message?: string;
             operation_type?: string;
             /**
@@ -1955,10 +2513,16 @@ export interface components {
             /** @description Absent while the other account's statement is not imported. */
             counterpart_tx_id?: string;
             /**
-             * @description number and counterparty: recognised as a transfer to an own account.
+             * @description number, counterparty and operation (the bank's operation type): recognised as a transfer to an own account.
              * @enum {string}
              */
-            matched_by: "auto" | "manual" | "number" | "counterparty";
+            matched_by: "auto" | "manual" | "number" | "counterparty" | "operation";
+        };
+        TransferFlow: {
+            /** @description Positive: put in; negative: taken out. */
+            amount: components["schemas"]["Amount"];
+            /** Format: date */
+            on: string;
         };
         TransferPair: {
             /** Format: date-time */
@@ -1989,7 +2553,7 @@ export interface components {
             bank_id?: string;
             color_key?: string;
             /** @enum {string} */
-            kind?: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card";
+            kind?: "current" | "savings" | "pocket" | "fund" | "broker" | "cash" | "card" | "p2p" | "pension" | "property" | "other_asset" | "mortgage" | "loan";
             name?: string;
             /** Format: int64 */
             opening_balance_minor?: number;
@@ -2017,6 +2581,10 @@ export interface components {
             rules: number;
             /** Format: int64 */
             transactions: number;
+        };
+        ValuationsOutputBody: {
+            /** @description Newest first. */
+            valuations: components["schemas"]["AccountValuation"][];
         };
         VersionOutputBody: {
             commit: string;
@@ -2376,6 +2944,344 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MergeOutputBody"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-p2p-loans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["P2PSnapshot"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-account-performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountPerformance"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "list-account-valuations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValuationsOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "save-account-valuation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveValuationInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountValuation"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "delete-account-valuation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                valuation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {
@@ -4361,6 +5267,377 @@ export interface operations {
             };
         };
     };
+    "get-loan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOverview"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "simulate-loan-prepayment": {
+        parameters: {
+            query: {
+                /** @description The extra payment made today. */
+                extra_minor: number;
+            };
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrepaymentOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "enable-loan-reserve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReserveOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-loan-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "save-loan-terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+                valid_from: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveTermsInputBody"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "delete-loan-terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+                valid_from: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     "get-me": {
         parameters: {
             query?: never;
@@ -4618,6 +5895,64 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "get-net-worth-history": {
+        parameters: {
+            query?: {
+                months?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5201,6 +6536,131 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "mark-loan-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tx_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkPaymentInputBody"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "unmark-loan-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tx_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

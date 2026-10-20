@@ -102,3 +102,14 @@ export function formatGainPercent(gainMinor: number, costMinor: number): string 
   const value = (gainMinor / costMinor) * 100;
   return `${value > 0 ? '+' : ''}${formatDecimal(value.toFixed(1), 1, 1)}${NBSP}%`;
 }
+
+/** A percentage the API sends as a decimal, "10.46" -> "10,46 %". */
+export function formatPercent(value: string, maxDecimals = 2): string {
+  return `${formatDecimal(value, 0, maxDecimals)}${NBSP}%`;
+}
+
+/** A rate the API sends as a fraction, "0.0812" -> "+8,1 %". */
+export function formatRate(fraction: string): string {
+  const value = Number(fraction) * 100;
+  return `${value > 0 ? '+' : ''}${formatDecimal(value.toFixed(1), 1, 1)}${NBSP}%`;
+}

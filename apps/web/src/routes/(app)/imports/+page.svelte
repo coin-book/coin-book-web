@@ -275,7 +275,7 @@
     <input
       bind:this={input}
       type="file"
-      accept=".csv,text/csv,.gpc,.abo,.txt"
+      accept=".csv,text/csv,.gpc,.abo,.txt,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       hidden
       onchange={(e) => choose(e.currentTarget.files?.[0])}
     />

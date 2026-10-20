@@ -4,7 +4,7 @@ SvelteKit 2 / Svelte 5 SPA of coin-book. Spec: `../technicka-specifikace.md` (ch
 
 ## Layout
 
-- `apps/web` – routes and query parameters in English (`/overview`, `/transactions?account=…`, `/triage`, `/budget/[month]`, `/investments`, …); the Czech URLs of before redirect (`core/legacy-url`). E2E in `apps/web/e2e`.
+- `apps/web` – routes and query parameters in English (`/overview`, `/transactions?account=…`, `/triage`, `/budget/[month]`, `/investments`, `/net-worth`, …); the Czech URLs of before redirect (`core/legacy-url`). E2E in `apps/web/e2e`.
 - `packages/core` – API client, auth, i18n (`cs`, `sk`), money and dates, stores. Shared logic lives here, never copied into the app.
 - `packages/ui` – `theme.css` tokens and components (`MoneyAmount`, `CategoryPicker`, …); charts (`CategoryBars`, `BudgetBullets`, `ColumnChart`, `Sankey`) are built on LayerChart; `CandleChart` is plain SVG, LayerChart has no candlesticks.
 

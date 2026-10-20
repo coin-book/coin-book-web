@@ -15,10 +15,10 @@
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
   import TransactionDetails from '@coin-book/ui/TransactionDetails.svelte';
-  import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
   import { categorize } from '$lib/categorize';
   import OwnTransferAction from '$lib/OwnTransferAction.svelte';
   import { queue } from '$lib/queue.svelte';
+  import TransferLeg from '$lib/TransferLeg.svelte';
 
   const QUICK_PICKS = 9;
   const LEAVE_MS = 320;
@@ -232,13 +232,19 @@
       <p class="lead">{t('triage.transfersLead')}</p>
       {#each ambiguous as a (a.transaction_id)}
         {#if ambiguousTx[a.transaction_id]}
-          <div class="ambiguous">
-            <TransactionRow tx={ambiguousTx[a.transaction_id]} />
+          <div class="ambiguous" data-testid="ambiguous-transfer" data-tx={a.transaction_id}>
+            <h3>{t('triage.outgoing')}</h3>
+            <TransferLeg tx={ambiguousTx[a.transaction_id]} />
+            <h3>{t('triage.candidates')}</h3>
             <ul>
               {#each a.candidate_ids as id (id)}
                 {#if ambiguousTx[id]}
                   <li>
-                    <TransactionRow tx={ambiguousTx[id]} />
+                    <TransferLeg
+                      tx={ambiguousTx[id]}
+                      against={ambiguousTx[a.transaction_id]}
+                      numberMatches={a.number_matches.includes(id)}
+                    />
                     <Button
                       variant="quiet"
                       icon="arrows-left-right"
@@ -811,15 +817,25 @@
     border-top: 1px solid var(--line);
     padding: 10px 0;
   }
+  .ambiguous h3 {
+    margin: 6px 0 0;
+    font-size: var(--text-micro);
+    font-weight: 650;
+    color: var(--ink-faint);
+  }
   .ambiguous ul {
     list-style: none;
-    margin: 0 0 0 48px;
-    padding: 0;
+    margin: 0;
+    padding: 0 0 0 16px;
+    border-left: 2px solid var(--line);
   }
   .ambiguous li {
     display: flex;
     align-items: center;
     gap: 10px;
+  }
+  .ambiguous li + li {
+    border-top: 1px dashed var(--line);
   }
   .ambiguous li > :global(:first-child) {
     flex: 1;

@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import vectors from './format-vectors.json';
-import { formatDecimal, formatGainPercent, formatMoney, formatPrice, formatWhole, parseMinor } from './money';
+import {
+  formatDecimal,
+  formatGainPercent,
+  formatMoney,
+  formatPrice,
+  formatWhole,
+  parseMinor,
+  formatPercent,
+  formatRate,
+} from './money';
 
 describe('formatMoney', () => {
   it.each(vectors)('matches the Go formatter for $minor $currency', (v) => {
@@ -62,5 +71,17 @@ describe('formatGainPercent', () => {
     expect(formatGainPercent(414912, 1290088)).toBe('+32,2\u00a0%');
     expect(formatGainPercent(-1000, 26000)).toBe('−3,8\u00a0%');
     expect(formatGainPercent(5, 0)).toBe('');
+  });
+});
+
+describe('percentages', () => {
+  it('shows a decimal percentage as the API sends it', () => {
+    expect(formatPercent('10.46')).toBe('10,46 %');
+    expect(formatPercent('9.5')).toBe('9,5 %');
+  });
+
+  it('turns a fraction into a signed percentage', () => {
+    expect(formatRate('0.0812')).toBe('+8,1 %');
+    expect(formatRate('-0.05')).toBe('−5,0 %');
   });
 });

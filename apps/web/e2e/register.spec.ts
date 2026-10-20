@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('a visitor reads the landing page, registers and starts with an empty book', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Vaše peníze přehledně, na vašem serveru');
-  await expect(page.getByTestId('landing-feature')).toHaveCount(5);
+  await expect(page.getByTestId('landing-feature')).toHaveCount(8);
   await page.getByRole('link', { name: 'Založit účet' }).click();
   await expect(page.getByRole('heading', { name: 'Založte si účet' })).toBeVisible();
   await page.getByLabel('E-mail').fill(`e2e-${Date.now()}@coinbook.local`);

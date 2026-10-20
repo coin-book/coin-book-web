@@ -3,8 +3,14 @@ import { signIn } from './helpers';
 
 test.beforeEach(async ({ page }) => signIn(page));
 
-test('overview answers how much is left to spend', async ({ page }) => {
+test('overview answers where I stand and how much is left to spend', async ({ page }) => {
+  await expect(page.getByRole('heading', { name: 'Jak na tom jsem' })).toBeVisible();
+  await expect(page.getByTestId('attention')).toContainText('Co hlídat');
+  await expect(page.getByTestId('overview-loan')).toContainText('další splátka');
   await expect(page.getByRole('heading', { name: 'Zbývá utratit' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Tok peněz v měsíci' }).click();
+  await expect(page).toHaveURL(/\/cashflow\?month=\d{4}-\d{2}$/);
   await expect(
     page.getByRole('navigation', { name: 'Kam šly peníze' }).getByRole('link').first(),
   ).toBeVisible();
@@ -78,8 +84,9 @@ test('command palette navigates', async ({ page }) => {
 });
 
 // One test for the overview's charts: the suite signs in once per test and stays under the login rate limit.
-test('overview charts draw and open the transactions behind what was clicked', async ({ page }) => {
+test('cash flow charts draw and open the transactions behind what was clicked', async ({ page }) => {
   await expect(page.getByTestId('net-worth')).toContainText('Čisté jmění dnes');
+  await page.getByRole('link', { name: 'Tok peněz', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Tok peněz' })).toBeVisible();
 
   // A bar's row, away from its caption link.

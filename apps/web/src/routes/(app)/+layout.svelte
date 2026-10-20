@@ -100,21 +100,52 @@
     }
   }
 
-  const nav = $derived([
-    { href: '/overview', label: t('nav.overview'), icon: 'squares-four' },
-    { href: '/transactions', label: t('nav.transactions'), icon: 'list-bullets' },
-    { href: '/triage', label: t('nav.triage'), icon: 'tray', badge: queue.remaining },
-    { href: `/budget/${currentMonth()}`, match: '/budget', label: t('nav.budget'), icon: 'target' },
-    { href: '/investments', label: t('nav.investments'), icon: 'chart-line-up' },
-    { href: '/imports', label: t('nav.imports'), icon: 'upload-simple' },
+  /** desktopOnly: left out of the phone's bottom bar, which has room for five. */
+  type NavItem = {
+    href: string;
+    label: string;
+    icon: string;
+    match?: string;
+    badge?: number;
+    desktopOnly?: boolean;
+  };
+  type NavGroup = { key: string; label?: string; items: NavItem[] };
+
+  // Overview stands alone; money is the month's flow, wealth what has piled up from it.
+  const groups = $derived<NavGroup[]>([
+    { key: 'home', items: [{ href: '/overview', label: t('nav.overview'), icon: 'squares-four' }] },
+    {
+      key: 'money',
+      label: t('nav.group.money'),
+      items: [
+        { href: '/cashflow', label: t('nav.cashflow'), icon: 'coins', desktopOnly: true },
+        { href: '/transactions', label: t('nav.transactions'), icon: 'list-bullets' },
+        { href: '/triage', label: t('nav.triage'), icon: 'tray', badge: queue.remaining },
+        { href: `/budget/${currentMonth()}`, match: '/budget', label: t('nav.budget'), icon: 'target' },
+      ],
+    },
+    {
+      key: 'wealth',
+      label: t('nav.group.wealth'),
+      items: [
+        { href: '/net-worth', label: t('nav.netWorth'), icon: 'scales' },
+        { href: '/investments', label: t('nav.investments'), icon: 'chart-line-up', desktopOnly: true },
+      ],
+    },
   ]);
-  const secondary = $derived([
+  const secondary = $derived<NavItem[]>([
+    { href: '/imports', label: t('nav.imports'), icon: 'upload-simple' },
     { href: '/accounts', label: t('nav.accounts'), icon: 'bank' },
     { href: '/categories', label: t('nav.categories'), icon: 'tag' },
     { href: '/settings', label: t('nav.settings'), icon: 'gear' },
   ]);
   const destinations = $derived(
-    [...nav, ...secondary].map((n) => ({ id: n.href, label: n.label, icon: n.icon, href: n.href })),
+    [...groups.flatMap((g) => g.items), ...secondary].map((n) => ({
+      id: n.href,
+      label: n.label,
+      icon: n.icon,
+      href: n.href,
+    })),
   );
   const actions = $derived([
     { id: 'upload', label: t('palette.upload'), icon: 'upload-simple', href: '/imports' },
@@ -186,22 +217,28 @@
       <span>{t('nav.search')}</span>
       <kbd>⌘K</kbd>
     </button>
-    <ul>
-      {#each nav as item (item.href)}
-        <li>
-          <a
-            href={item.href}
-            class:active={isActive(item)}
-            aria-current={isActive(item) ? 'page' : undefined}
-            title={compact ? item.label : undefined}
-          >
-            <Icon name={item.icon} size={20} weight={isActive(item) ? 'fill' : 'regular'} />
-            <span class="label">{item.label}</span>
-            {#if item.badge}<span class="badge num">{item.badge}</span>{/if}
-          </a>
-        </li>
+    <div class="groups">
+      {#each groups as group (group.key)}
+        {#if group.label}<p class="group-label" aria-hidden="true">{group.label}</p>{/if}
+        <ul aria-label={group.label}>
+          {#each group.items as item (item.href)}
+            <li class:desktop-only={item.desktopOnly}>
+              <a
+                href={item.href}
+                class:active={isActive(item)}
+                aria-current={isActive(item) ? 'page' : undefined}
+                title={compact ? item.label : undefined}
+              >
+                <Icon name={item.icon} size={20} weight={isActive(item) ? 'fill' : 'regular'} />
+                <span class="label">{item.label}</span>
+                {#if item.badge}<span class="badge num">{item.badge}</span>{/if}
+              </a>
+            </li>
+          {/each}
+        </ul>
       {/each}
-    </ul>
+    </div>
+    <p class="group-label secondary-label" aria-hidden="true">{t('nav.group.manage')}</p>
     <ul class="secondary">
       {#each secondary as item (item.href)}
         <li>
@@ -417,8 +454,27 @@
     display: grid;
     gap: 2px;
   }
-  .secondary {
+  .groups {
+    display: grid;
+    gap: 2px;
+  }
+  .group-label {
+    margin: 12px 0 2px;
+    padding: 0 12px;
+    font-size: var(--text-micro);
+    font-weight: 650;
+    color: var(--ink-faint);
+  }
+  .secondary-label {
     margin-top: auto;
+  }
+  .rail.compact .group-label {
+    height: 1px;
+    margin: 8px 6px;
+    padding: 0;
+    overflow: hidden;
+    color: transparent;
+    background: var(--line);
   }
   li a,
   li button {
@@ -497,12 +553,19 @@
     }
     .brand,
     .search,
-    .secondary {
+    .secondary,
+    .group-label {
       display: none;
     }
-    .rail ul {
+    .groups {
       grid-auto-flow: column;
       width: 100%;
+    }
+    .groups ul {
+      display: contents;
+    }
+    .desktop-only {
+      display: none;
     }
     li a.active::before {
       left: 30%;

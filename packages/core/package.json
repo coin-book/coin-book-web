@@ -19,7 +19,9 @@
     "./types": "./src/types.ts",
     "./colors": "./src/colors.ts",
     "./learning": "./src/learning.ts",
-    "./legacy-url": "./src/legacy-url.ts"
+    "./legacy-url": "./src/legacy-url.ts",
+    "./loan": "./src/loan.ts",
+    "./networth": "./src/networth.ts"
   },
   "devDependencies": {
     "svelte": "^5.57.1",

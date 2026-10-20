@@ -2,6 +2,7 @@
   import { api } from '@coin-book/core/api';
   import { errorText } from '@coin-book/core/errors';
   import { t } from '@coin-book/core/i18n';
+  import { formatWhole } from '@coin-book/core/money';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
   import type { Transaction } from '@coin-book/core/types';
@@ -59,6 +60,19 @@
     }
   }
 
+  async function unmarkLoanPayment() {
+    busy = true;
+    try {
+      await api.delete(`/transactions/${tx.id}/loan-payment`);
+      toasts.show(t('loanPayment.undone'), 'success');
+      await refreshed();
+    } catch (e) {
+      toasts.show(errorText(e), 'error');
+    } finally {
+      busy = false;
+    }
+  }
+
   async function undo() {
     busy = true;
     try {
@@ -73,7 +87,21 @@
   }
 </script>
 
-{#if tx.transfer}
+{#if tx.loan_payment}
+  {@const loan = tx.loan_payment}
+  <div class="loan" data-testid="loan-payment-mark">
+    <a href="/net-worth/{loan.account_id}"
+      >{t('loanPayment.label', { account: taxonomy.accountsById.get(loan.account_id)?.name ?? '' })}</a
+    >
+    <span
+      >{t('loanPayment.split', {
+        interest: formatWhole(loan.interest_minor, tx.amount.currency),
+        principal: formatWhole(loan.principal_minor, tx.amount.currency),
+      })}</span
+    >
+    <Button variant="ghost" icon="x" {busy} onclick={unmarkLoanPayment}>{t('loan.unmark')}</Button>
+  </div>
+{:else if tx.transfer}
   <Button variant="ghost" icon="x" {busy} onclick={undo}>{t('ownTransfer.undo')}</Button>
 {:else if !open}
   <Button variant="ghost" icon="arrows-left-right" onclick={start}>{t('ownTransfer.action')}</Button>
@@ -105,6 +133,19 @@
 {/if}
 
 <style>
+  .loan {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    font-size: var(--text-micro);
+    color: var(--ink-soft);
+  }
+  .loan a {
+    font-weight: 650;
+    color: var(--brand);
+    text-decoration: none;
+  }
   .form {
     display: grid;
     gap: 10px;

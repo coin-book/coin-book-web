@@ -26,8 +26,12 @@ async function takePictures(page: Page, scheme: (typeof schemes)[number]) {
 
   await signIn(page);
 
-  await page.getByTestId('net-worth').waitFor();
+  await page.getByTestId('attention').waitFor();
   await shot('overview');
+
+  await page.goto('/cashflow');
+  await page.getByTestId('flows-panel').waitFor();
+  await shot('cashflow');
 
   await page.goto('/triage');
   await page.getByTestId('triage-card').waitFor();
@@ -37,6 +41,14 @@ async function takePictures(page: Page, scheme: (typeof schemes)[number]) {
   await page.getByRole('link', { name: 'Rozpočet', exact: true }).first().click();
   await expect(page).toHaveURL(/\/budget\/\d{4}-\d{2}/);
   await shot('budget');
+
+  await page.goto('/net-worth');
+  await page.getByTestId('net-worth-accounts').waitFor();
+  await shot('netWorth');
+
+  await page.getByRole('link', { name: 'Hypotéka', exact: true }).click();
+  await page.getByTestId('loan-kpis').waitFor();
+  await shot('mortgage');
 
   await page.goto('/investments');
   await page.getByTestId('position').first().waitFor();

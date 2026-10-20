@@ -22,7 +22,7 @@ const cs: ErrorMessages = {
   unknown_scope: 'Neznámé oprávnění tokenu.',
   token_ttl_too_long: 'Token může platit nejvýš rok.',
   unsupported_format:
-    'Tento soubor neumím přečíst. Podporuji CSV z mBank CZ a Air Bank, slovenský konsolidovaný výpis Revolut, ABO (GPC) a coin-book CSV; jiné CSV načtete přes mapování sloupců.',
+    'Tento soubor neumím přečíst. Podporuji CSV z mBank CZ a Air Bank, slovenský konsolidovaný výpis Revolut, export investic Fingood (XLSX), historii transakcí Portu, ABO (GPC) a coin-book CSV; jiné CSV načtete přes mapování sloupců.',
   layout_invalid: 'Mapování není úplné: potřebuje datum, částku (nebo příjem a výdaj), popis a měnu.',
   layout_mismatch:
     'Soubor neodpovídá mapování: u některého řádku nejde přečíst datum nebo částku. Zkontrolujte sloupce a formát data.',
@@ -39,9 +39,18 @@ const cs: ErrorMessages = {
   invalid_currency: 'Neznámá měna.',
   invalid_cursor: 'Stránkování se rozbilo. Načtěte stránku znovu.',
   invalid_symbol: 'Tohle není platný symbol Yahoo Finance.',
+  not_valued_by_hand: 'Hodnota tohoto účtu se počítá z transakcí nebo tržních cen, ručně se nezadává.',
+  not_a_loan: 'Účet není hypotéka ani úvěr.',
+  no_loan_terms: 'Úvěr zatím nemá zadané podmínky.',
+  not_a_loan_payment:
+    'Tahle transakce nemůže být splátkou úvěru: musí to být odchozí platba v měně úvěru z jiného účtu, ne součást převodu.',
+  loan_split_mismatch: 'Úrok a jistina dohromady nedávají částku platby.',
   mapping_required: 'Soubor neuvádí účet. Vyberte, kam transakce patří.',
   currency_mismatch: 'Účty mají různou měnu.',
   merge_into_itself: 'Účet nejde sloučit sám se sebou.',
+  valuation_mismatch:
+    'Sloučit jde jen účty oceňované stejně: bankovní s bankovními, majetek s majetkem, úvěry s úvěry.',
+  reserve_exists: 'Hypotéka už rezervu má.',
   account_exists: 'Účet s tímto číslem už existuje.',
   invalid_parent: 'Podkategorie musí patřit pod hlavní kategorii.',
   invalid_merge: 'Kategorii nejde přesunout do sebe ani do své podkategorie.',
@@ -70,7 +79,7 @@ const sk: ErrorMessages = {
   unknown_scope: 'Neznáme oprávnenie tokenu.',
   token_ttl_too_long: 'Token môže platiť najviac rok.',
   unsupported_format:
-    'Tento súbor neviem prečítať. Podporujem CSV z mBank CZ a Air Bank, slovenský konsolidovaný výpis Revolut, ABO (GPC) a coin-book CSV; iné CSV načítate cez mapovanie stĺpcov.',
+    'Tento súbor neviem prečítať. Podporujem CSV z mBank CZ a Air Bank, slovenský konsolidovaný výpis Revolut, export investícií Fingood (XLSX), históriu transakcií Portu, ABO (GPC) a coin-book CSV; iné CSV načítate cez mapovanie stĺpcov.',
   layout_invalid: 'Mapovanie nie je úplné: potrebuje dátum, sumu (alebo príjem a výdavok), popis a menu.',
   layout_mismatch:
     'Súbor nezodpovedá mapovaniu: pri niektorom riadku nejde prečítať dátum alebo sumu. Skontrolujte stĺpce a formát dátumu.',
@@ -87,9 +96,18 @@ const sk: ErrorMessages = {
   invalid_currency: 'Neznáma mena.',
   invalid_cursor: 'Stránkovanie sa pokazilo. Načítajte stránku znova.',
   invalid_symbol: 'Toto nie je platný symbol Yahoo Finance.',
+  not_valued_by_hand: 'Hodnota tohto účtu sa počíta z transakcií alebo trhových cien, ručne sa nezadáva.',
+  not_a_loan: 'Účet nie je hypotéka ani úver.',
+  no_loan_terms: 'Úver zatiaľ nemá zadané podmienky.',
+  not_a_loan_payment:
+    'Táto transakcia nemôže byť splátkou úveru: musí to byť odchádzajúca platba v mene úveru z iného účtu, nie súčasť prevodu.',
+  loan_split_mismatch: 'Úrok a istina spolu nedávajú sumu platby.',
   mapping_required: 'Súbor neuvádza účet. Vyberte, kam transakcie patria.',
   currency_mismatch: 'Účty majú rôznu menu.',
   merge_into_itself: 'Účet nie je možné zlúčiť so sebou samým.',
+  valuation_mismatch:
+    'Zlúčiť možno len účty oceňované rovnako: bankové s bankovými, majetok s majetkom, úvery s úvermi.',
+  reserve_exists: 'Hypotéka už rezervu má.',
   account_exists: 'Účet s týmto číslom už existuje.',
   invalid_parent: 'Podkategória musí patriť pod hlavnú kategóriu.',
   invalid_merge: 'Kategóriu nejde presunúť do seba ani do svojej podkategórie.',
@@ -118,7 +136,7 @@ const en: ErrorMessages = {
   unknown_scope: 'Unknown token permission.',
   token_ttl_too_long: 'A token can be valid for a year at most.',
   unsupported_format:
-    'I can’t read this file. I support mBank CZ and Air Bank CSV, the Slovak Revolut consolidated statement, ABO (GPC) and coin-book CSV; read any other CSV through the column mapping.',
+    'I can’t read this file. I support mBank CZ and Air Bank CSV, the Slovak Revolut consolidated statement, the Fingood investments export (XLSX), the Portu transaction history, ABO (GPC) and coin-book CSV; read any other CSV through the column mapping.',
   layout_invalid:
     'The mapping is incomplete: it needs a date, an amount (or money in and out), a description and a currency.',
   layout_mismatch:
@@ -136,9 +154,19 @@ const en: ErrorMessages = {
   invalid_currency: 'Unknown currency.',
   invalid_cursor: 'Paging broke. Reload the page.',
   invalid_symbol: 'That isn’t a valid Yahoo Finance symbol.',
+  not_valued_by_hand:
+    'This account’s value comes from its transactions or market prices; it isn’t entered by hand.',
+  not_a_loan: 'The account isn’t a mortgage or a loan.',
+  no_loan_terms: 'The loan has no terms yet.',
+  not_a_loan_payment:
+    'This transaction can’t pay the loan: it must be an outgoing payment in the loan’s currency from another account, not part of a transfer.',
+  loan_split_mismatch: 'Interest and principal don’t add up to the payment.',
   mapping_required: 'The file names no account. Choose where the transactions belong.',
   currency_mismatch: 'The accounts hold different currencies.',
   merge_into_itself: 'An account can’t be merged into itself.',
+  valuation_mismatch:
+    'Only accounts valued the same way can be merged: bank accounts with bank accounts, assets with assets, loans with loans.',
+  reserve_exists: 'The mortgage already has a reserve.',
   account_exists: 'An account with this number already exists.',
   invalid_parent: 'A subcategory has to belong under a main category.',
   invalid_merge: 'A category can’t be moved into itself or its own subcategory.',

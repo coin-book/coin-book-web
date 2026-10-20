@@ -15,8 +15,11 @@
   // them whenever the screens change.
   const features: { key: string; icon: string }[] = [
     { key: 'overview', icon: 'squares-four' },
+    { key: 'cashflow', icon: 'coins' },
     { key: 'triage', icon: 'tray' },
     { key: 'budget', icon: 'target' },
+    { key: 'netWorth', icon: 'scales' },
+    { key: 'mortgage', icon: 'house' },
     { key: 'investments', icon: 'chart-line-up' },
     { key: 'instrument', icon: 'chart-line-up' },
     { key: 'imports', icon: 'upload-simple' },

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { page } from '$app/state';
   import { api } from '@coin-book/core/api';
   import { auth } from '@coin-book/core/auth';
   import { shortDate } from '@coin-book/core/dates';
@@ -8,7 +9,13 @@
   import { parseMinor } from '@coin-book/core/money';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
-  import type { Account, AccountAlias, OwnAccountCandidate } from '@coin-book/core/types';
+  import type {
+    Account,
+    AccountAlias,
+    AccountValue,
+    NetWorth,
+    OwnAccountCandidate,
+  } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
@@ -16,10 +23,36 @@
   import BankSelect from '$lib/BankSelect.svelte';
   import { queue } from '$lib/queue.svelte';
 
-  const kinds = ['current', 'savings', 'pocket', 'fund', 'broker', 'cash', 'card'] as const;
+  const kindGroups = [
+    { key: 'money', kinds: ['current', 'savings', 'pocket', 'fund', 'broker', 'cash', 'card'] },
+    { key: 'assets', kinds: ['property', 'pension', 'p2p', 'other_asset'] },
+    { key: 'debts', kinds: ['mortgage', 'loan'] },
+  ] as const;
+  const kinds = kindGroups.flatMap((g) => g.kinds);
   type Kind = (typeof kinds)[number];
+  /** Kinds valued by hand or by a schedule (ADR 211): their ledger balance says nothing. */
+  const valuedElsewhere = new Set<string>([
+    'property',
+    'pension',
+    'p2p',
+    'other_asset',
+    'mortgage',
+    'loan',
+    'loan_reserve',
+  ]);
   const currencies = ['CZK', 'EUR', 'USD', 'PLN', 'GBP'];
-  const kindIcon: Record<string, string> = { cash: 'piggy-bank', card: 'receipt', fund: 'piggy-bank' };
+  const kindIcon: Record<string, string> = {
+    cash: 'piggy-bank',
+    card: 'receipt',
+    fund: 'piggy-bank',
+    pension: 'piggy-bank',
+    property: 'house',
+    mortgage: 'house',
+    p2p: 'hand-coins',
+    other_asset: 'vault',
+    loan: 'coins',
+    loan_reserve: 'piggy-bank',
+  };
 
   let editing = $state<string | null>(null);
   let merging = $state<string | null>(null);
@@ -45,7 +78,13 @@
   let newBank = $state('');
 
   onMount(() => {
+    const preset = page.url.searchParams.get('new');
+    if (preset && (kinds as readonly string[]).includes(preset)) {
+      newKind = preset as Kind;
+      creating = true;
+    }
     void taxonomy.reloadAccounts();
+    void loadValues();
     void loadAliases();
     void loadCandidates();
   });
@@ -92,10 +131,47 @@
     aliases = (await api.get<{ aliases: AccountAlias[] }>('/account-aliases')).aliases;
   }
 
+  let netWorth = $state<NetWorth | null>(null);
+
+  // The values only enrich the list; without them it still lists and edits the accounts.
+  async function loadValues() {
+    try {
+      netWorth = await api.get<NetWorth>('/reports/net-worth');
+    } catch {
+      netWorth = null;
+    }
+  }
+
+  const valueById = $derived(
+    new Map<string, AccountValue>(netWorth?.accounts.map((v) => [v.account_id, v]) ?? []),
+  );
+
+  function groupOf(kind: string) {
+    return kindGroups.find((g) => (g.kinds as readonly string[]).includes(kind))?.key ?? 'money';
+  }
+
+  const sections = $derived(
+    kindGroups
+      .map((g) => {
+        const accounts = taxonomy.accounts.filter((a) => groupOf(a.kind) === g.key);
+        const totalMinor = accounts.reduce(
+          (sum, a) => sum + Math.abs(valueById.get(a.id)?.value_czk?.minor ?? 0),
+          0,
+        );
+        return { key: g.key, accounts, totalMinor };
+      })
+      .filter((g) => g.accounts.length > 0),
+  );
+
+  function shownValue(v: AccountValue) {
+    return { ...v.value, minor: Math.abs(v.value.minor) };
+  }
+
   const totals = $derived.by(() => {
     const byCurrency = new Map<string, number>();
     for (const a of taxonomy.accounts) {
-      if (!a.archived) byCurrency.set(a.currency, (byCurrency.get(a.currency) ?? 0) + a.balance.minor);
+      if (!a.archived && !valuedElsewhere.has(a.kind))
+        byCurrency.set(a.currency, (byCurrency.get(a.currency) ?? 0) + a.balance.minor);
     }
     return [...byCurrency].map(([currency, minor]) => ({ currency, minor }));
   });
@@ -144,11 +220,12 @@
     try {
       await api.patch(`/accounts/${a.id}`, {
         name: name.trim(),
-        kind,
+        // A reserve stays one: it is made only on its mortgage's page.
+        kind: a.kind === 'loan_reserve' ? undefined : kind,
         opening_balance_minor: openingMinor,
         bank_id: bankId,
       });
-      await taxonomy.reloadAccounts();
+      await Promise.all([taxonomy.reloadAccounts(), loadValues()]);
       editing = null;
       toasts.show(t('accounts.saved'), 'success');
     } catch (e) {
@@ -172,7 +249,7 @@
         bank_id: newBank || undefined,
         opening_balance_minor: openingMinor,
       });
-      await Promise.all([taxonomy.reloadAccounts(), loadCandidates(), queue.refresh()]);
+      await Promise.all([taxonomy.reloadAccounts(), loadValues(), loadCandidates(), queue.refresh()]);
       creating = false;
       newName = newNumber = newOpening = newBank = '';
       toasts.show(t('accounts.created'), 'success');
@@ -187,7 +264,7 @@
     if (!confirm(t('accounts.mergeConfirm', { source: source.name, target: target.name }))) return;
     try {
       const res = await api.post<{ moved: number }>(`/accounts/${source.id}/merge`, { target_id: target.id });
-      await Promise.all([taxonomy.reloadAccounts(), loadAliases(), queue.refresh()]);
+      await Promise.all([taxonomy.reloadAccounts(), loadValues(), loadAliases(), queue.refresh()]);
       merging = null;
       toasts.show(t('accounts.merged', { count: res.moved }), 'success');
     } catch (e) {
@@ -224,7 +301,11 @@
     <label class="field">
       <span>{t('accounts.kind')}</span>
       <select bind:value={newKind}>
-        {#each kinds as k (k)}<option value={k}>{t(`accounts.kind.${k}`)}</option>{/each}
+        {#each kindGroups as group (group.key)}
+          <optgroup label={t(`accounts.kindGroup.${group.key}`)}>
+            {#each group.kinds as k (k)}<option value={k}>{t(`accounts.kind.${k}`)}</option>{/each}
+          </optgroup>
+        {/each}
       </select>
     </label>
     <label class="field">
@@ -290,109 +371,158 @@
   </EmptyState>
 {:else if taxonomy.accounts.length > 0}
   <section class="totals">
-    <span class="label">{t('accounts.netWorth')}</span>
-    <div class="amounts">
-      {#each totals as total (total.currency)}
-        <MoneyAmount amount={total} size="lg" />
-      {/each}
-    </div>
+    {#if netWorth}
+      <dl class="amounts">
+        {#each sections as section (section.key)}
+          <div>
+            <dt class="label">{t(`accounts.kindGroup.${section.key}`)}</dt>
+            <dd><MoneyAmount amount={{ minor: section.totalMinor, currency: 'CZK' }} size="lg" whole /></dd>
+          </div>
+        {/each}
+        <div class="net">
+          <dt class="label">{t('netWorth.total')}</dt>
+          <dd>
+            <a href="/net-worth"><MoneyAmount amount={netWorth.total_czk} size="lg" whole /></a>
+          </dd>
+        </div>
+      </dl>
+    {:else}
+      <span class="label">{t('accounts.netWorth')}</span>
+      <div class="amounts">
+        {#each totals as total (total.currency)}
+          <MoneyAmount amount={total} size="lg" />
+        {/each}
+      </div>
+    {/if}
   </section>
 
-  <ul class="accounts">
-    {#each taxonomy.accounts as a (a.id)}
-      <li class="panel" data-testid="account-card">
-        <span class="inst inst-{a.institution} kind-{a.kind}" aria-hidden="true">
-          <Icon name={kindIcon[a.kind] ?? 'bank'} size={22} weight="duotone" />
-        </span>
-        <div class="info">
-          <strong>{a.name}</strong>
-          <span class="meta">
-            {#if a.bank_id}<span class="bank">{taxonomy.bankName(a.bank_id)}</span>{/if}
-            <span>{t(`accounts.kind.${a.kind as Kind}`)}</span>
-            {#if a.account_number}<span class="num">{a.account_number}</span>{/if}
-            {#if a.last_booked_on}
-              <span
-                >{t('accounts.transactions', {
-                  count: a.transaction_count,
-                  date: shortDate(a.last_booked_on),
-                })}</span
-              >
-            {/if}
-          </span>
-        </div>
-        <MoneyAmount amount={a.balance} size="lg" />
-        <div class="row-actions">
-          <Button variant="ghost" onclick={() => edit(a)}>{t('accounts.rename')}</Button>
-          <Button variant="ghost" icon="git-merge" onclick={() => startMerge(a)}>{t('accounts.merge')}</Button
-          >
-        </div>
-
-        {#if editing === a.id}
-          <form
-            class="drawer"
-            onsubmit={(e) => {
-              e.preventDefault();
-              void save(a);
-            }}
-          >
-            <label class="field grow">
-              <span>{t('accounts.name')}</span>
-              <input bind:value={name} required maxlength="100" />
-            </label>
-            <label class="field">
-              <span>{t('accounts.kind')}</span>
-              <select bind:value={kind}>
-                {#each kinds as k (k)}<option value={k}>{t(`accounts.kind.${k}`)}</option>{/each}
-              </select>
-            </label>
-            <label class="field">
-              <span>{t('bank.label')}</span>
-              <BankSelect value={bankId} onchange={(v) => (bankId = v)} />
-            </label>
-            <label class="field">
-              <span>{t('accounts.current')} ({a.currency})</span>
-              <input bind:value={current} inputmode="decimal" oninput={() => currentChanged(a)} />
-            </label>
-            <label class="field">
-              <span>{t('accounts.opening')} ({a.currency})</span>
-              <input bind:value={opening} inputmode="decimal" oninput={() => openingChanged(a)} />
-            </label>
-            <small class="hint">{t('accounts.currentHint')} {t('accounts.openingHint')}</small>
-            <div class="actions">
-              <Button variant="ghost" type="button" onclick={() => (editing = null)}
-                >{t('common.cancel')}</Button
-              >
-              <Button type="submit">{t('accounts.save')}</Button>
+  {#each sections as section (section.key)}
+    <section class="kind-group" data-testid="account-group" data-group={section.key}>
+      <div class="group-head">
+        <h2>{t(`accounts.kindGroup.${section.key}`)}</h2>
+        <span class="quiet">{section.accounts.length}</span>
+      </div>
+      <ul class="accounts">
+        {#each section.accounts as a (a.id)}
+          <li class="panel" data-testid="account-card">
+            <span class="inst inst-{a.institution} kind-{a.kind}" aria-hidden="true">
+              <Icon name={kindIcon[a.kind] ?? 'bank'} size={22} weight="duotone" />
+            </span>
+            <div class="info">
+              <strong>{a.name}</strong>
+              <span class="meta">
+                {#if a.bank_id}<span class="bank">{taxonomy.bankName(a.bank_id)}</span>{/if}
+                <span>{t(`accounts.kind.${a.kind as Kind}`)}</span>
+                {#if a.account_number}<span class="num">{a.account_number}</span>{/if}
+                {#if a.last_booked_on}
+                  <span
+                    >{t('accounts.transactions', {
+                      count: a.transaction_count,
+                      date: shortDate(a.last_booked_on),
+                    })}</span
+                  >
+                {/if}
+              </span>
             </div>
-          </form>
-        {/if}
-
-        {#if merging === a.id}
-          <div class="drawer">
-            {#if mergeCandidates(a).length === 0}
-              <p class="hint">{t('accounts.mergeNone')}</p>
-              <div class="actions">
-                <Button variant="ghost" onclick={() => (merging = null)}>{t('common.close')}</Button>
+            {#if valuedElsewhere.has(a.kind)}
+              {@const v = valueById.get(a.id)}
+              <div class="valued">
+                {#if v && !v.unvalued}<MoneyAmount amount={shownValue(v)} size="lg" whole />{/if}
+                <span class="meta">
+                  {#if v?.unvalued}<span>{t('netWorth.unvalued')}</span>
+                  {:else if v?.valued_on}<span
+                      >{t('netWorth.valuedOn', { date: shortDate(v.valued_on) })}</span
+                    >{/if}
+                  <a class="value-link" href="/net-worth/{a.parent_id ?? a.id}"
+                    >{t('accounts.valueOnNetWorth')}</a
+                  >
+                </span>
               </div>
             {:else}
-              <label class="field grow">
-                <span>{t('accounts.mergeTarget')}</span>
-                <select bind:value={mergeTarget}>
-                  {#each mergeCandidates(a) as o (o.id)}<option value={o.id}>{o.name}</option>{/each}
-                </select>
-              </label>
-              <div class="actions">
-                <Button variant="ghost" onclick={() => (merging = null)}>{t('common.cancel')}</Button>
-                <Button variant="danger" icon="git-merge" onclick={() => merge(a)}
-                  >{t('accounts.mergeTarget')}</Button
-                >
+              <MoneyAmount amount={a.balance} size="lg" />
+            {/if}
+            <div class="row-actions">
+              <Button variant="ghost" onclick={() => edit(a)}>{t('accounts.rename')}</Button>
+              <Button variant="ghost" icon="git-merge" onclick={() => startMerge(a)}
+                >{t('accounts.merge')}</Button
+              >
+            </div>
+
+            {#if editing === a.id}
+              <form
+                class="drawer"
+                onsubmit={(e) => {
+                  e.preventDefault();
+                  void save(a);
+                }}
+              >
+                <label class="field grow">
+                  <span>{t('accounts.name')}</span>
+                  <input bind:value={name} required maxlength="100" />
+                </label>
+                {#if a.kind !== 'loan_reserve'}
+                  <label class="field">
+                    <span>{t('accounts.kind')}</span>
+                    <select bind:value={kind}>
+                      {#each kindGroups as group (group.key)}
+                        <optgroup label={t(`accounts.kindGroup.${group.key}`)}>
+                          {#each group.kinds as k (k)}<option value={k}>{t(`accounts.kind.${k}`)}</option
+                            >{/each}
+                        </optgroup>
+                      {/each}
+                    </select>
+                  </label>
+                {/if}
+                <label class="field">
+                  <span>{t('bank.label')}</span>
+                  <BankSelect value={bankId} onchange={(v) => (bankId = v)} />
+                </label>
+                <label class="field">
+                  <span>{t('accounts.current')} ({a.currency})</span>
+                  <input bind:value={current} inputmode="decimal" oninput={() => currentChanged(a)} />
+                </label>
+                <label class="field">
+                  <span>{t('accounts.opening')} ({a.currency})</span>
+                  <input bind:value={opening} inputmode="decimal" oninput={() => openingChanged(a)} />
+                </label>
+                <small class="hint">{t('accounts.currentHint')} {t('accounts.openingHint')}</small>
+                <div class="actions">
+                  <Button variant="ghost" type="button" onclick={() => (editing = null)}
+                    >{t('common.cancel')}</Button
+                  >
+                  <Button type="submit">{t('accounts.save')}</Button>
+                </div>
+              </form>
+            {/if}
+
+            {#if merging === a.id}
+              <div class="drawer">
+                {#if mergeCandidates(a).length === 0}
+                  <p class="hint">{t('accounts.mergeNone')}</p>
+                  <div class="actions">
+                    <Button variant="ghost" onclick={() => (merging = null)}>{t('common.close')}</Button>
+                  </div>
+                {:else}
+                  <label class="field grow">
+                    <span>{t('accounts.mergeTarget')}</span>
+                    <select bind:value={mergeTarget}>
+                      {#each mergeCandidates(a) as o (o.id)}<option value={o.id}>{o.name}</option>{/each}
+                    </select>
+                  </label>
+                  <div class="actions">
+                    <Button variant="ghost" onclick={() => (merging = null)}>{t('common.cancel')}</Button>
+                    <Button variant="danger" icon="git-merge" onclick={() => merge(a)}
+                      >{t('accounts.mergeTarget')}</Button
+                    >
+                  </div>
+                {/if}
               </div>
             {/if}
-          </div>
-        {/if}
-      </li>
-    {/each}
-  </ul>
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {/each}
 
   {#if aliases.length > 0}
     <section class="panel aliases">
@@ -413,6 +543,15 @@
 {/if}
 
 <style>
+  .value-link {
+    font-weight: 650;
+    color: var(--brand);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .value-link:hover {
+    text-decoration: underline;
+  }
   .head {
     display: flex;
     justify-content: space-between;
@@ -426,6 +565,45 @@
   }
   .totals {
     margin-bottom: 20px;
+  }
+  .totals dl {
+    margin: 0;
+  }
+  .totals dd {
+    margin: 0;
+  }
+  .totals .net a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .totals .net a:hover {
+    text-decoration: underline;
+  }
+  .totals .net {
+    padding-left: 28px;
+    border-left: 1px solid var(--line);
+  }
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 6px 0 10px;
+  }
+  .group-head h2 {
+    margin: 0;
+    font-size: var(--text-body);
+    font-weight: 650;
+    color: var(--ink-soft);
+  }
+  .quiet {
+    color: var(--ink-faint);
+    font-size: var(--text-micro);
+  }
+  .valued {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
   }
   .label {
     display: block;

@@ -1,5 +1,14 @@
 <script lang="ts">
   import type { Component } from 'svelte';
+  import Buildings from 'phosphor-svelte/lib/BuildingsIcon';
+  import Calendar from 'phosphor-svelte/lib/CalendarIcon';
+  import Coins from 'phosphor-svelte/lib/CoinsIcon';
+  import HandCoins from 'phosphor-svelte/lib/HandCoinsIcon';
+  import Percent from 'phosphor-svelte/lib/PercentIcon';
+  import Scales from 'phosphor-svelte/lib/ScalesIcon';
+  import TrendUp from 'phosphor-svelte/lib/TrendUpIcon';
+  import Vault from 'phosphor-svelte/lib/VaultIcon';
+  import Calculator from 'phosphor-svelte/lib/CalculatorIcon';
   import Airplane from 'phosphor-svelte/lib/AirplaneIcon';
   import ArrowDownLeft from 'phosphor-svelte/lib/ArrowDownLeftIcon';
   import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
@@ -73,6 +82,15 @@
 
   // Names are category.icon values: seeded by coin-book-api/db/migration/002_default_taxonomy.up.sql or chosen in CategoryAppearance.
   const icons: Record<string, Component<any>> = {
+    buildings: Buildings,
+    calendar: Calendar,
+    coins: Coins,
+    'hand-coins': HandCoins,
+    percent: Percent,
+    scales: Scales,
+    'trend-up': TrendUp,
+    vault: Vault,
+    calculator: Calculator,
     airplane: Airplane,
     'arrow-down-left': ArrowDownLeft,
     'arrows-clockwise': ArrowsClockwise,

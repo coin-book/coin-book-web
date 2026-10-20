@@ -1,16 +1,17 @@
 # coin-book
 
-> coin-book is a self-hosted personal finance app for a household. It imports bank statements, sorts transactions into categories, tracks a monthly budget and shows investments, including the Czech three-year tax exemption test. It runs on the household's own server (Docker, TrueNAS SCALE); several users share one installation and each sees only their own data.
+> coin-book is a self-hosted personal finance app for a household. It imports bank statements, sorts transactions into categories, tracks a monthly budget, shows investments, including the Czech three-year tax exemption test, and adds everything up into net worth with property, a mortgage, pension savings and P2P loans. It runs on the household's own server (Docker, TrueNAS SCALE); several users share one installation and each sees only their own data.
 
 This file describes the software. Every installation is private: its data is not public and is not served to crawlers.
 
 ## Features
 
-- Import of mBank CZ CSV, Air Bank CSV, the Revolut consolidated statement (Slovak), ABO/GPC from any Czech bank, the coin-book CSV format, and any other bank's CSV through a column mapper whose mappings are kept per bank.
+- Import of mBank CZ CSV, Air Bank CSV, the Revolut consolidated statement (Slovak), the Fingood investments export (XLSX), the Portu transaction history (CSV), ABO/GPC from any Czech bank, the coin-book CSV format, and any other bank's CSV through a column mapper whose mappings are kept per bank.
 - A preview before anything is written, the statement's own control totals, no duplicates on re-import, recognition of the same payments across two formats of one account, and undo of a whole import.
 - Categorisation by rules, by the bank's own categories and by a learned classifier, with a triage queue for the rest.
-- Monthly budget with spending pace, money-flow and category reports, net worth.
-- Investments from the Revolut statement: positions valued at Yahoo Finance prices and ČNB exchange rates, realised gains per year, dividends, the three-year test per lot.
+- Monthly budget with spending pace, money-flow and category reports.
+- Net worth over time: accounts, investments, property and pension valued by hand, P2P loans from Fingood exports with loans at risk and maturities, and mortgages valued by their repayment schedule. Bank instalments split themselves into interest and principal; fixation, extra-payment simulation and tax-deductible interest per year.
+- Investments from the Revolut statement and from Portu (lots matched first in, first out per portfolio, CZK values at Portu's own exchange rates): positions valued at Yahoo Finance prices and ČNB exchange rates, realised gains per year, dividends, the three-year test per lot.
 - Transfers between own accounts are paired and kept out of income and spending.
 - A read-only MCP server lets an AI assistant answer questions about the household's finances with a scoped agent token.
 - Interface in Czech, Slovak and English.
