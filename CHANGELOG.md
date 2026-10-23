@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/coin-book/coin-book-web/compare/v1.3.0...v1.4.0) (2026-10-23)
+
+
+### Features
+
+* **web:** add a purchase missing from the statements by hand ([14fa9eb](https://github.com/coin-book/coin-book-web/commit/14fa9eb7642abaf6028578ea327bdd3ce3483894))
+
 ## [1.3.0](https://github.com/coin-book/coin-book-web/compare/v1.2.0...v1.3.0) (2026-10-20)
 
 
