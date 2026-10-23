@@ -51,6 +51,8 @@ const cs: ErrorMessages = {
   valuation_mismatch:
     'Sloučit jde jen účty oceňované stejně: bankovní s bankovními, majetek s majetkem, úvěry s úvěry.',
   reserve_exists: 'Hypotéka už rezervu má.',
+  not_a_broker: 'Nákup cenných papírů patří k investičnímu účtu.',
+  instrument_currency: 'Nákup musí být v měně, ve které se titul obchodoval.',
   account_exists: 'Účet s tímto číslem už existuje.',
   invalid_parent: 'Podkategorie musí patřit pod hlavní kategorii.',
   invalid_merge: 'Kategorii nejde přesunout do sebe ani do své podkategorie.',
@@ -108,6 +110,8 @@ const sk: ErrorMessages = {
   valuation_mismatch:
     'Zlúčiť možno len účty oceňované rovnako: bankové s bankovými, majetok s majetkom, úvery s úvermi.',
   reserve_exists: 'Hypotéka už rezervu má.',
+  not_a_broker: 'Nákup cenných papierov patrí k investičnému účtu.',
+  instrument_currency: 'Nákup musí byť v mene, v ktorej sa titul obchodoval.',
   account_exists: 'Účet s týmto číslom už existuje.',
   invalid_parent: 'Podkategória musí patriť pod hlavnú kategóriu.',
   invalid_merge: 'Kategóriu nejde presunúť do seba ani do svojej podkategórie.',
@@ -167,6 +171,8 @@ const en: ErrorMessages = {
   valuation_mismatch:
     'Only accounts valued the same way can be merged: bank accounts with bank accounts, assets with assets, loans with loans.',
   reserve_exists: 'The mortgage already has a reserve.',
+  not_a_broker: 'Purchases of securities belong to an investment account.',
+  instrument_currency: 'The purchase must be in the currency the instrument was traded in.',
   account_exists: 'An account with this number already exists.',
   invalid_parent: 'A subcategory has to belong under a main category.',
   invalid_merge: 'A category can’t be moved into itself or its own subcategory.',

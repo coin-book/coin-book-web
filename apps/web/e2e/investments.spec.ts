@@ -55,6 +55,22 @@ test('the demo wealth: portfolio, instrument, net worth, mortgage, Fingood', asy
     await expect(page.getByText('Symbol uložen, ceny se stahují.')).toBeVisible();
   });
 
+  await test.step('a purchase the statements lack, entered by hand and deleted', async () => {
+    await page.getByTestId('trades').getByRole('button', { name: 'Doplnit nákup' }).click();
+    const form = page.getByTestId('manual-buy-form');
+    await form.getByLabel('Datum nákupu').fill('2021-12-21');
+    await form.getByLabel('Počet kusů').fill('1');
+    await form.getByLabel('Cena celkem s poplatky').fill('172');
+    await form.getByRole('button', { name: 'Uložit nákup' }).click();
+    await expect(page.getByText('Nákup uložen')).toBeVisible();
+    await expect(page.getByTestId('open-lot')).toHaveCount(3);
+    const manual = page.getByTestId('trade').and(page.locator('[data-manual="true"]'));
+    await expect(manual).toContainText('zadáno ručně');
+    await manual.getByRole('button', { name: 'Smazat' }).click();
+    await expect(page.getByText('Nákup smazán')).toBeVisible();
+    await expect(page.getByTestId('open-lot')).toHaveCount(2);
+  });
+
   await test.step('the menu groups money and wealth', async () => {
     const wealth = page.getByRole('list', { name: 'Majetek' });
     await expect(wealth.getByRole('link', { name: 'Čisté jmění' })).toBeVisible();

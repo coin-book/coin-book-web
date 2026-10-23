@@ -9,12 +9,13 @@
   import { colorVar } from '@coin-book/core/colors';
   import { formatDecimal, formatGainPercent, formatPrice } from '@coin-book/core/money';
   import { taxonomy } from '@coin-book/core/taxonomy';
-  import type { Portfolio, Position, PriceStatus, Realized } from '@coin-book/core/types';
+  import type { MissingBuy, Portfolio, Position, PriceStatus, Realized } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
   import Sparkline from '@coin-book/ui/Sparkline.svelte';
+  import ManualBuyForm from '$lib/ManualBuyForm.svelte';
 
   const CZK = 'CZK';
   const POLL_MS = 3000;
@@ -65,6 +66,12 @@
   let error = $state('');
   let poll: ReturnType<typeof setTimeout> | undefined;
   let destroyed = false;
+  /** The missing purchase being entered; a reload may reorder the list, so not by index. */
+  let entering = $state<string | null>(null);
+
+  function missingKey(m: MissingBuy) {
+    return `${m.account_id}|${m.isin}|${m.bought_on}`;
+  }
 
   function schedule() {
     clearTimeout(poll);
@@ -345,6 +352,41 @@
             list: portfolio.incomplete_history.map((i) => i.ticker || i.name || i.isin).join(', '),
           })}
         </p>
+        <ul class="missing">
+          {#each portfolio.missing_buys as m (missingKey(m))}
+            {@const instrument = portfolio.incomplete_history.find((x) => x.isin === m.isin)}
+            <li data-testid="missing-buy">
+              <span
+                >{t('investments.manual.missing', {
+                  ticker: instrument?.ticker || instrument?.name || m.isin,
+                  date: shortDate(m.bought_on),
+                  quantity: formatDecimal(m.quantity, 0, 8),
+                })}</span
+              >
+              <Button
+                variant="ghost"
+                icon="plus"
+                aria-expanded={entering === missingKey(m)}
+                onclick={() => (entering = entering === missingKey(m) ? null : missingKey(m))}
+                >{t('investments.manual.add')}</Button
+              >
+              {#if entering === missingKey(m)}
+                <ManualBuyForm
+                  isin={m.isin}
+                  accountId={m.account_id}
+                  boughtOn={m.bought_on}
+                  quantity={m.quantity}
+                  costMinor={m.cost.minor}
+                  currency={m.cost.currency}
+                  onsaved={() => {
+                    entering = null;
+                    void load();
+                  }}
+                />
+              {/if}
+            </li>
+          {/each}
+        </ul>
       </section>
     {/if}
 
@@ -678,6 +720,25 @@
   .notice p {
     margin: 4px 0 0;
     color: var(--ink-soft);
+  }
+  .missing {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .missing li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 12px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+  }
+  .missing li :global(form) {
+    flex-basis: 100%;
   }
   .tabs {
     display: flex;

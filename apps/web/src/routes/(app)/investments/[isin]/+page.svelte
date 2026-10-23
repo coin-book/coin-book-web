@@ -12,6 +12,7 @@
   import Button from '@coin-book/ui/Button.svelte';
   import CandleChart, { type CandleMarker } from '@coin-book/ui/CandleChart.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
+  import ManualBuyForm from '$lib/ManualBuyForm.svelte';
 
   const ranges = [
     { key: '3m', months: 3 },
@@ -30,6 +31,7 @@
   let symbol = $state('');
   let saving = $state(false);
   let error = $state('');
+  let addingBuy = $state(false);
 
   function rangeStart(key: RangeKey, d: InstrumentDetail) {
     const months = ranges.find((r) => r.key === key)?.months;
@@ -65,6 +67,16 @@
       if (request === candlesRequest) candles = list;
     } catch (e) {
       error = errorText(e);
+    }
+  }
+
+  async function deleteBuy(id: string) {
+    try {
+      await api.delete(`/investments/buys/${encodeURIComponent(id)}`);
+      toasts.show(t('investments.manual.deleted'), 'success');
+      await loadDetail(isin, { keepSymbol: true });
+    } catch (e) {
+      toasts.show(errorText(e), 'error');
     }
   }
 
@@ -373,29 +385,55 @@
     </section>
   {/if}
 
-  {#if detail.trades.length > 0}
-    <section class="panel">
+  <section class="panel" data-testid="trades">
+    <div class="panel-head">
       <h2>{t('investments.trades')}</h2>
+      <Button variant="ghost" icon="plus" aria-expanded={addingBuy} onclick={() => (addingBuy = !addingBuy)}
+        >{t('investments.manual.add')}</Button
+      >
+    </div>
+    {#if addingBuy}
+      <ManualBuyForm
+        isin={detail.instrument.isin}
+        currency={detail.instrument.currency}
+        onsaved={() => {
+          addingBuy = false;
+          void loadDetail(isin, { keepSymbol: true });
+        }}
+      />
+    {/if}
+    {#if detail.trades.length > 0}
       <div class="scroll">
         <table>
           <tbody>
             {#each [...detail.trades].reverse() as tr, i (i)}
-              <tr>
+              <tr data-testid="trade" data-manual={tr.manual}>
                 <td>{shortDate(tr.day)}</td>
-                <td>{tr.kind === 'buy' ? t('investments.buy') : t('investments.dividend')}</td>
+                <td>
+                  {tr.kind === 'buy' ? t('investments.buy') : t('investments.dividend')}
+                  {#if tr.manual}<span class="sub">{t('investments.manual.badge')}</span>{/if}
+                </td>
                 <td class="num">{tr.quantity ? formatDecimal(tr.quantity, 0, 8) : ''}</td>
                 <td class="num">
                   <MoneyAmount amount={tr.net} signed={tr.kind === 'dividend'} />
                   {#if tr.net_czk}<span class="sub"><MoneyAmount amount={tr.net_czk} size="sm" whole /></span
                     >{/if}
                 </td>
+                <td class="actions">
+                  {#if tr.manual && tr.id}
+                    {@const id = tr.id}
+                    <Button variant="ghost" icon="trash" onclick={() => deleteBuy(id)}
+                      >{t('investments.manual.delete')}</Button
+                    >
+                  {/if}
+                </td>
               </tr>
             {/each}
           </tbody>
         </table>
       </div>
-    </section>
-  {/if}
+    {/if}
+  </section>
 
   {#if detail.sales.length > 0}
     <section class="panel">

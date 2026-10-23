@@ -554,6 +554,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/investments/buys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enter a purchase no importable statement holds
+         * @description For shares bought before the first statement the broker exports. The instrument must be one the user holds or held; the CZK value uses the ČNB rate of that day.
+         */
+        post: operations["add-manual-buy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investments/buys/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a purchase entered by hand */
+        delete: operations["delete-manual-buy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/investments/instruments/{isin}": {
         parameters: {
             query?: never;
@@ -1985,6 +2022,27 @@ export interface components {
              */
             quantity: string;
         };
+        ManualBuyInputBody: {
+            account_id: string;
+            /** @description ISO 4217. */
+            currency: string;
+            isin: string;
+            /**
+             * Format: int64
+             * @description What the purchase cost with fees, in minor units.
+             */
+            net_minor: number;
+            /**
+             * @description Shares, a decimal.
+             * @example 2
+             */
+            quantity: string;
+            /** Format: date */
+            traded_on: string;
+        };
+        ManualBuyOutputBody: {
+            id: string;
+        };
         MarkOwnInputBody: {
             /** @description The own account the money went to or came from. */
             account_id: string;
@@ -2050,6 +2108,16 @@ export interface components {
              * @description Transactions moved into the target account.
              */
             moved: number;
+        };
+        MissingBuy: {
+            account_id: string;
+            /** Format: date */
+            bought_on: string;
+            /** @description That quantity's cost as the broker reported it in the sale. */
+            cost: components["schemas"]["Amount"];
+            isin: string;
+            /** @description Sold beyond the imported purchases; shares still held from that purchase come on top. */
+            quantity: string;
         };
         MonthTotals: {
             /**
@@ -2233,6 +2301,8 @@ export interface components {
             cost_czk: components["schemas"]["Amount"];
             /** @description Instruments with sales whose purchase was never imported; import older statements. */
             incomplete_history: components["schemas"]["Instrument"][];
+            /** @description Those purchases as far as the sales tell them: what to import or enter by hand. */
+            missing_buys: components["schemas"]["MissingBuy"][];
             positions: components["schemas"]["Position"][];
             prices: components["schemas"]["PriceStatus"];
             /**
@@ -2308,7 +2378,7 @@ export interface components {
              * @description Stable machine-readable error identifier. Branch on this, not on `detail`.
              * @enum {string}
              */
-            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "invalid_symbol" | "layout_invalid" | "layout_mismatch" | "loan_split_mismatch" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "no_loan_terms" | "not_a_loan" | "not_a_loan_payment" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "not_valued_by_hand" | "nothing_to_match" | "password_too_short" | "rate_limited" | "reserve_exists" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed" | "valuation_mismatch";
+            code: "account_exists" | "already_imported" | "already_rolled_back" | "auth_required" | "balance_mismatch" | "category_in_use" | "currency_mismatch" | "duplicate_budget_line" | "email_not_verified" | "email_taken" | "file_too_large" | "forbidden" | "google_sign_in_failed" | "host_not_allowed" | "instrument_currency" | "insufficient_scope" | "internal_error" | "invalid_budget_line" | "invalid_credentials" | "invalid_currency" | "invalid_cursor" | "invalid_merge" | "invalid_parent" | "invalid_request_body" | "invalid_symbol" | "layout_invalid" | "layout_mismatch" | "loan_split_mismatch" | "mapping_required" | "merge_into_itself" | "method_not_allowed" | "no_loan_terms" | "not_a_broker" | "not_a_loan" | "not_a_loan_payment" | "not_found" | "not_own_account" | "not_pairable" | "not_paired" | "not_valued_by_hand" | "nothing_to_match" | "password_too_short" | "rate_limited" | "reserve_exists" | "session_required" | "split_mismatch" | "system_category" | "token_ttl_too_long" | "unknown_bank" | "unknown_scope" | "unsupported_format" | "validation_failed" | "valuation_mismatch";
             /** @description English explanation; localize from code instead of showing this. */
             detail?: string;
             errors?: components["schemas"]["ErrorDetail"][];
@@ -2467,8 +2537,12 @@ export interface components {
             account_id: string;
             /** Format: date */
             day: string;
+            /** @description Buys only. */
+            id?: string;
             /** @enum {string} */
             kind: "buy" | "dividend";
+            /** @description A purchase the user entered; only these can be deleted. */
+            manual: boolean;
             /** @description A buy's cost with fees; a dividend after tax. */
             net: components["schemas"]["Amount"];
             net_czk?: components["schemas"]["Amount"];
@@ -4832,6 +4906,140 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "add-manual-buy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualBuyInputBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualBuyOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "delete-manual-buy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

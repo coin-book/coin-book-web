@@ -443,8 +443,25 @@ export const sk: Record<MessageKey, string> = {
   'investments.refreshFailures': 'Nepodarilo sa stiahnuť: {count}',
   'investments.pricesDisabled': 'Sťahovanie cien je na serveri vypnuté.',
   'investments.incompleteTitle': 'Neúplná história',
+  'investments.manual.add': 'Doplniť nákup',
+  'investments.manual.missing':
+    '{ticker}: z nákupu {date} sa predalo {quantity} ks, ten nákup však nie je v importovaných výpisoch.',
+  'investments.manual.hint':
+    'Predaj prezradí len predané kusy. Ak vám z toho nákupu ešte nejaké zostali, pripočítajte ich.',
+  'investments.manual.duplicateHint':
+    'Keď naimportujete výpis s týmto nákupom, ručný zápis zmažte, inak sa započíta dvakrát.',
+  'investments.manual.account': 'Účet',
+  'investments.manual.date': 'Dátum nákupu',
+  'investments.manual.quantity': 'Počet kusov',
+  'investments.manual.price': 'Cena spolu s poplatkami',
+  'investments.manual.save': 'Uložiť nákup',
+  'investments.manual.saved': 'Nákup uložený',
+  'investments.manual.deleted': 'Nákup zmazaný',
+  'investments.manual.delete': 'Zmazať',
+  'investments.manual.badge': 'zadané ručne',
+  'investments.manual.invalid': 'Zadajte kladný počet kusov (najviac 10 desatinných miest) a cenu.',
   'investments.incompleteLead':
-    'Pri týchto tituloch sú predaje z nákupov, ktoré neboli naimportované: {list}. Naimportujte výpis od založenia účtu.',
+    'Pri týchto tituloch sú predaje z nákupov, ktoré neboli naimportované: {list}. Naimportujte starší výpis alebo nákup doplňte ručne.',
   'investments.positions': 'Pozície',
   'investments.instrument': 'Titul',
   'investments.quantity': 'Kusov',

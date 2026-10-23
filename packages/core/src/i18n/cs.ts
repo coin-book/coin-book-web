@@ -440,8 +440,25 @@ export const cs = {
   'investments.refreshFailures': 'Nepodařilo se stáhnout: {count}',
   'investments.pricesDisabled': 'Stahování cen je na serveru vypnuté.',
   'investments.incompleteTitle': 'Neúplná historie',
+  'investments.manual.add': 'Doplnit nákup',
+  'investments.manual.missing':
+    '{ticker}: z nákupu {date} se prodalo {quantity} ks, ten nákup ale není v importovaných výpisech.',
+  'investments.manual.hint':
+    'Prodej prozradí jen prodané kusy. Pokud vám z toho nákupu ještě nějaké zůstaly, přičtěte je.',
+  'investments.manual.duplicateHint':
+    'Až naimportujete výpis s tímto nákupem, ruční zápis smažte, jinak se započte dvakrát.',
+  'investments.manual.account': 'Účet',
+  'investments.manual.date': 'Datum nákupu',
+  'investments.manual.quantity': 'Počet kusů',
+  'investments.manual.price': 'Cena celkem s poplatky',
+  'investments.manual.save': 'Uložit nákup',
+  'investments.manual.saved': 'Nákup uložen',
+  'investments.manual.deleted': 'Nákup smazán',
+  'investments.manual.delete': 'Smazat',
+  'investments.manual.badge': 'zadáno ručně',
+  'investments.manual.invalid': 'Zadejte kladný počet kusů (nejvýš 10 desetinných míst) a cenu.',
   'investments.incompleteLead':
-    'U těchto titulů jsou prodeje z nákupů, které nebyly naimportované: {list}. Naimportujte výpis od založení účtu.',
+    'U těchto titulů jsou prodeje z nákupů, které nebyly naimportované: {list}. Naimportujte starší výpis, nebo nákup doplňte ručně.',
   'investments.positions': 'Pozice',
   'investments.instrument': 'Titul',
   'investments.quantity': 'Kusů',

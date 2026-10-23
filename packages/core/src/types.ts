@@ -30,6 +30,7 @@ export type Problem = Schemas['Problem'];
 export type Portfolio = Schemas['Portfolio'];
 export type Position = Schemas['Position'];
 export type InstrumentDetail = Schemas['InstrumentDetail'];
+export type MissingBuy = Schemas['MissingBuy'];
 export type YearGains = Schemas['YearGains'];
 export type SoldLot = Schemas['SoldLot'];
 export type PriceStatus = Schemas['PriceStatus'];

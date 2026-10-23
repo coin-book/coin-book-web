@@ -445,8 +445,25 @@ export const en: Record<MessageKey, string> = {
   'investments.refreshFailures': 'Could not fetch: {count}',
   'investments.pricesDisabled': 'Price fetching is turned off on the server.',
   'investments.incompleteTitle': 'Incomplete history',
+  'investments.manual.add': 'Add purchase',
+  'investments.manual.missing':
+    '{ticker}: {quantity} shares bought on {date} were sold, but that purchase is not in the imported statements.',
+  'investments.manual.hint':
+    'A sale only tells of the shares sold. If you still hold some from that purchase, add them.',
+  'investments.manual.duplicateHint':
+    'Once you import a statement with this purchase, delete the entry, or it counts twice.',
+  'investments.manual.account': 'Account',
+  'investments.manual.date': 'Bought on',
+  'investments.manual.quantity': 'Shares',
+  'investments.manual.price': 'Total price with fees',
+  'investments.manual.save': 'Save purchase',
+  'investments.manual.saved': 'Purchase saved',
+  'investments.manual.deleted': 'Purchase deleted',
+  'investments.manual.delete': 'Delete',
+  'investments.manual.badge': 'entered by hand',
+  'investments.manual.invalid': 'Enter a positive number of shares (at most 10 decimals) and a price.',
   'investments.incompleteLead':
-    'These instruments have sales from purchases that were never imported: {list}. Import a statement from when the account was opened.',
+    'These instruments have sales from purchases that were never imported: {list}. Import an older statement or add the purchase by hand.',
   'investments.positions': 'Positions',
   'investments.instrument': 'Instrument',
   'investments.quantity': 'Shares',
