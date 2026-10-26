@@ -57,6 +57,14 @@ export const en: Record<MessageKey, string> = {
   'ownTransfer.undo': 'Not a transfer',
   'ownTransfer.undone': 'The transaction is no longer a transfer',
   'ownTransfer.noAccounts': 'Add a second account first.',
+  'ownTransfer.change': 'Change counterpart',
+  'ownTransfer.pairWith': 'Pair with a movement',
+  'ownTransfer.counterpartsLead': 'Which movement on another own account belongs to it?',
+  'ownTransfer.noCounterparts': 'No movement with the same amount on another account within a week.',
+  'ownTransfer.pairedElsewhere': 'now paired elsewhere',
+  'ownTransfer.repaired': 'Paired with the movement on {account}',
+  'ownTransfer.repairedReleased':
+    'Paired with the movement on {account}; the released movements wait to be filed',
   'ownAccounts.title': 'Own accounts found in statements',
   'ownAccounts.lead':
     'You send money to these accounts as if they were yours. Add them and transfers to them stop counting as spending, older ones included.',
@@ -87,6 +95,7 @@ export const en: Record<MessageKey, string> = {
   'tx.allAccounts': 'All accounts',
   'tx.allCategories': 'All categories',
   'tx.onlyUncategorized': 'Uncategorised only',
+  'tx.onlyTransfers': 'Transfers only',
   'tx.loadMore': 'Load more',
   'tx.empty': 'No transactions match the filter.',
   'tx.uncategorized': 'Uncategorised',

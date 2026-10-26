@@ -24,6 +24,7 @@ export type ImportTemplate = Schemas['ImportTemplate'];
 export type AgentToken = Schemas['AgentToken'];
 export type AuditEntry = Schemas['AuditEntry'];
 export type AmbiguousTransfer = Schemas['AmbiguousTransfer'];
+export type TransferCounterpart = Schemas['TransferCounterpart'];
 export type OwnAccountCandidate = Schemas['OwnAccountCandidate'];
 export type Triage = Schemas['TriageOutputBody'];
 export type Problem = Schemas['Problem'];

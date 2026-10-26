@@ -1198,6 +1198,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transfers/{tx_id}/counterpart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Pair the transaction with another counterpart by hand
+         * @description Any transfer either transaction was part of is undone first.
+         */
+        put: operations["pair-transfer-counterpart"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transfers/{tx_id}/counterparts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Movements that could be the other leg of the transaction's transfer, likeliest first
+         * @description Includes movements already in another transfer; the transaction's current partner is left out.
+         */
+        get: operations["list-transfer-counterparts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transfers/{tx_id}/own": {
         parameters: {
             query?: never;
@@ -1872,6 +1912,9 @@ export interface components {
         ListBanksOutputBody: {
             banks: components["schemas"]["Bank"][];
         };
+        ListCounterpartsOutputBody: {
+            counterparts: components["schemas"]["TransferCounterpart"][];
+        };
         ListImportsOutputBody: {
             imports: components["schemas"]["ImportBatch"][];
         };
@@ -2293,6 +2336,13 @@ export interface components {
             on: string;
             outstanding: components["schemas"]["Amount"];
         };
+        PairCounterpartInputBody: {
+            counterpart_tx_id: string;
+        };
+        PairCounterpartOutputBody: {
+            /** @description Former partners of either leg, no longer part of any transfer. */
+            released: string[];
+        };
         PairTransferInputBody: {
             in_tx_id: string;
             out_tx_id: string;
@@ -2591,6 +2641,11 @@ export interface components {
              * @enum {string}
              */
             matched_by: "auto" | "manual" | "number" | "counterparty" | "operation";
+        };
+        TransferCounterpart: {
+            /** @description One leg names the other's account number as its counterparty: a likelier match. */
+            number_matches: boolean;
+            transaction_id: string;
         };
         TransferFlow: {
             /** @description Positive: put in; negative: taken out. */
@@ -6472,6 +6527,8 @@ export interface operations {
                 uncategorized?: boolean;
                 /** @description Only transactions the classifier categorised, awaiting confirmation. */
                 auto?: boolean;
+                /** @description Only legs of transfers between own accounts. */
+                transfer?: boolean;
                 cursor?: string;
                 limit?: number;
             };
@@ -7134,6 +7191,126 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "pair-transfer-counterpart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tx_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PairCounterpartInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairCounterpartOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    "list-transfer-counterparts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tx_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListCounterpartsOutputBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

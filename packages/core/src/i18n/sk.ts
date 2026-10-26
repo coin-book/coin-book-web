@@ -57,6 +57,14 @@ export const sk: Record<MessageKey, string> = {
   'ownTransfer.undo': 'Nie je to prevod',
   'ownTransfer.undone': 'Transakcia už nie je prevod',
   'ownTransfer.noAccounts': 'Najprv si pridajte druhý účet.',
+  'ownTransfer.change': 'Zmeniť protistranu',
+  'ownTransfer.pairWith': 'Spárovať s platbou',
+  'ownTransfer.counterpartsLead': 'Ktorá platba na inom vlastnom účte k nej patrí?',
+  'ownTransfer.noCounterparts': 'Na inom účte nie je do týždňa platba s rovnakou sumou.',
+  'ownTransfer.pairedElsewhere': 'teraz spárovaná inde',
+  'ownTransfer.repaired': 'Spárované s platbou na účte {account}',
+  'ownTransfer.repairedReleased':
+    'Spárované s platbou na účte {account}; uvoľnené platby čakajú na zaradenie',
   'ownAccounts.title': 'Vlastné účty z výpisov',
   'ownAccounts.lead':
     'Na tieto účty posielate peniaze ako na vlastné. Keď ich pridáte, prevody na ne sa prestanú počítať do výdavkov, aj pri starších transakciách.',
@@ -87,6 +95,7 @@ export const sk: Record<MessageKey, string> = {
   'tx.allAccounts': 'Všetky účty',
   'tx.allCategories': 'Všetky kategórie',
   'tx.onlyUncategorized': 'Len nezaradené',
+  'tx.onlyTransfers': 'Len prevody',
   'tx.loadMore': 'Načítať ďalšie',
   'tx.empty': 'Filtru nezodpovedajú žiadne transakcie.',
   'tx.uncategorized': 'Nezaradené',

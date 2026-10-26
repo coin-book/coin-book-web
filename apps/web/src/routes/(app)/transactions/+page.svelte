@@ -27,6 +27,7 @@
     to: params.get('to') ?? '',
     uncategorized: params.get('uncategorized') === '1',
     auto: params.get('auto') === '1',
+    transfer: params.get('transfer') === '1',
   });
 
   let items = $state<Transaction[]>([]);
@@ -192,6 +193,14 @@
       onchange={(e) => setParam('auto', e.currentTarget.checked ? '1' : '')}
     />
     {t('learn.onlyAuto')}
+  </label>
+  <label class="toggle">
+    <input
+      type="checkbox"
+      checked={filter.transfer}
+      onchange={(e) => setParam('transfer', e.currentTarget.checked ? '1' : '')}
+    />
+    {t('tx.onlyTransfers')}
   </label>
 </div>
 

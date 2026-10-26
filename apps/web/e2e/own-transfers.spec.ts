@@ -27,3 +27,37 @@ test('a payment can be marked as a transfer to an own account and back', async (
   await expect(page.getByText('Transakce už není převod')).toBeVisible();
   await expect(row.getByText(`Převod na ${account}`)).toHaveCount(0);
 });
+
+test('the transfers filter lists only transfers', async ({ page }) => {
+  await page.goto('/transactions?transfer=1');
+  await expect(page.getByLabel('Jen převody')).toBeChecked();
+  const rows = page.getByTestId('transaction-row');
+  await expect(rows.first()).toBeVisible();
+  for (const row of await rows.all()) await expect(row.getByText(/Převod (na|z) /)).toBeVisible();
+});
+
+test('a top-up is paired by hand, moved to another counterpart, and undone', async ({ page }) => {
+  await page.goto('/transactions?q=DOBITI%20REVOLUT');
+  const txId = await page.locator('[data-tx]').last().getAttribute('data-tx');
+  const row = page.getByTestId('transaction-row').filter({ has: page.locator(`[data-tx="${txId}"]`) });
+  const ambiguous = row.locator(`[data-tx="${txId}"]`);
+  const counterparts = row.getByTestId('transfer-counterparts');
+
+  await ambiguous.click();
+  await row.getByRole('button', { name: 'Spárovat s platbou' }).click();
+  await expect(counterparts.getByTestId('transfer-leg')).toHaveCount(2);
+  await counterparts.getByRole('button', { name: 'Spárovat' }).first().click();
+  await expect(page.getByText(/^Spárováno s platbou na účtu [^;]+$/)).toBeVisible();
+  await expect(row.getByText(/Převod na /)).toBeVisible();
+
+  await ambiguous.click();
+  await row.getByRole('button', { name: 'Změnit protistranu' }).click();
+  await expect(counterparts.getByTestId('transfer-leg')).toHaveCount(1);
+  await counterparts.getByRole('button', { name: 'Spárovat' }).click();
+  await expect(page.getByText(/uvolněné platby čekají na zařazení/)).toBeVisible();
+
+  await ambiguous.click();
+  await row.getByRole('button', { name: 'Není to převod' }).click();
+  await expect(page.getByText('Transakce už není převod')).toBeVisible();
+  await expect(row.getByRole('button', { name: 'Spárovat s platbou' })).toBeVisible();
+});

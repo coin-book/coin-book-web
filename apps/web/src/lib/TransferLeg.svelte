@@ -8,7 +8,7 @@
 
   type Props = {
     tx: Transaction;
-    /** The outgoing leg a candidate is compared with; absent on the outgoing leg itself. */
+    /** The leg a candidate is compared with; absent on that leg itself. */
     against?: Transaction;
     /** The bank names this candidate's account as the counterparty. */
     numberMatches?: boolean;

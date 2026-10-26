@@ -8,6 +8,7 @@
   import type { Transaction } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import { queue } from '$lib/queue.svelte';
+  import TransferCounterparts from '$lib/TransferCounterparts.svelte';
 
   type Props = {
     tx: Transaction;
@@ -18,6 +19,7 @@
   let { tx, ondone }: Props = $props();
 
   let open = $state(false);
+  let picking = $state(false);
   let accountId = $state('');
   let remember = $state(true);
   let busy = $state(false);
@@ -33,6 +35,15 @@
     const updated = await api.get<Transaction>(`/transactions/${tx.id}`);
     void queue.refresh();
     ondone(updated, othersChanged);
+  }
+
+  async function paired() {
+    picking = false;
+    try {
+      await refreshed(true);
+    } catch (e) {
+      toasts.show(errorText(e), 'error');
+    }
   }
 
   async function mark() {
@@ -101,10 +112,23 @@
     >
     <Button variant="ghost" icon="x" {busy} onclick={unmarkLoanPayment}>{t('loan.unmark')}</Button>
   </div>
+{:else if picking}
+  <div class="form">
+    <TransferCounterparts {tx} onpaired={paired} />
+    <div class="actions">
+      <Button variant="ghost" type="button" onclick={() => (picking = false)}>{t('common.cancel')}</Button>
+    </div>
+  </div>
 {:else if tx.transfer}
+  <Button variant="ghost" icon="pencil-simple" onclick={() => (picking = true)}
+    >{t('ownTransfer.change')}</Button
+  >
   <Button variant="ghost" icon="x" {busy} onclick={undo}>{t('ownTransfer.undo')}</Button>
 {:else if !open}
-  <Button variant="ghost" icon="arrows-left-right" onclick={start}>{t('ownTransfer.action')}</Button>
+  <Button variant="ghost" icon="arrows-left-right" onclick={() => (picking = true)}
+    >{t('ownTransfer.pairWith')}</Button
+  >
+  <Button variant="ghost" icon="bank" onclick={start}>{t('ownTransfer.action')}</Button>
 {:else}
   <div class="form" data-testid="own-transfer-form">
     {#if targets.length === 0}
