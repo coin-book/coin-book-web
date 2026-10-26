@@ -30,10 +30,20 @@ test('a payment can be marked as a transfer to an own account and back', async (
 
 test('the transfers filter lists only transfers', async ({ page }) => {
   await page.goto('/transactions?transfer=1');
-  await expect(page.getByLabel('Jen převody')).toBeChecked();
+  await expect(page.getByRole('button', { name: 'Druh transakcí: Převody' })).toBeVisible();
   const rows = page.getByTestId('transaction-row');
   await expect(rows.first()).toBeVisible();
   for (const row of await rows.all()) await expect(row.getByText(/Převod (na|z) /)).toBeVisible();
+});
+
+test('the exchanges filter keeps only currency exchanges', async ({ page }) => {
+  await page.goto('/transactions');
+  await page.getByRole('button', { name: 'Druh transakcí: Všechny transakce' }).click();
+  await page.getByLabel('Výměny měn').check();
+  await expect(page).toHaveURL(/operation=exchange/);
+  const rows = page.getByTestId('transaction-row');
+  await expect(rows.or(page.getByText('Žádné transakce neodpovídají filtru.')).first()).toBeVisible();
+  for (const row of await rows.all()) await expect(row.getByText('Výměna měn')).toBeVisible();
 });
 
 test('a top-up is paired by hand, moved to another counterpart, and undone', async ({ page }) => {

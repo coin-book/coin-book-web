@@ -6529,6 +6529,8 @@ export interface operations {
                 auto?: boolean;
                 /** @description Only legs of transfers between own accounts. */
                 transfer?: boolean;
+                /** @description Only transactions of this operation type, such as exchange (a Revolut currency exchange). */
+                operation?: string;
                 cursor?: string;
                 limit?: number;
             };

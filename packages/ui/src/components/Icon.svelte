@@ -21,6 +21,7 @@
   import Briefcase from 'phosphor-svelte/lib/BriefcaseIcon';
   import Bus from 'phosphor-svelte/lib/BusIcon';
   import Car from 'phosphor-svelte/lib/CarIcon';
+  import CaretDown from 'phosphor-svelte/lib/CaretDownIcon';
   import CaretLeft from 'phosphor-svelte/lib/CaretLeftIcon';
   import CaretRight from 'phosphor-svelte/lib/CaretRightIcon';
   import ChartLineUp from 'phosphor-svelte/lib/ChartLineUpIcon';
@@ -103,6 +104,7 @@
     briefcase: Briefcase,
     bus: Bus,
     car: Car,
+    'caret-down': CaretDown,
     'caret-left': CaretLeft,
     'caret-right': CaretRight,
     check: Check,

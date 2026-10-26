@@ -12,6 +12,7 @@
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
+  import MultiSelect from '@coin-book/ui/MultiSelect.svelte';
   import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
   import { categorize, confirmAutomatic } from '$lib/categorize';
   import OwnTransferAction from '$lib/OwnTransferAction.svelte';
@@ -28,7 +29,21 @@
     uncategorized: params.get('uncategorized') === '1',
     auto: params.get('auto') === '1',
     transfer: params.get('transfer') === '1',
+    operation: params.get('operation') ?? '',
   });
+
+  const kindValues: Record<string, string> = {
+    uncategorized: '1',
+    auto: '1',
+    transfer: '1',
+    operation: 'exchange',
+  };
+  const kindOptions = $derived([
+    { value: 'uncategorized', label: t('tx.kind.uncategorized'), checked: filter.uncategorized },
+    { value: 'auto', label: t('tx.kind.auto'), checked: filter.auto },
+    { value: 'transfer', label: t('tx.kind.transfers'), checked: filter.transfer },
+    { value: 'operation', label: t('tx.kind.exchanges'), checked: filter.operation === 'exchange' },
+  ]);
 
   let items = $state<Transaction[]>([]);
   let cursor = $state('');
@@ -178,30 +193,12 @@
         >{/each}
     {/each}
   </select>
-  <label class="toggle">
-    <input
-      type="checkbox"
-      checked={filter.uncategorized}
-      onchange={(e) => setParam('uncategorized', e.currentTarget.checked ? '1' : '')}
-    />
-    {t('tx.onlyUncategorized')}
-  </label>
-  <label class="toggle">
-    <input
-      type="checkbox"
-      checked={filter.auto}
-      onchange={(e) => setParam('auto', e.currentTarget.checked ? '1' : '')}
-    />
-    {t('learn.onlyAuto')}
-  </label>
-  <label class="toggle">
-    <input
-      type="checkbox"
-      checked={filter.transfer}
-      onchange={(e) => setParam('transfer', e.currentTarget.checked ? '1' : '')}
-    />
-    {t('tx.onlyTransfers')}
-  </label>
+  <MultiSelect
+    label={t('tx.kind.label')}
+    placeholder={t('tx.kind.all')}
+    options={kindOptions}
+    ontoggle={(key, checked) => setParam(key, checked ? kindValues[key] : '')}
+  />
 </div>
 
 {#if error}
@@ -288,14 +285,6 @@
     color: var(--ink);
     font: inherit;
     max-width: 220px;
-  }
-  .toggle {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-weight: 600;
-    color: var(--ink-soft);
-    cursor: pointer;
   }
   .list {
     background: var(--surface);
