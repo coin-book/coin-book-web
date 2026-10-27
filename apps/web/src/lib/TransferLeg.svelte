@@ -12,9 +12,10 @@
     against?: Transaction;
     /** The bank names this candidate's account as the counterparty. */
     numberMatches?: boolean;
+    recommended?: boolean;
   };
 
-  let { tx, against, numberMatches = false }: Props = $props();
+  let { tx, against, numberMatches = false, recommended = false }: Props = $props();
 
   const account = $derived(taxonomy.accountsById.get(tx.account_id));
 
@@ -54,6 +55,9 @@
 <div class="leg" data-testid="transfer-leg" data-tx={tx.id}>
   <div class="top">
     <span class="date">{shortDate(tx.booked_on)}</span>
+    {#if recommended}<span class="chip recommended"
+        ><Icon name="star" size={12} weight="fill" /> {t('triage.recommended')}</span
+      >{/if}
     {#if timing}<span class="chip">{timing}</span>{/if}
     {#if against && tx.amount.currency !== against.amount.currency}<span class="chip"
         >{t('triage.otherCurrency')}</span
@@ -107,6 +111,11 @@
   .chip.match {
     background: color-mix(in oklch, var(--brand) 14%, transparent);
     color: var(--brand);
+    font-weight: 650;
+  }
+  .chip.recommended {
+    background: var(--brand);
+    color: var(--canvas);
     font-weight: 650;
   }
   .description {

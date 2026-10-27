@@ -56,6 +56,7 @@ test('a top-up is paired by hand, moved to another counterpart, and undone', asy
   await ambiguous.click();
   await row.getByRole('button', { name: 'Spárovat s platbou' }).click();
   await expect(counterparts.getByTestId('transfer-leg')).toHaveCount(2);
+  await expect(counterparts.getByTestId('transfer-leg').first()).toContainText('doporučená');
   await counterparts.getByRole('button', { name: 'Spárovat' }).first().click();
   await expect(page.getByText(/^Spárováno s platbou na účtu [^;]+$/)).toBeVisible();
   await expect(row.getByText(/Převod na /)).toBeVisible();

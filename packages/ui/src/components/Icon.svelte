@@ -66,6 +66,7 @@
   import SignOut from 'phosphor-svelte/lib/SignOutIcon';
   import Sparkle from 'phosphor-svelte/lib/SparkleIcon';
   import SquaresFour from 'phosphor-svelte/lib/SquaresFourIcon';
+  import Star from 'phosphor-svelte/lib/StarIcon';
   import TShirt from 'phosphor-svelte/lib/TShirtIcon';
   import Tag from 'phosphor-svelte/lib/TagIcon';
   import Target from 'phosphor-svelte/lib/TargetIcon';
@@ -149,6 +150,7 @@
     'sign-out': SignOut,
     sparkle: Sparkle,
     'squares-four': SquaresFour,
+    star: Star,
     't-shirt': TShirt,
     tag: Tag,
     target: Target,

@@ -844,6 +844,7 @@ export const en: Record<MessageKey, string> = {
   'triage.sameDay': 'same day',
   'triage.daysLater': '{days} {daysWord} later',
   'triage.daysEarlier': '{days} {daysWord} earlier',
+  'triage.recommended': 'recommended',
   'triage.numberMatches': 'account number matches',
   'triage.counterpartyAccount': 'Counterparty account',
   'triage.counterparty': 'Counterparty',

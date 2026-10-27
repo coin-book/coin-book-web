@@ -8,6 +8,7 @@
   import { t } from '@coin-book/core/i18n';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
+  import { recommendedCounterpart } from '@coin-book/core/transfers';
   import type { AmbiguousTransfer, Transaction, Triage } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import CategoryIcon from '@coin-book/ui/CategoryIcon.svelte';
@@ -201,6 +202,19 @@
     }
   }
 
+  function recommendedOf(a: AmbiguousTransfer) {
+    const outgoing = ambiguousTx[a.transaction_id];
+    if (!outgoing) return undefined;
+    const candidates = a.candidate_ids
+      .filter((id) => ambiguousTx[id])
+      .map((id) => ({
+        id,
+        bookedOn: ambiguousTx[id].booked_on,
+        numberMatches: a.number_matches.includes(id),
+      }));
+    return recommendedCounterpart(outgoing.booked_on, candidates);
+  }
+
   async function pair(outId: string, inId: string) {
     try {
       await api.post('/transfers', { out_tx_id: outId, in_tx_id: inId });
@@ -232,6 +246,7 @@
       <p class="lead">{t('triage.transfersLead')}</p>
       {#each ambiguous as a (a.transaction_id)}
         {#if ambiguousTx[a.transaction_id]}
+          {@const recommended = recommendedOf(a)}
           <div class="ambiguous" data-testid="ambiguous-transfer" data-tx={a.transaction_id}>
             <h3>{t('triage.outgoing')}</h3>
             <TransferLeg tx={ambiguousTx[a.transaction_id]} />
@@ -244,9 +259,10 @@
                       tx={ambiguousTx[id]}
                       against={ambiguousTx[a.transaction_id]}
                       numberMatches={a.number_matches.includes(id)}
+                      recommended={id === recommended}
                     />
                     <Button
-                      variant="quiet"
+                      variant={id === recommended ? 'primary' : 'quiet'}
                       icon="arrows-left-right"
                       onclick={() => pair(a.transaction_id, id)}
                     >

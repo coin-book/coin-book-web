@@ -840,6 +840,7 @@ export const sk: Record<MessageKey, string> = {
   'triage.sameDay': 'rovnaký deň',
   'triage.daysLater': 'o {days} {daysWord} neskôr',
   'triage.daysEarlier': 'o {days} {daysWord} skôr',
+  'triage.recommended': 'odporúčaná',
   'triage.numberMatches': 'číslo protiúčtu sedí',
   'triage.counterpartyAccount': 'Protiúčet',
   'triage.counterparty': 'Protistrana',

@@ -835,6 +835,7 @@ export const cs = {
   'triage.sameDay': 'stejný den',
   'triage.daysLater': 'o {days} {daysWord} později',
   'triage.daysEarlier': 'o {days} {daysWord} dříve',
+  'triage.recommended': 'doporučená',
   'triage.numberMatches': 'číslo protiúčtu sedí',
   'triage.counterpartyAccount': 'Protiúčet',
   'triage.counterparty': 'Protistrana',

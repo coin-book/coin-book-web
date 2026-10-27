@@ -5,6 +5,7 @@
   import { t } from '@coin-book/core/i18n';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import { toasts } from '@coin-book/core/toast';
+  import { recommendedCounterpart } from '@coin-book/core/transfers';
   import type { Transaction, TransferCounterpart } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import TransferLeg from '$lib/TransferLeg.svelte';
@@ -19,6 +20,17 @@
   let counterparts = $state<TransferCounterpart[] | null>(null);
   let loaded = $state<Record<string, Transaction>>({});
   let pairing = $state('');
+
+  const recommended = $derived(
+    recommendedCounterpart(
+      tx.booked_on,
+      (counterparts ?? []).map((c) => ({
+        id: c.transaction_id,
+        bookedOn: loaded[c.transaction_id].booked_on,
+        numberMatches: c.number_matches,
+      })),
+    ),
+  );
 
   onMount(async () => {
     try {
@@ -64,11 +76,16 @@
       {#each counterparts as c (c.transaction_id)}
         {@const movement = loaded[c.transaction_id]}
         <li>
-          <TransferLeg tx={movement} against={tx} numberMatches={c.number_matches} />
+          <TransferLeg
+            tx={movement}
+            against={tx}
+            numberMatches={c.number_matches}
+            recommended={movement.id === recommended}
+          />
           <div class="pick">
             {#if movement.transfer}<span class="elsewhere">{t('ownTransfer.pairedElsewhere')}</span>{/if}
             <Button
-              variant="quiet"
+              variant={movement.id === recommended ? 'primary' : 'quiet'}
               icon="arrows-left-right"
               busy={pairing === movement.id}
               disabled={!!pairing}

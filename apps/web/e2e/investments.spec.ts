@@ -166,5 +166,7 @@ test('the demo wealth: portfolio, instrument, net worth, mortgage, Fingood', asy
     await expect(ambiguous).toContainText('stejný den');
     await expect(ambiguous).toContainText('o 1 den později');
     await expect(ambiguous.getByTestId('transfer-leg')).toHaveCount(3);
+    await expect(ambiguous.getByText('doporučená')).toHaveCount(1);
+    await expect(ambiguous.getByTestId('transfer-leg').filter({ hasText: 'stejný den' })).toContainText('doporučená');
   });
 });
