@@ -67,6 +67,13 @@
     })),
   });
 
+  // d3-sankey crashes on an empty layer, e.g. a month without income leaves column 0 empty.
+  const layerOfColumn = $derived(
+    new Map(
+      [...new Set(nodes.map((n) => n.column))].sort((a, b) => a - b).map((column, layer) => [column, layer]),
+    ),
+  );
+
   const byKey = $derived(new Map(nodes.map((n) => [n.key, n])));
   const linkHrefs = $derived(new Map(links.map((l) => [l.source + '→' + l.target, l.href])));
 
@@ -144,7 +151,7 @@
         {#snippet marks({ context })}
           <Sankey
             nodeId={(d: SankeyNode) => d.key}
-            nodeAlign={(n) => (n as N).column}
+            nodeAlign={(n) => layerOfColumn.get((n as N).column) ?? 0}
             nodeWidth={NODE_WIDTH}
             nodePadding={NODE_PADDING}
             nodeSort={() => 0}
