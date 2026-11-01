@@ -268,8 +268,8 @@ importers:
         specifier: ^2.20.2
         version: 2.20.2(@internationalized/date@3.12.4)(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5))(svelte@5.57.3)
       layerchart:
-        specifier: 2.8.0
-        version: 2.8.0(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5))(svelte@5.57.3)
+        specifier: ^2.9.2
+        version: 2.9.2(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5))(svelte@5.57.3)
       phosphor-svelte:
         specifier: ^3.1.1
         version: 3.1.1(svelte@5.57.3)(vite@8.3.5)
@@ -748,6 +748,15 @@ packages:
     resolution: {integrity: sha512-AJDdYOdnyRDV5b6ArilzCPPwc1ejkHcoyFarqlPqT7zRYjhavcT3uSrqcMvsgh2CgoPbK3RCwyHaVyxYcP2Arg==}
     engines: {node: '>=12'}
 
+  d3-geo-polygon@2.0.1:
+    resolution: {integrity: sha512-e+CxAgyQLWaitzftCisJ7DUIYhUzSN8VSbDozouKp3bMb6QbRrRLShplpPLYisuyyZLtrdC1+5yAjpiTOne33g==}
+    engines: {node: '>=18'}
+
+  d3-geo-projection@4.0.0:
+    resolution: {integrity: sha512-p0bK60CEzph1iqmnxut7d/1kyTmm3UWtPlwdkM31AU+LW+BXazd5zJdoCn7VFxNCHXRngPHRnsNn5uGjLRGndg==}
+    engines: {node: '>=12'}
+    hasBin: true
+
   d3-geo-voronoi@2.1.0:
     resolution: {integrity: sha512-kqE4yYuOjPbKdBXG0xztCacPwkVSK2REF1opSNrnqqtXJmNcM++UbwQ8SxvwP6IQTj9RvIjjK4qeiVsEfj0Z2Q==}
     engines: {node: '>=12'}
@@ -938,8 +947,8 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  layerchart@2.8.0:
-    resolution: {integrity: sha512-0GgN3gR0tbQEtCXZtBqfi7bC2509jrDCokAgBGLX+2sKLVictdwApYg+NOprPRoMoeBJegSDnoAK+8e4BwpwOQ==}
+  layerchart@2.9.2:
+    resolution: {integrity: sha512-KC2eH8657diyZ8pdSlsgxGMCk61GQslP/wpcfbaGoIgKTnefw3sl7Xl+vrYnhPdSst4IxGGclPTXOeOeCYC6PQ==}
     peerDependencies:
       svelte: ^5.0.0
 
@@ -1826,6 +1835,18 @@ snapshots:
 
   d3-format@3.1.2: {}
 
+  d3-geo-polygon@2.0.1:
+    dependencies:
+      d3-array: 3.2.4
+      d3-geo: 3.1.1
+      d3-geo-projection: 4.0.0
+
+  d3-geo-projection@4.0.0:
+    dependencies:
+      commander: 7.2.0
+      d3-array: 3.2.4
+      d3-geo: 3.1.1
+
   d3-geo-voronoi@2.1.0:
     dependencies:
       d3-array: 3.2.4
@@ -1981,7 +2002,7 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  layerchart@2.8.0(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5))(svelte@5.57.3):
+  layerchart@2.9.2(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5))(svelte@5.57.3):
     dependencies:
       '@dagrejs/dagre': 2.0.4
       '@layerstack/svelte-actions': 1.0.1-next.20
@@ -1997,6 +2018,7 @@ snapshots:
       d3-dsv: 3.0.1
       d3-force: 3.0.0
       d3-geo: 3.1.1
+      d3-geo-polygon: 2.0.1
       d3-geo-voronoi: 2.1.0
       d3-hierarchy: 3.1.2
       d3-interpolate: 3.0.1
