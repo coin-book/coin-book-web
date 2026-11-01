@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/coin-book/coin-book-web/compare/v1.4.0...v1.5.0) (2026-11-01)
+
+
+### Features
+
+* **web:** filter currency exchanges and pick transaction kinds from one multiselect ([222dc22](https://github.com/coin-book/coin-book-web/commit/222dc22620645b7e11b28609644c7bd274e0e309))
+* **web:** fix a wrongly paired transfer by choosing its counterpart, and filter transfers ([34e4ec3](https://github.com/coin-book/coin-book-web/commit/34e4ec368b145f59311f5b4b4316799646032b46))
+* **web:** recommend the likeliest counterpart of a transfer, landing pictures retaken ([f732ce4](https://github.com/coin-book/coin-book-web/commit/f732ce4a9ba24bd102ed74120ba47a170d647fd0))
+
+
+### Bug Fixes
+
+* **ui:** cash flow chart no longer crashes in a month without income ([dac9d1c](https://github.com/coin-book/coin-book-web/commit/dac9d1cccaee8f7a673f528434476da739c8f3d1))
+
 ## [1.4.0](https://github.com/coin-book/coin-book-web/compare/v1.3.0...v1.4.0) (2026-10-23)
 
 
