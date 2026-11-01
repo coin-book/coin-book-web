@@ -8,8 +8,8 @@
   import type { Account, AccountPerformance, AccountValuation, P2PSnapshot } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import P2PLoans from '$lib/P2PLoans.svelte';
-  import ValuationForm from '$lib/ValuationForm.svelte';
+  import P2PLoans from '#lib/P2PLoans.svelte';
+  import ValuationForm from '#lib/ValuationForm.svelte';
 
   let { account }: { account: Account } = $props();
 

@@ -12,10 +12,10 @@
   import CategoryBars, { type CategoryBar } from '@coin-book/ui/CategoryBars.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import BalanceSheet from '$lib/networth/BalanceSheet.svelte';
-  import ChangeBreakdown from '$lib/networth/ChangeBreakdown.svelte';
-  import { emptyDetails, loadAccountDetails, type AccountDetails } from '$lib/networth/details';
-  import NetWorthHero from '$lib/networth/NetWorthHero.svelte';
+  import BalanceSheet from '#lib/networth/BalanceSheet.svelte';
+  import ChangeBreakdown from '#lib/networth/ChangeBreakdown.svelte';
+  import { emptyDetails, loadAccountDetails, type AccountDetails } from '#lib/networth/details.js';
+  import NetWorthHero from '#lib/networth/NetWorthHero.svelte';
 
   const CZK = 'CZK';
   const ranges = [12, 24, 60] as const;
@@ -51,9 +51,9 @@
   });
 
   function setRange(r: number) {
-    const url = new URL(page.url);
+    const url = new URL(page.url.href);
     url.searchParams.set('range', String(r));
-    void goto(url, { replaceState: true, noScroll: true, keepFocus: true });
+    void goto(url, { replace: true, reset: false });
   }
 
   const shown = $derived(history.slice(-range));

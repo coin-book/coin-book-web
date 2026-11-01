@@ -7,8 +7,8 @@
   import { toasts } from '@coin-book/core/toast';
   import type { Transaction } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
-  import { queue } from '$lib/queue.svelte';
-  import TransferCounterparts from '$lib/TransferCounterparts.svelte';
+  import { queue } from '#lib/queue.svelte.js';
+  import TransferCounterparts from '#lib/TransferCounterparts.svelte';
 
   type Props = {
     tx: Transaction;

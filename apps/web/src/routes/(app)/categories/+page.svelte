@@ -10,7 +10,7 @@
   import CategoryChip from '@coin-book/ui/CategoryChip.svelte';
   import CategoryIcon from '@coin-book/ui/CategoryIcon.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
-  import CategoryForm from '$lib/CategoryForm.svelte';
+  import CategoryForm from '#lib/CategoryForm.svelte';
 
   type Editing = { mode: 'new-main' } | { mode: 'edit'; id: string } | { mode: 'new-sub'; parentId: string };
 

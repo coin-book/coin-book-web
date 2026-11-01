@@ -8,8 +8,8 @@
   import { taxonomy } from '@coin-book/core/taxonomy';
   import CommandPalette from '@coin-book/ui/CommandPalette.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
-  import { queue } from '$lib/queue.svelte';
-  import ShortcutsHelp from '$lib/ShortcutsHelp.svelte';
+  import { queue } from '#lib/queue.svelte.js';
+  import ShortcutsHelp from '#lib/ShortcutsHelp.svelte';
 
   let { children } = $props();
 

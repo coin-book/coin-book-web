@@ -17,9 +17,9 @@
   import Button from '@coin-book/ui/Button.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import AccountMapping, { type MappingTarget } from '$lib/AccountMapping.svelte';
-  import ColumnMapper from '$lib/ColumnMapper.svelte';
-  import { queue } from '$lib/queue.svelte';
+  import AccountMapping, { type MappingTarget } from '#lib/AccountMapping.svelte';
+  import ColumnMapper from '#lib/ColumnMapper.svelte';
+  import { queue } from '#lib/queue.svelte.js';
 
   const TEMPLATE =
     'date;amount;currency;description;counterparty;category\n' +

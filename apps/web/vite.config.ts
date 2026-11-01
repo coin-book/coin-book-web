@@ -1,3 +1,4 @@
+import adapter from '@sveltejs/adapter-static';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
@@ -7,7 +8,13 @@ import { defineConfig } from 'vite';
 const API_TARGET = process.env.COINBOOK_API_URL ?? 'http://127.0.0.1:8082';
 
 export default defineConfig({
-  plugins: [sveltekit(), tailwindcss()],
+  plugins: [
+    sveltekit({
+      // The app shell is the fallback; index.html, sk.html and en.html are the prerendered landing pages.
+      adapter: adapter({ fallback: 'app.html', precompress: false }),
+    }),
+    tailwindcss(),
+  ],
   define: {
     __WEB_VERSION__: JSON.stringify(process.env.COINBOOK_WEB_VERSION ?? 'dev'),
     __SITE_URL__: JSON.stringify((process.env.COINBOOK_SITE_URL ?? '').replace(/\/+$/, '')),

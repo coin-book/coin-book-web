@@ -15,7 +15,7 @@
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
   import Sparkline from '@coin-book/ui/Sparkline.svelte';
-  import ManualBuyForm from '$lib/ManualBuyForm.svelte';
+  import ManualBuyForm from '#lib/ManualBuyForm.svelte';
 
   const CZK = 'CZK';
   const POLL_MS = 3000;
@@ -46,17 +46,17 @@
   );
 
   function setParam(name: string, value: string) {
-    const url = new URL(page.url);
+    const url = new URL(page.url.href);
     if (value) url.searchParams.set(name, value);
     else url.searchParams.delete(name);
-    void goto(url, { replaceState: true, noScroll: true, keepFocus: true });
+    void goto(url, { replace: true, reset: false });
   }
 
   function groupBy(g: Grouping) {
-    const url = new URL(page.url);
+    const url = new URL(page.url.href);
     if (g.param) url.searchParams.set('group', g.param);
     else url.searchParams.delete('group');
-    void goto(url, { replaceState: true, noScroll: true, keepFocus: true });
+    void goto(url, { replace: true, reset: false });
   }
 
   let portfolio = $state<Portfolio | null>(null);

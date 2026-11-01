@@ -7,7 +7,7 @@
   import { i18n, t } from '@coin-book/core/i18n';
   import { theme } from '@coin-book/core/theme';
   import Toasts from '@coin-book/ui/Toasts.svelte';
-  import { landingLocale } from '$lib/landing';
+  import { landingLocale } from '#lib/landing.js';
 
   let { children } = $props();
 

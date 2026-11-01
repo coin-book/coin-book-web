@@ -14,8 +14,8 @@
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
   import MultiSelect from '@coin-book/ui/MultiSelect.svelte';
   import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
-  import { categorize, confirmAutomatic } from '$lib/categorize';
-  import OwnTransferAction from '$lib/OwnTransferAction.svelte';
+  import { categorize, confirmAutomatic } from '#lib/categorize.js';
+  import OwnTransferAction from '#lib/OwnTransferAction.svelte';
 
   const PAGE_SIZE = 100;
 
@@ -83,11 +83,11 @@
   }
 
   function setParam(key: string, value: string) {
-    const url = new URL(page.url);
+    const url = new URL(page.url.href);
     if (value) url.searchParams.set(key, value);
     else url.searchParams.delete(key);
     url.searchParams.delete('focus');
-    goto(url, { keepFocus: true, noScroll: true, replaceState: true });
+    goto(url, { replace: true, reset: false });
   }
 
   let searchTimer: ReturnType<typeof setTimeout>;

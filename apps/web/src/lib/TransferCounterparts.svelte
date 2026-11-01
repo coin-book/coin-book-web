@@ -8,7 +8,7 @@
   import { recommendedCounterpart } from '@coin-book/core/transfers';
   import type { Transaction, TransferCounterpart } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
-  import TransferLeg from '$lib/TransferLeg.svelte';
+  import TransferLeg from '#lib/TransferLeg.svelte';
 
   type Props = {
     tx: Transaction;

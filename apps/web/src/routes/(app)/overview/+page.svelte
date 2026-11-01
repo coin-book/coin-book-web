@@ -10,10 +10,10 @@
   import Button from '@coin-book/ui/Button.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import { attentionItems } from '$lib/overview/attention';
-  import WealthSummary from '$lib/overview/WealthSummary.svelte';
-  import { loadWealth, type Wealth } from '$lib/overview/wealth';
-  import { queue } from '$lib/queue.svelte';
+  import { attentionItems } from '#lib/overview/attention.js';
+  import WealthSummary from '#lib/overview/WealthSummary.svelte';
+  import { loadWealth, type Wealth } from '#lib/overview/wealth.js';
+  import { queue } from '#lib/queue.svelte.js';
 
   const CURRENCY = 'CZK';
 

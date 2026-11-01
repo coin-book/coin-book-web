@@ -12,7 +12,7 @@
   import Button from '@coin-book/ui/Button.svelte';
   import CandleChart, { type CandleMarker } from '@coin-book/ui/CandleChart.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import ManualBuyForm from '$lib/ManualBuyForm.svelte';
+  import ManualBuyForm from '#lib/ManualBuyForm.svelte';
 
   const ranges = [
     { key: '3m', months: 3 },

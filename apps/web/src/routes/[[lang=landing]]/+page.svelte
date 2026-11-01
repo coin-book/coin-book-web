@@ -3,7 +3,7 @@
   import { i18n, locales, translate, type Locale, type MessageKey } from '@coin-book/core/i18n';
   import Button from '@coin-book/ui/Button.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
-  import { absolute, indexable, landingPaths, ogLocales } from '$lib/landing';
+  import { absolute, indexable, landingPaths, ogLocales } from '#lib/landing.js';
 
   let { data } = $props();
 

@@ -23,7 +23,7 @@
   import MonthSwitcher from '@coin-book/ui/MonthSwitcher.svelte';
   import Sankey, { type SankeyLink, type SankeyNode } from '@coin-book/ui/Sankey.svelte';
   import TransactionRow from '@coin-book/ui/TransactionRow.svelte';
-  import { categorize, confirmAutomatic } from '$lib/categorize';
+  import { categorize, confirmAutomatic } from '#lib/categorize.js';
 
   const CURRENCY = 'CZK';
   const BURNING_LIMIT = 3;
@@ -72,10 +72,10 @@
   );
 
   function showChart(param: string) {
-    const url = new URL(page.url);
+    const url = new URL(page.url.href);
     if (param) url.searchParams.set('chart', param);
     else url.searchParams.delete('chart');
-    void goto(url, { replaceState: true, noScroll: true, keepFocus: true });
+    void goto(url, { replace: true, reset: false });
   }
 
   /** Change against the month before, from the trend; empty when that month had nothing. */

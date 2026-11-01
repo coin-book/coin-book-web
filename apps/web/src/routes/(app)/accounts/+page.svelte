@@ -20,8 +20,8 @@
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import BankSelect from '$lib/BankSelect.svelte';
-  import { queue } from '$lib/queue.svelte';
+  import BankSelect from '#lib/BankSelect.svelte';
+  import { queue } from '#lib/queue.svelte.js';
 
   const kindGroups = [
     { key: 'money', kinds: ['current', 'savings', 'pocket', 'fund', 'broker', 'cash', 'card'] },

@@ -1,5 +1,5 @@
 import { locales } from '@coin-book/core/i18n';
-import { absolute, indexable, landingPaths } from '$lib/landing';
+import { absolute, indexable, landingPaths } from '#lib/landing.js';
 
 export const prerender = true;
 

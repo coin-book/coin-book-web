@@ -20,7 +20,7 @@
   import AreaChart, { type AreaPoint } from '@coin-book/ui/AreaChart.svelte';
   import Button from '@coin-book/ui/Button.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import ValuationForm from '$lib/ValuationForm.svelte';
+  import ValuationForm from '#lib/ValuationForm.svelte';
 
   let { account }: { account: Account } = $props();
 

@@ -16,10 +16,10 @@
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
   import TransactionDetails from '@coin-book/ui/TransactionDetails.svelte';
-  import { categorize } from '$lib/categorize';
-  import OwnTransferAction from '$lib/OwnTransferAction.svelte';
-  import { queue } from '$lib/queue.svelte';
-  import TransferLeg from '$lib/TransferLeg.svelte';
+  import { categorize } from '#lib/categorize.js';
+  import OwnTransferAction from '#lib/OwnTransferAction.svelte';
+  import { queue } from '#lib/queue.svelte.js';
+  import TransferLeg from '#lib/TransferLeg.svelte';
 
   const QUICK_PICKS = 9;
   const LEAVE_MS = 320;

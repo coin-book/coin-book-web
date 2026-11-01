@@ -1,6 +1,6 @@
 # coin-book-web
 
-SvelteKit 2 / Svelte 5 SPA of coin-book. Spec: `../technicka-specifikace.md` (chapter 9 is the visual language).
+SvelteKit 3 / Svelte 5 SPA of coin-book. Spec: `../technicka-specifikace.md` (chapter 9 is the visual language).
 
 ## Layout
 

@@ -14,7 +14,7 @@
   import type { AccountValue, LoanOverview, NetWorth } from '@coin-book/core/types';
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
-  import ValuationForm from '$lib/ValuationForm.svelte';
+  import ValuationForm from '#lib/ValuationForm.svelte';
   import type { AccountDetails } from './details';
 
   type Props = { summary: NetWorth; details: AccountDetails; onvalued: () => void };

@@ -1,4 +1,4 @@
-import { absolute, indexable, landingPaths } from '$lib/landing';
+import { absolute, indexable, landingPaths } from '#lib/landing.js';
 
 export const prerender = true;
 

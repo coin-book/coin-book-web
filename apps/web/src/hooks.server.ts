@@ -1,4 +1,4 @@
-import { landingLocale } from '$lib/landing';
+import { landingLocale } from '#lib/landing.js';
 
 /** Prerendered landing pages declare their own language; the app shell starts in Czech. */
 export async function handle({ event, resolve }) {

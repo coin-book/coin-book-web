@@ -3,8 +3,8 @@
   import { apiErrorMessage, t, type MessageKey } from '@coin-book/core/i18n';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import Icon from '@coin-book/ui/Icon.svelte';
-  import AssetDetail from '$lib/AssetDetail.svelte';
-  import LoanDetail from '$lib/LoanDetail.svelte';
+  import AssetDetail from '#lib/AssetDetail.svelte';
+  import LoanDetail from '#lib/LoanDetail.svelte';
 
   const loanKinds = new Set(['mortgage', 'loan']);
 
