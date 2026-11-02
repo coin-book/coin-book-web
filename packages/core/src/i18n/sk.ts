@@ -58,6 +58,9 @@ export const sk: Record<MessageKey, string> = {
   'ownTransfer.undone': 'Transakcia už nie je prevod',
   'ownTransfer.noAccounts': 'Najprv si pridajte druhý účet.',
   'ownTransfer.change': 'Zmeniť protistranu',
+  'ownTransfer.otherLeg': 'Druhá strana prevodu',
+  'ownTransfer.otherLegMissing':
+    'Výpis účtu {account} zatiaľ nie je naimportovaný, druhá strana prevodu chýba.',
   'ownTransfer.pairWith': 'Spárovať s platbou',
   'ownTransfer.counterpartsLead': 'Ktorá platba na inom vlastnom účte k nej patrí?',
   'ownTransfer.noCounterparts': 'Na inom účte nie je do týždňa platba s rovnakou sumou.',
@@ -106,6 +109,8 @@ export const sk: Record<MessageKey, string> = {
   'tx.transfer': 'Prevod',
   'tx.transferTo': 'Prevod na {account}',
   'tx.transferFrom': 'Prevod z {account}',
+  'tx.pair': 'Prevod medzi vlastnými účtami',
+  'tx.bookedOn': 'zaúčtované {date}',
   'tx.split': 'Rozdelené',
   'tx.today': 'Dnes',
   'tx.yesterday': 'Včera',

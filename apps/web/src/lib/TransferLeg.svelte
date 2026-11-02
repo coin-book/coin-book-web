@@ -2,6 +2,7 @@
   import { shortDate } from '@coin-book/core/dates';
   import { daysWord, t } from '@coin-book/core/i18n';
   import { taxonomy } from '@coin-book/core/taxonomy';
+  import { impliedRate } from '@coin-book/core/transfers';
   import type { Transaction } from '@coin-book/core/types';
   import Icon from '@coin-book/ui/Icon.svelte';
   import MoneyAmount from '@coin-book/ui/MoneyAmount.svelte';
@@ -60,7 +61,7 @@
       >{/if}
     {#if timing}<span class="chip">{timing}</span>{/if}
     {#if against && tx.amount.currency !== against.amount.currency}<span class="chip"
-        >{t('triage.otherCurrency')}</span
+        >{t('triage.otherCurrency')} · {impliedRate(tx.amount, against.amount)}</span
       >{/if}
     {#if numberMatches}<span class="chip match"
         ><Icon name="check" size={12} weight="bold" /> {t('triage.numberMatches')}</span

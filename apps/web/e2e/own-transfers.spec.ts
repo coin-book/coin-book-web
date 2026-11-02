@@ -28,12 +28,26 @@ test('a payment can be marked as a transfer to an own account and back', async (
   await expect(row.getByText(`Převod na ${account}`)).toHaveCount(0);
 });
 
-test('the transfers filter lists only transfers', async ({ page }) => {
+test('the transfers filter lists only transfers, both legs of a pair together', async ({ page }) => {
   await page.goto('/transactions?transfer=1');
   await expect(page.getByRole('button', { name: 'Druh transakcí: Převody' })).toBeVisible();
   const rows = page.getByTestId('transaction-row');
   await expect(rows.first()).toBeVisible();
   for (const row of await rows.all()) await expect(row.getByText(/Převod (na|z) /)).toBeVisible();
+
+  const pair = page.getByTestId('transfer-pair').first();
+  const legs = pair.getByTestId('transaction-row');
+  await expect(legs).toHaveCount(2);
+  await expect(pair.getByText(/Převod na /)).toHaveCount(1);
+  await expect(pair.getByText(/Převod z /)).toHaveCount(1);
+
+  const leg = legs.first().locator('[data-tx]').first();
+  const ownId = await leg.getAttribute('data-tx');
+  await leg.click();
+  const other = legs.first().getByTestId('transfer-other-leg');
+  await expect(other.getByText('Druhá strana převodu')).toBeVisible();
+  await expect(other.getByTestId('transfer-leg')).toHaveCount(1);
+  await expect(other.getByTestId('transfer-leg')).not.toHaveAttribute('data-tx', ownId!);
 });
 
 test('the exchanges filter keeps only currency exchanges', async ({ page }) => {

@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import { t } from '@coin-book/core/i18n';
   import { usable } from '@coin-book/core/learning';
+  import { formatMoney } from '@coin-book/core/money';
   import { taxonomy } from '@coin-book/core/taxonomy';
   import type { Transaction } from '@coin-book/core/types';
   import CategoryChip from './CategoryChip.svelte';
@@ -18,6 +19,7 @@
     expanded?: boolean;
     pickerOpen?: boolean;
     showAccount?: boolean;
+    note?: string;
     oncategorize?: (tx: Transaction, categoryId: string, saveRule: boolean) => void;
     /** Accepts a category the classifier assigned; without it the row only marks it. */
     onconfirm?: (tx: Transaction) => void;
@@ -32,6 +34,7 @@
     expanded = false,
     pickerOpen = $bindable(false),
     showAccount = true,
+    note,
     oncategorize,
     onconfirm,
     onselect,
@@ -45,6 +48,10 @@
   const counterpart = $derived(
     tx.transfer ? taxonomy.accountsById.get(tx.transfer.counterpart_account_id) : undefined,
   );
+  const convertedAmount = $derived.by(() => {
+    const other = tx.transfer?.counterpart_amount;
+    return other && other.currency !== tx.amount.currency ? other : undefined;
+  });
   const account = $derived(taxonomy.accountsById.get(tx.account_id));
   const title = $derived(tx.counterparty || tx.description);
   // mBank's raw description repeats the counterparty and account numbers; the message or operation says more.
@@ -93,6 +100,7 @@
         {#if subtitle}<span class="desc">{subtitle}</span>{/if}
         {#if counterpartyBank}<span class="account">{counterpartyBank}</span>{/if}
         {#if showAccount && account}<span class="account">{account.name}</span>{/if}
+        {#if note}<span class="account">{note}</span>{/if}
       </div>
     </div>
 
@@ -102,6 +110,9 @@
           {tx.amount.minor < 0
             ? t('tx.transferTo', { account: counterpart?.name ?? '' })
             : t('tx.transferFrom', { account: counterpart?.name ?? '' })}
+          {#if convertedAmount}<span class="converted"
+              >· {formatMoney(convertedAmount, { signed: true })}</span
+            >{/if}
         </span>
       {:else if oncategorize}
         <CategoryPicker bind:open={pickerOpen} {ruleValue} onpick={(id, rule) => oncategorize(tx, id, rule)}>
@@ -285,6 +296,13 @@
     font-size: var(--text-micro);
     font-weight: 600;
     color: var(--transfer);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .converted {
+    font-weight: 500;
+    color: var(--ink-soft);
   }
   .transfer .amount {
     opacity: 0.7;

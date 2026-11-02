@@ -2634,6 +2634,8 @@ export interface components {
         };
         Transfer: {
             counterpart_account_id: string;
+            /** @description What the other leg moved, in its account's currency; absent with counterpart_tx_id. */
+            counterpart_amount?: components["schemas"]["Amount"];
             /** @description Absent while the other account's statement is not imported. */
             counterpart_tx_id?: string;
             /**

@@ -3,10 +3,11 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { api } from '@coin-book/core/api';
-  import { dayLabel, shiftDay, todayISO } from '@coin-book/core/dates';
+  import { dayLabel, shiftDay, shortDate, todayISO } from '@coin-book/core/dates';
   import { errorText } from '@coin-book/core/errors';
   import { categoryName, i18n, t } from '@coin-book/core/i18n';
   import { taxonomy } from '@coin-book/core/taxonomy';
+  import { groupTransferPairs } from '@coin-book/core/transfers';
   import type { Transaction } from '@coin-book/core/types';
   import Button from '@coin-book/ui/Button.svelte';
   import EmptyState from '@coin-book/ui/EmptyState.svelte';
@@ -96,18 +97,25 @@
     searchTimer = setTimeout(() => setParam('q', query.trim()), 250);
   }
 
-  type Day = { day: string; items: { tx: Transaction; index: number }[]; netMinor: number };
+  const groups = $derived(groupTransferPairs(items));
+  const ordered = $derived(groups.flat());
+
+  type Group = { legs: { tx: Transaction; index: number }[] };
+  type Day = { day: string; groups: Group[]; netMinor: number };
   const days = $derived.by(() => {
     const out: Day[] = [];
-    items.forEach((tx, index) => {
+    let index = 0;
+    for (const legs of groups) {
+      const bookedOn = legs[0].booked_on;
       let day = out.at(-1);
-      if (!day || day.day !== tx.booked_on) {
-        day = { day: tx.booked_on, items: [], netMinor: 0 };
+      if (!day || day.day !== bookedOn) {
+        day = { day: bookedOn, groups: [], netMinor: 0 };
         out.push(day);
       }
-      day.items.push({ tx, index });
-      if (!tx.transfer && tx.amount.currency === 'CZK') day.netMinor += tx.amount.minor;
-    });
+      day.groups.push({ legs: legs.map((tx) => ({ tx, index: index++ })) });
+      for (const tx of legs)
+        if (!tx.transfer && tx.amount.currency === 'CZK') day.netMinor += tx.amount.minor;
+    }
     return out;
   });
 
@@ -146,11 +154,11 @@
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || e.metaKey || e.ctrlKey || openPicker) return;
     if (e.key === 'j' || e.key === 'k') {
       e.preventDefault();
-      selected = Math.max(0, Math.min(items.length - 1, selected + (e.key === 'j' ? 1 : -1)));
-      document.querySelector(`[data-tx="${items[selected]?.id}"]`)?.scrollIntoView({ block: 'nearest' });
-    } else if (e.key === 'c' && items[selected] && !items[selected].transfer) {
+      selected = Math.max(0, Math.min(ordered.length - 1, selected + (e.key === 'j' ? 1 : -1)));
+      document.querySelector(`[data-tx="${ordered[selected]?.id}"]`)?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'c' && ordered[selected] && !ordered[selected].transfer) {
       e.preventDefault();
-      openPicker = items[selected].id;
+      openPicker = ordered[selected].id;
     }
   }
 </script>
@@ -206,6 +214,22 @@
 {:else if !loading && items.length === 0}
   <EmptyState icon="list-bullets" title={t('tx.empty')} />
 {:else}
+  {#snippet row(tx: Transaction, index: number, note?: string)}
+    <TransactionRow
+      {tx}
+      {note}
+      selected={selected === index}
+      expanded={selected === index}
+      bind:pickerOpen={() => openPicker === tx.id, (open) => (openPicker = open ? tx.id : null)}
+      oncategorize={onCategorize}
+      onconfirm={onConfirm}
+      onselect={() => (selected = selected === index ? -1 : index)}
+    >
+      {#snippet actions()}
+        <OwnTransferAction {tx} ondone={replace} />
+      {/snippet}
+    </TransactionRow>
+  {/snippet}
   <div class="list" role="table" aria-label={t('nav.transactions')}>
     {#each days as day (day.day)}
       <div class="day" role="rowgroup">
@@ -217,20 +241,20 @@
               signed
             />{/if}
         </div>
-        {#each day.items as { tx, index } (tx.id)}
-          <TransactionRow
-            {tx}
-            selected={selected === index}
-            expanded={selected === index}
-            bind:pickerOpen={() => openPicker === tx.id, (open) => (openPicker = open ? tx.id : null)}
-            oncategorize={onCategorize}
-            onconfirm={onConfirm}
-            onselect={() => (selected = selected === index ? -1 : index)}
-          >
-            {#snippet actions()}
-              <OwnTransferAction {tx} ondone={replace} />
-            {/snippet}
-          </TransactionRow>
+        {#each day.groups as group (group.legs[0].tx.id)}
+          {#if group.legs.length > 1}
+            <div class="pair" role="group" aria-label={t('tx.pair')} data-testid="transfer-pair">
+              {#each group.legs as { tx, index } (tx.id)}
+                {@render row(
+                  tx,
+                  index,
+                  tx.booked_on === day.day ? undefined : t('tx.bookedOn', { date: shortDate(tx.booked_on) }),
+                )}
+              {/each}
+            </div>
+          {:else}
+            {@render row(group.legs[0].tx, group.legs[0].index)}
+          {/if}
         {/each}
       </div>
     {/each}
@@ -305,6 +329,12 @@
   }
   .day-head span:first-letter {
     text-transform: uppercase;
+  }
+  .pair {
+    margin: 4px 0;
+    border-radius: 16px;
+    border: 1.5px solid color-mix(in oklch, var(--transfer) 30%, transparent);
+    background: color-mix(in oklch, var(--transfer) 5%, transparent);
   }
   .more {
     display: flex;

@@ -9,6 +9,7 @@
   import Button from '@coin-book/ui/Button.svelte';
   import { queue } from '#lib/queue.svelte.js';
   import TransferCounterparts from '#lib/TransferCounterparts.svelte';
+  import TransferOtherLeg from '#lib/TransferOtherLeg.svelte';
 
   type Props = {
     tx: Transaction;
@@ -120,10 +121,15 @@
     </div>
   </div>
 {:else if tx.transfer}
-  <Button variant="ghost" icon="pencil-simple" onclick={() => (picking = true)}
-    >{t('ownTransfer.change')}</Button
-  >
-  <Button variant="ghost" icon="x" {busy} onclick={undo}>{t('ownTransfer.undo')}</Button>
+  <div class="form">
+    <TransferOtherLeg {tx} />
+    <div class="actions">
+      <Button variant="ghost" icon="pencil-simple" onclick={() => (picking = true)}
+        >{t('ownTransfer.change')}</Button
+      >
+      <Button variant="ghost" icon="x" {busy} onclick={undo}>{t('ownTransfer.undo')}</Button>
+    </div>
+  </div>
 {:else if !open}
   <Button variant="ghost" icon="arrows-left-right" onclick={() => (picking = true)}
     >{t('ownTransfer.pairWith')}</Button
