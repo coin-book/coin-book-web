@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/coin-book/coin-book-web/compare/v1.6.0...v1.7.0) (2026-11-02)
+
+
+### Features
+
+* **web:** show where a payment went and its variable symbol in the transaction list ([bb92ad9](https://github.com/coin-book/coin-book-web/commit/bb92ad93684172c0a9dd586f875de3f97cc26a50))
+
 ## [1.6.0](https://github.com/coin-book/coin-book-web/compare/v1.5.0...v1.6.0) (2026-11-02)
 
 
