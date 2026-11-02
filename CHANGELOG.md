@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/coin-book/coin-book-web/compare/v1.5.0...v1.6.0) (2026-11-02)
+
+
+### Features
+
+* **web:** keep both legs of a transfer together and show the other leg and its rate ([eeba434](https://github.com/coin-book/coin-book-web/commit/eeba4349909ae2ec1d210be22d72bba5c7ae3871))
+
 ## [1.5.0](https://github.com/coin-book/coin-book-web/compare/v1.4.0...v1.5.0) (2026-11-01)
 
 
