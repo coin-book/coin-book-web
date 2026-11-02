@@ -65,6 +65,15 @@ test('transactions filter by search text', async ({ page }) => {
   await rows.first().click();
   await expect(page.getByText('Protistrana', { exact: true })).toBeVisible();
   await expect(page.getByText('Původ', { exact: true })).toBeVisible();
+
+  await page.getByLabel('Protistrana, popis nebo částka').fill('VYPLATA');
+  const salary = page.getByTestId('transaction-row').first();
+  await expect(salary).toContainText('19-2000000001/0800 Česká spořitelna → mKonto Demo');
+  await expect(salary).toContainText('VS 2026001');
+  await salary.locator('[data-tx]').click();
+  const details = salary.getByTestId('transaction-details');
+  await expect(details.getByText('Z účtu', { exact: true })).toBeVisible();
+  await expect(details.getByText('Na účet', { exact: true })).toBeVisible();
 });
 
 test('an agent token is shown once and listed afterwards', async ({ page }) => {

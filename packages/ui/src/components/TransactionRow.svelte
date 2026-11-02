@@ -70,7 +70,19 @@
       : op;
   }
   const ruleValue = $derived(tx.counterparty ?? null);
-  const counterpartyBank = $derived(taxonomy.bankOfNumber(tx.counterparty_account)?.short_name);
+  const otherSide = $derived.by(() => {
+    if (counterpart) return counterpart.name;
+    if (!tx.counterparty_account) return '';
+    const bank = taxonomy.bankOfNumber(tx.counterparty_account)?.short_name;
+    return bank ? `${tx.counterparty_account} ${bank}` : tx.counterparty_account;
+  });
+  const route = $derived.by(() => {
+    const own = showAccount ? (account?.name ?? '') : '';
+    if (!otherSide) return own;
+    const outgoing = tx.amount.minor < 0;
+    if (!own) return outgoing ? `→ ${otherSide}` : `← ${otherSide}`;
+    return outgoing ? `${own} → ${otherSide}` : `${otherSide} → ${own}`;
+  });
 </script>
 
 <div class="row-wrap" data-testid="transaction-row">
@@ -98,9 +110,9 @@
       <div class="title">{title}</div>
       <div class="meta">
         {#if subtitle}<span class="desc">{subtitle}</span>{/if}
-        {#if counterpartyBank}<span class="account">{counterpartyBank}</span>{/if}
-        {#if showAccount && account}<span class="account">{account.name}</span>{/if}
-        {#if note}<span class="account">{note}</span>{/if}
+        {#if route}<span class="route">{route}</span>{/if}
+        {#if tx.variable_symbol}<span class="symbol">VS {tx.variable_symbol}</span>{/if}
+        {#if note}<span class="symbol">{note}</span>{/if}
       </div>
     </div>
 
@@ -230,7 +242,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .account {
+  .route {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .symbol {
     flex: none;
   }
   .category {

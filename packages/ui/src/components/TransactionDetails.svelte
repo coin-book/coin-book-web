@@ -32,15 +32,30 @@
   // Revolut's "category" is the kind of operation, already shown as the operation type.
   const bankCategory = $derived(account?.institution === 'revolut' ? '' : (tx.bank_category ?? ''));
 
+  const otherSide = $derived(
+    tx.transfer
+      ? (taxonomy.accountsById.get(tx.transfer.counterpart_account_id)?.name ?? '')
+      : tx.counterparty_account
+        ? `${tx.counterparty_account}${bank ? `, ${bank.name}` : ''}`
+        : '',
+  );
+  // Compact rows sit next to the account already, so only the other side is named.
+  const route = $derived.by(() => {
+    const outgoing = tx.amount.minor < 0;
+    const own = compact ? '' : (account?.name ?? '');
+    const [from, to] = outgoing ? [own, otherSide] : [otherSide, own];
+    return [
+      [t('tx.fromAccount'), from],
+      [t('tx.toAccount'), to],
+    ];
+  });
+
   const rows = $derived(
     [
       [t('tx.counterparty'), tx.counterparty ?? ''],
       [t('tx.description'), tx.description !== tx.counterparty ? tx.description : ''],
       [t('tx.message'), tx.message ?? ''],
-      [
-        t('tx.counterpartyAccount'),
-        tx.counterparty_account ? `${tx.counterparty_account}${bank ? `, ${bank.name}` : ''}` : '',
-      ],
+      ...route,
       [t('tx.symbols'), symbols],
       [t('tx.operation'), operation(tx.operation_type)],
       [t('tx.bankCategory'), bankCategory],
@@ -55,7 +70,6 @@
         ? []
         : [
             [t('tx.date'), dayLabel(tx.booked_on, i18n.intlLocale)],
-            [t('tx.account'), account?.name ?? ''],
             [t('tx.origin'), t('tx.source', { line: tx.source_line })],
           ]),
     ].filter(([, value]) => value),
